@@ -33,6 +33,7 @@ def main(name: str) -> Summary:
     llm = ChatOpenAI(temperature=0)
     chain = LLMChain(llm=llm, prompt=prompt_template)
     response = chain.run(linkedin_info=linkedin_info, twitter_info=twitter_info)
+    print(response)
     return summary_parser.parse(response)
 
 
