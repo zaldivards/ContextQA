@@ -9,24 +9,31 @@ load_dotenv()
 # pylint: disable=C0413
 from agents.general import get_people_information
 from external.twitter import get_user_tweets
+from parsers.output import summary_parser, Summary
 
 
-def main(name: str) -> str:
+def main(name: str) -> Summary:
     template = """
     Given the Linkedin information {linkedin_info} and Twitter information {twitter_info} about a person, I want you to create:
 
     1. A short summary with only 5 words
     2. Two interesting facts about the person
     3. two ice breakers to start a conversation with them
+    \n
+    {format_instructions}
     """
     linkedin_info = get_people_information(name, "LinkedIn")
     twitter_user = get_people_information(name, "Twitter")
     twitter_info = get_user_tweets(username=twitter_user, num_tweets=10)
-    prompt_template = PromptTemplate(input_variables=["linkedin_info", "twitter_info"], template=template)
+    prompt_template = PromptTemplate(
+        input_variables=["linkedin_info", "twitter_info"],
+        template=template,
+        partial_variables={"format_instructions": summary_parser.get_format_instructions()},
+    )
     llm = ChatOpenAI(temperature=0)
     chain = LLMChain(llm=llm, prompt=prompt_template)
     response = chain.run(linkedin_info=linkedin_info, twitter_info=twitter_info)
-    return response
+    return summary_parser.parse(response)
 
 
 if __name__ == "__main__":
