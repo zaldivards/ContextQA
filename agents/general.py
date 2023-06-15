@@ -1,12 +1,22 @@
+from typing import Literal
+
 from langchain import PromptTemplate
 from langchain.agents import initialize_agent, load_tools
 from langchain.chat_models import ChatOpenAI
 
 
-def get_people_information(name: str):
-    template = """
-    Given the full name {name} I want you to search their linkedin data in google. Do it just once
-    """
+def get_people_information(name: str, social_media: Literal["LinkedIn", "Twitter"]):
+    if social_media == "LinkedIn":
+        template = """
+        Given the name {name} I want you to search their linkedin data in google. Do it just once and only once!
+        """
+    elif social_media == "Twitter":
+        template = """
+        Given the name {name} I want you to find a link to their Twitter profile page and extract from it their username.
+        Do it just once and only once!
+        
+        Your final answer will be only the person's username. You can use regex!
+        """
     llm = ChatOpenAI()
     tools = load_tools(["serpapi"], llm=llm)
     agent = initialize_agent(tools, llm=llm, verbose=True)
