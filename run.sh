@@ -10,7 +10,9 @@ build-docker(){
 }
 
 dockerized(){
-    build-docker
+    if [ "$1" == "--build" ]; then
+        build-docker
+    fi
     docker run --rm -v $current_path:/app llm-retriever python app.py "$@"
 }
 
