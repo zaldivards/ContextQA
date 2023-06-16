@@ -9,6 +9,8 @@ openai = "*"
 google-search-results = "*"
 tweepy = "*"
 python-dotenv = "*"
+scikit-learn = "*"
+tiktoken = "*"
 
 [dev-packages]
 black = "*"
