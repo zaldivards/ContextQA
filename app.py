@@ -1,18 +1,37 @@
 import sys
 
 from dotenv import load_dotenv
+from langchain import OpenAI, VectorDBQA
 from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
+from langchain.document_loaders import TextLoader
+from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.vectorstores import SKLearnVectorStore
 
 load_dotenv()
+
+
 # pylint: disable=C0413
 from agents.general import get_people_information
 from external.twitter import get_user_tweets
-from parsers.output import summary_parser, Summary
+from parsers.output import Summary, summary_parser
 
 
-def main(name: str) -> Summary:
+def query_document(file_: str):
+    loader = TextLoader(file_, encoding="utf-8")
+    document = loader.load()
+    splitter = CharacterTextSplitter(separator=".", chunk_size=100, chunk_overlap=0)
+    texts = splitter.split_documents(document)
+    embeddings_util = OpenAIEmbeddings()
+    store = SKLearnVectorStore.from_documents(texts, embeddings_util)
+    finder = VectorDBQA.from_chain_type(OpenAI(), vectorstore=store)
+    result = finder({"query": "what is langchain, give me a summary in 5 words"})
+    print(result)
+
+
+def seach_user_info(name: str) -> Summary:
     template = """
     Given the Linkedin information {linkedin_info} and Twitter information {twitter_info} about a person, I want you to create:
 
@@ -44,4 +63,5 @@ if __name__ == "__main__":
     except (IndexError, AssertionError):
         print("Please provide a valid name")
         sys.exit(1)
-    main(name_)
+    # seach_user_info(name_)
+    query_document(name_)
