@@ -8,7 +8,6 @@ from agents.general import get_people_information
 
 # from external.linkedin import get_linkedin_profile
 
-os.environ["OPENAI_API_KEY"] = "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"
 
 template = """
 Given the following information about a person:
