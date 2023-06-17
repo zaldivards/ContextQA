@@ -1,4 +1,5 @@
 from langchain import OpenAI, VectorDBQA
+from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import SKLearnVectorStore
@@ -20,9 +21,9 @@ def simple_scan(params: models.LLMQueryRequestBody) -> models.VectorScanResult:
         result found by the llm given the best context
     """
     splitter = CharacterTextSplitter(separator=params.separator, chunk_size=params.chunk_size, chunk_overlap=0)
-    texts = splitter.split_documents(params.content)
+    texts = splitter.split_documents([Document(page_content=params.content)])
     embeddings_util = OpenAIEmbeddings()
     store = SKLearnVectorStore.from_documents(texts, embeddings_util)
     finder = VectorDBQA.from_chain_type(OpenAI(), vectorstore=store)
-    result = finder({"query": "what is langchain, give me a summary in 10 words"})
+    result = finder({"query": params.query})
     return models.VectorScanResult(**result)

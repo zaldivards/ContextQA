@@ -14,6 +14,7 @@ class VectorScanResult(BaseModel):
 
 
 class LLMQueryRequestBody(BaseModel):
-    content: str = Field(description="The whole content of the 'context'", min_length=500)
+    query: str = Field(description="The query we want the llm to respond", min_length=10)
+    content: str = Field(..., description="The whole content of the 'context'", min_length=500)
     separator: str = Field(description="Separator to use for the text splitting", default=".")
     chunk_size: int = Field(description="size of each splitted chunk", default=100)
