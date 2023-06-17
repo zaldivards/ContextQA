@@ -1,6 +1,6 @@
 # LLM data retriever
 
-Basic project powered by LLMs to automatically retrieve linkedin and twitter information
+Basic project powered by LLMs to retrieve certain information
 
 ## Setup
 
@@ -17,7 +17,7 @@ Basic project powered by LLMs to automatically retrieve linkedin and twitter inf
 ## Usage
 
 ```bash
-bash run.sh dockerized [--build] "SOME NAME"
+bash run.sh dockerized [--build]
 ```
 
 You should use the `--build` flag when it is the first execution or you want to rebuild the docker image

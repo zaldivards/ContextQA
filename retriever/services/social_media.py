@@ -1,18 +1,25 @@
-import sys
-
-from dotenv import load_dotenv
 from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 
-load_dotenv()
-# pylint: disable=C0413
-from agents.general import get_people_information
-from external.twitter import get_user_tweets
-from parsers.output import summary_parser, Summary
+from retriever.agents.general import get_people_information
+from retriever.external.twitter import get_user_tweets
+from retriever.parsers.models import Summary
+from retriever.parsers.output import summary_parser
 
 
-def main(name: str) -> Summary:
+def seach_user_info(name: str) -> Summary:
+    """Search linkedin and twitter data for a person
+
+    Parameters
+    ----------
+    name : str
+        person name
+
+    Returns
+    -------
+    Summary
+    """
     template = """
     Given the Linkedin information {linkedin_info} and Twitter information {twitter_info} about a person, I want you to create:
 
@@ -33,15 +40,4 @@ def main(name: str) -> Summary:
     llm = ChatOpenAI(temperature=0)
     chain = LLMChain(llm=llm, prompt=prompt_template)
     response = chain.run(linkedin_info=linkedin_info, twitter_info=twitter_info)
-    print(response)
     return summary_parser.parse(response)
-
-
-if __name__ == "__main__":
-    try:
-        name_ = sys.argv[1]
-        assert len(name_) > 3
-    except (IndexError, AssertionError):
-        print("Please provide a valid name")
-        sys.exit(1)
-    main(name_)

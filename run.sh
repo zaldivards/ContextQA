@@ -1,7 +1,8 @@
 current_path="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+command_="uvicorn main:app --host 0.0.0.0 --port 8080 --reload"
 
 local(){
-    python app.py "$@"
+    exec $command_
 }
 
 build-docker(){
@@ -13,7 +14,7 @@ dockerized(){
     if [ "$1" == "--build" ]; then
         build-docker
     fi
-    docker run --rm -v $current_path:/app llm-retriever python app.py "$@"
+    docker run --rm -p 8080:8080 -v $current_path:/app llm-retriever $command_
 }
 
 "$@"
