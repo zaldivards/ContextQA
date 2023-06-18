@@ -22,8 +22,8 @@ class LLMQueryRequestBodyBase(BaseModel):
 
 
 class LLMQueryDocumentRequestBody(LLMQueryRequestBodyBase):
-    similarity_processor: str = Literal["local", "pinecone"]
+    similarity_processor: Literal["local", "pinecone"]
 
 
 class LLMQueryTextRequestBody(LLMQueryRequestBodyBase):
-    content: str = Field(..., description="The whole content of the 'context'", min_length=500)
+    content: str = Field(description="The whole content of the 'context'", min_length=500)

@@ -32,4 +32,4 @@ def query_document(params: models.LLMQueryDocumentRequestBody, document: UploadF
         raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
 
 
-app.include_router(router, prefix="context-query", tags="Queries with context")
+app.include_router(router, prefix="/context-query", tags=["Queries with context"])
