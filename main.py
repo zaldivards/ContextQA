@@ -1,10 +1,9 @@
-from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
-
-load_dotenv()
+from fastapi import APIRouter, FastAPI, HTTPException, Query, UploadFile
 
 # pylint: disable=C0413
 from retriever import models, social_media, vector
+
+router = APIRouter()
 
 app = FastAPI(title="LLM Retriever", openapi_url="/openapi.json", docs_url="/docs", redoc_url="/redoc")
 
@@ -17,9 +16,20 @@ def get_user_info(name: str = Query(min_length=4)):
         raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
 
 
-@app.post("/context-query", response_model=models.VectorScanResult)
-def query_llm(params: models.LLMQueryRequestBody):
+@router.post("", response_model=models.VectorScanResult)
+def query_text(params: models.LLMQueryTextRequestBody):
     try:
         return vector.simple_scan(params)
     except Exception as ex:
         raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
+
+
+@router.post("/document", response_model=models.VectorScanResult)
+def query_document(params: models.LLMQueryDocumentRequestBody, document: UploadFile):
+    try:
+        return vector.document_scan(params, document.file)
+    except Exception as ex:
+        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
+
+
+app.include_router(router, prefix="context-query", tags="Queries with context")
