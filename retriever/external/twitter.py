@@ -1,12 +1,11 @@
-import os
-
 import tweepy
 
+from retriever import settings
+
+settings = settings()
+
 auth = tweepy.OAuthHandler(
-    os.getenv("TWITTER_API_KEY"),
-    os.getenv("TWITTER_API_SECRET"),
-    os.getenv("TWITTER_ACCESS_TOKEN"),
-    os.getenv("TWITTER_ACCESS_SECRET"),
+    settings.twitter_api_key, settings.twitter_api_secret, settings.twitter_access_token, settings.twitter_api_secret
 )
 
 api = tweepy.API(auth)
