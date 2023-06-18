@@ -8,11 +8,11 @@ langchain = "*"
 openai = "*"
 google-search-results = "*"
 tweepy = "*"
-python-dotenv = "*"
 scikit-learn = "*"
 tiktoken = "*"
 fastapi = "*"
 uvicorn = "*"
+python-multipart = "*"
 
 [dev-packages]
 black = "*"
