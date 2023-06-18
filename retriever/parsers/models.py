@@ -1,4 +1,6 @@
 # pylint: disable=E0611
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -13,8 +15,15 @@ class VectorScanResult(BaseModel):
     result: str
 
 
-class LLMQueryRequestBody(BaseModel):
+class LLMQueryRequestBodyBase(BaseModel):
     query: str = Field(description="The query we want the llm to respond", min_length=10)
-    content: str = Field(..., description="The whole content of the 'context'", min_length=500)
     separator: str = Field(description="Separator to use for the text splitting", default=".")
     chunk_size: int = Field(description="size of each splitted chunk", default=100)
+
+
+class LLMQueryDocumentRequestBody(LLMQueryRequestBodyBase):
+    similarity_processor: str = Literal["local", "pinecone"]
+
+
+class LLMQueryTextRequestBody(LLMQueryRequestBodyBase):
+    content: str = Field(..., description="The whole content of the 'context'", min_length=500)
