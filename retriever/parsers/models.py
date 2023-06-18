@@ -1,7 +1,12 @@
 # pylint: disable=E0611
-from typing import Literal
+from enum import Enum
 
 from pydantic import BaseModel, Field
+
+
+class SimilarityProcessor(str, Enum):
+    LOCAL = "local"
+    PINECONE = "pinecone"
 
 
 class Summary(BaseModel):
@@ -22,7 +27,7 @@ class LLMQueryRequestBodyBase(BaseModel):
 
 
 class LLMQueryDocumentRequestBody(LLMQueryRequestBodyBase):
-    similarity_processor: Literal["local", "pinecone"]
+    similarity_processor: SimilarityProcessor
 
 
 class LLMQueryTextRequestBody(LLMQueryRequestBodyBase):
