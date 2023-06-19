@@ -18,8 +18,7 @@ class Summary(BaseModel):
 
 
 class VectorScanResult(BaseModel):
-    query: str
-    result: str
+    response: str
 
 
 class LLMQueryRequestBodyBase(BaseModel):

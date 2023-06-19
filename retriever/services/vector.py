@@ -36,7 +36,7 @@ def simple_scan(params: models.LLMQueryTextRequestBody) -> models.VectorScanResu
     store = SKLearnVectorStore.from_documents(texts, embeddings_util)
     finder = RetrievalQA.from_chain_type(OpenAI(), retriever=store.as_retriever())
     result = finder.run(params.query)
-    return models.VectorScanResult(**result)
+    return models.VectorScanResult(response=result)
 
 
 def document_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO) -> models.VectorScanResult:
@@ -61,7 +61,7 @@ def document_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO
     store = processor_params.clazz.from_documents(texts, embeddings_util, **processor_params.kwargs)
     finder = RetrievalQA.from_chain_type(OpenAI(), retriever=store.as_retriever())
     result = finder.run(params.query)
-    return models.VectorScanResult(**result)
+    return models.VectorScanResult(response=result)
 
 
 def pdf_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO) -> models.VectorScanResult:
@@ -80,7 +80,7 @@ def pdf_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO) -> 
         result found by the llm given the best context
     """
     # the temp file is needed to properly load the pdf file using the `PyPDFLoader` class
-    with NamedTemporaryFile(mode="w") as temp:
+    with NamedTemporaryFile(mode="wb") as temp:
         temp.write(document.read())
         loader = PyPDFLoader(temp.name)
         documents = loader.load()
@@ -91,4 +91,4 @@ def pdf_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO) -> 
     store = processor_params.clazz.from_documents(texts, embeddings_util, **processor_params.kwargs)
     finder = RetrievalQA.from_chain_type(OpenAI(), retriever=store.as_retriever())
     result = finder.run(params.query)
-    return models.VectorScanResult(**result)
+    return models.VectorScanResult(response=result)
