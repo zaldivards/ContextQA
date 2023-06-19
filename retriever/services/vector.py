@@ -1,7 +1,7 @@
 from tempfile import NamedTemporaryFile
 from typing import BinaryIO
 
-from langchain import OpenAI, VectorDBQA
+from langchain import OpenAI
 from langchain.chains import RetrievalQA
 from langchain.docstore.document import Document
 from langchain.document_loaders import PyPDFLoader
@@ -34,8 +34,8 @@ def simple_scan(params: models.LLMQueryTextRequestBody) -> models.VectorScanResu
     texts = splitter.split_documents([Document(page_content=params.content)])
     embeddings_util = OpenAIEmbeddings()
     store = SKLearnVectorStore.from_documents(texts, embeddings_util)
-    finder = VectorDBQA.from_chain_type(OpenAI(), vectorstore=store)
-    result = finder({"query": params.query})
+    finder = RetrievalQA.from_chain_type(OpenAI(), retriever=store.as_retriever())
+    result = finder.run(params.query)
     return models.VectorScanResult(**result)
 
 
@@ -59,8 +59,8 @@ def document_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO
     embeddings_util = OpenAIEmbeddings()
     processor_params = _VECTORSTORE[params.similarity_processor]
     store = processor_params.clazz.from_documents(texts, embeddings_util, **processor_params.kwargs)
-    finder = VectorDBQA.from_chain_type(OpenAI(), vectorstore=store)
-    result = finder({"query": params.query})
+    finder = RetrievalQA.from_chain_type(OpenAI(), retriever=store.as_retriever())
+    result = finder.run(params.query)
     return models.VectorScanResult(**result)
 
 
@@ -89,6 +89,6 @@ def pdf_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO) -> 
     embeddings_util = OpenAIEmbeddings()
     processor_params = _VECTORSTORE[params.similarity_processor]
     store = processor_params.clazz.from_documents(texts, embeddings_util, **processor_params.kwargs)
-    finder = VectorDBQA.from_chain_type(OpenAI(), vectorstore=store)
-    result = finder({"query": params.query})
+    finder = RetrievalQA.from_chain_type(OpenAI(), retriever=store.as_retriever())
+    result = finder.run(params.query)
     return models.VectorScanResult(**result)
