@@ -1,6 +1,8 @@
 # pylint: disable=E0611
 from enum import Enum
+from typing import Type
 
+from langchain.vectorstores.base import VectorStore
 from pydantic import BaseModel, Field
 
 
@@ -32,3 +34,8 @@ class LLMQueryDocumentRequestBody(LLMQueryRequestBodyBase):
 
 class LLMQueryTextRequestBody(LLMQueryRequestBodyBase):
     content: str = Field(description="The whole content of the 'context'", min_length=500)
+
+
+class VectorStoreParams(BaseModel):
+    clazz: Type[VectorStore]
+    kwargs: dict[str, any] = Field(default_factory=lambda: {})
