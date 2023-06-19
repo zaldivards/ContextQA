@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f3fb1a807869482af2c7e99298aea2c6cda3404bab4b1dfc0f709094568483c2"
+            "sha256": "2ff3e51f427ff03d08d582ab8a03f63b80402f6f2f95d30a07881fcc2a642f1d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -433,19 +433,19 @@
         },
         "langchain": {
             "hashes": [
-                "sha256:2226f60ed059dd8dd858dcadcf2ad22bf0c8ba35dcc572d4b4ac8088486c963f",
-                "sha256:de667ef840c81e6f638a1409ca58f6a7db0cc7b81a4ad83bba3d7ff1d5bfe095"
+                "sha256:1ea8cfa641a1fc5dbc40d543f4b4fe6f308d0db6460ffb24267f434789bde30d",
+                "sha256:f6423dcc95d6feaa5e78aeaedd6e1b3ef7a03be0a02c2508dffaab26c83ae858"
             ],
             "index": "pypi",
-            "version": "==0.0.203"
+            "version": "==0.0.204"
         },
         "langchainplus-sdk": {
             "hashes": [
-                "sha256:4f810b38df74a99d01e5723e653da02f05df3ee922971cccabc365d00c33dbf6",
-                "sha256:6ea4013a92a4c33a61d22deb49620577c592a79ee44038b2c751032a71cbc7b6"
+                "sha256:e50679309a31d9526f467aa13d4dbcfba0dc00a295cea72ffcc9972865ecac1b",
+                "sha256:fbe3482ffe253e439ec8386a2904594a875b590e29e4adcbd938452a69a6c7c6"
             ],
             "markers": "python_version < '4.0' and python_full_version >= '3.8.1'",
-            "version": "==0.0.10"
+            "version": "==0.0.11"
         },
         "marshmallow": {
             "hashes": [
@@ -690,6 +690,14 @@
             ],
             "markers": "python_version >= '3.7'",
             "version": "==1.10.9"
+        },
+        "pypdf": {
+            "hashes": [
+                "sha256:af28f36eeb5bcde26b4f9db9cc9df00610e8e5904d997e3141132e7768ff9247",
+                "sha256:bc15457f1f9767532d51546300a9226f745fee8d9acf626fcfcf42af77ad342c"
+            ],
+            "index": "pypi",
+            "version": "==3.10.0"
         },
         "python-multipart": {
             "hashes": [

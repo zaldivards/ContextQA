@@ -13,6 +13,7 @@ tiktoken = "*"
 fastapi = "*"
 uvicorn = "*"
 python-multipart = "*"
+pypdf = "*"
 
 [dev-packages]
 black = "*"
