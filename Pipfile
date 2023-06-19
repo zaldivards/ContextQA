@@ -14,6 +14,7 @@ fastapi = "*"
 uvicorn = "*"
 python-multipart = "*"
 pypdf = "*"
+pinecone-client = "*"
 
 [dev-packages]
 black = "*"
