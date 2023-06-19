@@ -1,13 +1,13 @@
 # pylint: disable=E0611
 from enum import Enum
-from typing import Type
+from typing import Any, Type
 
 from langchain.vectorstores.base import VectorStore
 from pydantic import BaseModel, Field
 
 
 class SimilarityProcessor(str, Enum):
-    LOCAL = "local"
+    SKLEARN = "sklearn"
     PINECONE = "pinecone"
 
 
@@ -38,4 +38,4 @@ class LLMQueryTextRequestBody(LLMQueryRequestBodyBase):
 
 class VectorStoreParams(BaseModel):
     clazz: Type[VectorStore]
-    kwargs: dict[str, any] = Field(default_factory=lambda: {})
+    kwargs: dict[str, Any] = Field(default_factory=lambda: {})
