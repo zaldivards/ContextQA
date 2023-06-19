@@ -28,7 +28,7 @@ class LLMQueryRequestBodyBase(BaseModel):
 
 
 class LLMQueryDocumentRequestBody(LLMQueryRequestBodyBase):
-    similarity_processor: SimilarityProcessor
+    similarity_processor: SimilarityProcessor = SimilarityProcessor.SKLEARN
 
 
 class LLMQueryTextRequestBody(LLMQueryRequestBodyBase):

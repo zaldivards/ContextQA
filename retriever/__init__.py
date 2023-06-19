@@ -12,6 +12,7 @@ class AppSettings(BaseSettings):
     twitter_api_secret: str
     pinecone_token: str = ""
     pinecone_index: str = ""
+    pinecone_environment_region: str = ""
 
 
 @lru_cache()

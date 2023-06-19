@@ -1,6 +1,7 @@
 from tempfile import NamedTemporaryFile
 from typing import BinaryIO
 
+import pinecone
 from langchain import OpenAI
 from langchain.chains import RetrievalQA
 from langchain.docstore.document import Document
@@ -11,9 +12,11 @@ from langchain.vectorstores import Pinecone, SKLearnVectorStore
 
 from retriever import models, settings
 
+settings_ = settings()
+
 _VECTORSTORE = {
     "sklearn": models.VectorStoreParams(clazz=SKLearnVectorStore),
-    "pinecone": models.VectorStoreParams(clazz=Pinecone, kwargs={"index_name": settings().pinecone_index}),
+    "pinecone": models.VectorStoreParams(clazz=Pinecone, kwargs={"index_name": settings_.pinecone_index}),
 }
 
 
@@ -80,6 +83,8 @@ def pdf_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO) -> 
         result found by the llm given the best context
     """
     # the temp file is needed to properly load the pdf file using the `PyPDFLoader` class
+    if params.similarity_processor == models.SimilarityProcessor.PINECONE:
+        pinecone.init(api_key=settings_.pinecone_token, environment=settings_.pinecone_environment_region)
     with NamedTemporaryFile(mode="wb") as temp:
         temp.write(document.read())
         loader = PyPDFLoader(temp.name)
