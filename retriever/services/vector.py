@@ -40,7 +40,7 @@ def simple_scan(params: models.LLMQueryTextRequestBody) -> models.VectorScanResu
 
 
 def document_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO) -> models.VectorScanResult:
-    """Query the llm providing the best context found in the given document
+    """Query the llm providing the best context found in the given pdf
 
     Parameters
     ----------
@@ -65,14 +65,14 @@ def document_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO
 
 
 def pdf_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO) -> models.VectorScanResult:
-    """Query the llm providing the best context found in the given document
+    """Query the bot about the pdf content
 
     Parameters
     ----------
     params : models.LLMQueryDocumentRequestBody
         params from the api request
     document : BinaryIO
-        document from the api request
+        pdf document from the api request
 
     Returns
     -------
