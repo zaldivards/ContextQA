@@ -6,9 +6,12 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import Pinecone, SKLearnVectorStore
 
-from retriever import models
+from retriever import models, settings
 
-_VECTORSTORE = {"local": SKLearnVectorStore, "pinecone": Pinecone}
+_VECTORSTORE = {
+    "sklearn": models.VectorStoreParams(clazz=SKLearnVectorStore),
+    "pinecone": models.VectorStoreParams(clazz=Pinecone, kwargs={"index_name": settings().pinecone_index}),
+}
 
 
 def simple_scan(params: models.LLMQueryTextRequestBody) -> models.VectorScanResult:
@@ -51,7 +54,8 @@ def document_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO
     splitter = CharacterTextSplitter(separator=params.separator, chunk_size=params.chunk_size, chunk_overlap=0)
     texts = splitter.split_documents([Document(page_content=document.read())])
     embeddings_util = OpenAIEmbeddings()
-    store = _VECTORSTORE[params.similarity_processor].from_documents(texts, embeddings_util)
+    processor_params = _VECTORSTORE[params.similarity_processor]
+    store = processor_params.clazz.from_documents(texts, embeddings_util, **processor_params.kwargs)
     finder = VectorDBQA.from_chain_type(OpenAI(), vectorstore=store)
     result = finder({"query": params.query})
     return models.VectorScanResult(**result)
