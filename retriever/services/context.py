@@ -5,7 +5,6 @@ from typing import BinaryIO, Optional
 
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
-from langchain.docstore.document import Document
 from langchain.document_loaders import PyPDFLoader, TextLoader
 from langchain.document_loaders.base import BaseLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -54,18 +53,20 @@ class LLMContextManager(ABC):
             chunk_size=params.chunk_size, chunk_overlap=params.chunk_overlap, separators=["\n\n", "\n", "."]
         )
         texts = splitter.split_documents(documents)
-        return self.persist(texts, filename)
+        return texts
 
     @abstractmethod
-    def persist(self, documents: list[Document], filename: str) -> models.VectorScanResult:
+    def persist(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> models.VectorScanResult:
         """Persist the embedded documents
 
         Parameters
         ----------
-        documents : list[Document]
-            the preprocessed file content
         filename : str
-            name of the file. It will be used as identifier
+            Name of the file to load
+        params : models.LLMRequestBodyBase
+            api parameters
+        file_ : BinaryIO
+            file for which to save context
 
         Returns
         -------
@@ -117,7 +118,8 @@ class LocalManager(LLMContextManager):
     """Local manager implementation. It uses `SKLearnVectorStore` as its processor and the context is persisted as a
     parquet file"""
 
-    def persist(self, documents: list[Document], filename: str) -> models.VectorScanResult:
+    def persist(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> models.VectorScanResult:
+        documents = self.load_and_preprocess(filename, params, file_)
         embeddings_util = OpenAIEmbeddings()
         processor = SKLearnVectorStore.from_documents(
             documents, embeddings_util, persist_path=str(LOCAL_STORE_HOME / filename), serializer="parquet"
