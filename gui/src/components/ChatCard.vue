@@ -30,7 +30,7 @@
               class="date w-max justify-content-end text-xs"
               :class="isUser ? 'text-white-alpha-70' : 'text-gray-700'"
             >
-              2023-06-19 00:00:00
+              {{ dateStr }}
             </div>
           </template>
         </Card>
@@ -60,6 +60,11 @@ export default {
   computed: {
     isUser() {
       return this.role == "user";
+    },
+    dateStr() {
+      const now = new Date();
+      const [date, time] = now.toISOString().split("T");
+      return `${date} ${time.slice(0, -5)}`;
     },
   },
 };
