@@ -1,7 +1,7 @@
 from fastapi import APIRouter, FastAPI, Form, HTTPException, Query, UploadFile
 
 # pylint: disable=C0413
-from retriever import models, social_media, vector
+from retriever import context, models, social_media, vector
 
 router = APIRouter()
 
@@ -55,6 +55,30 @@ def query_pdf(
         return vector.pdf_scan(
             models.LLMQueryDocumentRequestBody(
                 query=query, separator=separator, chunk_size=chunk_size, similarity_processor=similarity_processor
+            ),
+            document.file,
+        )
+    except Exception as ex:
+        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
+
+
+@router.post("/set", response_model=models.VectorScanResult)
+def set_context(
+    document: UploadFile,
+    separator: str = Form(default="."),
+    chunk_size: int = Form(default=100),
+    chunk_overlap: int = Form(default=50),
+    similarity_processor: models.SimilarityProcessor = Form(default="local"),
+):
+    try:
+        context_setter = context.get_setter(similarity_processor)
+        # pylint: disable=E1102
+        return context_setter(
+            document.filename,
+            models.LLMRequestBodyBase(
+                separator=separator,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
             ),
             document.file,
         )

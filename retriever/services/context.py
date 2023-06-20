@@ -41,7 +41,6 @@ def context_setter(func):
 # pylint: disable=W0613
 @context_setter
 def local_context(filename: str, params: models.LLMRequestBodyBase, document: BinaryIO, **kwargs):
-    breakpoint()
     embeddings_util = OpenAIEmbeddings()
     store = SKLearnVectorStore.from_documents(
         kwargs["documents"], embeddings_util, persist_path=str(LOCAL_STORE_HOME / filename), serializer="parquet"
