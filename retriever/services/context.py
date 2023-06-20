@@ -109,7 +109,8 @@ class LLMContextManager(ABC):
             The final response of the LLM
         """
         context_util = self.context_object(filename)
-        qa_chain = RetrievalQA.from_chain_type(llm=ChatOpenAI(), retriever=context_util.as_retriever())
+        llm = ChatOpenAI(verbose=True, temperature=0)
+        qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=context_util.as_retriever())
         result = qa_chain.run(question)
         return models.VectorScanResult(response=result)
 
@@ -120,9 +121,11 @@ class LocalManager(LLMContextManager):
 
     def persist(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> models.VectorScanResult:
         documents = self.load_and_preprocess(filename, params, file_)
+        db_path = LOCAL_STORE_HOME / filename
+        db_path.parent.mkdir(exist_ok=True, parents=True)
         embeddings_util = OpenAIEmbeddings()
         processor = SKLearnVectorStore.from_documents(
-            documents, embeddings_util, persist_path=str(LOCAL_STORE_HOME / filename), serializer="parquet"
+            documents, embeddings_util, persist_path=str(db_path.with_suffix(".parquet")), serializer="parquet"
         )
         processor.persist()
         return models.VectorScanResult(response="success")
@@ -130,7 +133,9 @@ class LocalManager(LLMContextManager):
     def context_object(self, filename: Optional[str] = None) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
         processor = SKLearnVectorStore(
-            embedding=embeddings_util, persist_path=str(LOCAL_STORE_HOME / filename), serializer="parquet"
+            embedding=embeddings_util,
+            persist_path=str((LOCAL_STORE_HOME / filename).with_suffix(".parquet")),
+            serializer="parquet",
         )
         return processor
 

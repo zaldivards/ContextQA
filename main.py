@@ -90,7 +90,7 @@ def set_context(
 
 
 @context_router.get("/query", response_model=models.VectorScanResult)
-def query(question: str, processor: models.SimilarityProcessor, identifier: Optional[str] = None):
+def query_llm(question: str, processor: models.SimilarityProcessor, identifier: Optional[str] = None):
     try:
         context_setter = context.get_setter(processor)
         # pylint: disable=E1102
