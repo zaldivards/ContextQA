@@ -22,23 +22,27 @@
 
       <div class="flex flex-column gap-2">
         <label for="chunkSize">Chunk size</label>
-        <InputText
+        <InputNumber
           class="block mb-2 p-inputtext-lg w-max"
           v-model="chunkSize"
-          type="text"
+          inputId="integeronly"
           placeholder="Chunk size, default 200"
+          :min="0"
+          :max="1000"
           id="chunkSize"
         />
       </div>
 
       <div class="flex flex-column gap-2">
         <label for="overlap">Overlap</label>
-        <InputText
+        <InputNumber
           class="block outline-none mb-2 p-inputtext-lg w-max"
+          inputId="integeronly"
           v-model="overlap"
-          type="text"
           placeholder="Chunk overlap, default 0"
           id="overlap"
+          :min="0"
+          :max="200"
         />
       </div>
     </div>
@@ -49,6 +53,7 @@
       :loading="loading"
       icon="pi pi-check"
       @click="setContext"
+      :disabled="nullData"
     />
   </form>
 </template>
@@ -56,11 +61,12 @@
 <script>
 import FileUpload from "primevue/fileupload";
 import InputText from "primevue/inputtext";
+import InputNumber from "primevue/inputnumber";
 import Button from "primevue/button";
 
 export default {
   name: "ContextManager",
-  components: { FileUpload, InputText, Button },
+  components: { FileUpload, InputText, Button, InputNumber },
   data() {
     return {
       uploadedFile: null,
@@ -68,6 +74,16 @@ export default {
       chunkSize: 200,
       overlap: 0,
     };
+  },
+  computed: {
+    nullData() {
+      return (
+        this.uploadedFile === null ||
+        !this.separator ||
+        this.chunkSize === null ||
+        this.overlap === null
+      );
+    },
   },
   methods: {
     setContext() {
