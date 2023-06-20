@@ -16,7 +16,15 @@
           class="field col shadow-none"
           :class="isUser ? ['bg-teal-500', 'text-white'] : 'bg-bluegray-100'"
         >
-          <template #content> Otro test </template>
+          <template #content>
+            <!-- <ProgressSpinner
+              style="width: 50px; height: 50px"
+              strokeWidth="8"
+              animationDuration="2s"
+              aria-label="Custom ProgressSpinner"
+            /> -->
+            {{ content }}
+          </template>
           <template #footer>
             <div
               class="date w-max justify-content-end text-xs"
@@ -38,23 +46,19 @@
     </div>
     <div class="field col" v-if="isUser"></div>
   </div>
-
-  <!-- <div class="flex flex-wrap" :class="isUser"> -->
-
-  <!-- </div> -->
 </template>
 
 <script>
 import Card from "primevue/card";
 import Avatar from "primevue/avatar";
+import ProgressSpinner from "primevue/progressspinner";
 
 export default {
   name: "ChatCard",
-  props: ["role"],
+  props: { role: String, content: String },
   components: { Card, Avatar },
   computed: {
     isUser() {
-      console.log(this.role);
       return this.role == "user";
     },
   },
@@ -62,7 +66,4 @@ export default {
 </script>
 
 <style>
-.date {
-  /* border-bottom: 0.5px solid rgb(17, 176, 182); */
-}
 </style>

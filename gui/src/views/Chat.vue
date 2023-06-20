@@ -4,33 +4,45 @@
       header="Chat-someID"
       class="w-9 max-h-screen m-auto overflow-y-scroll"
     >
-      <span class="p-float-label mt-2">
-        <InputText class="mt-2 mb-4" id="question" v-model="value" />
-        <label for="question">Ask me a question</label>
-      </span>
-      <ChatCard :role="'user'"></ChatCard>
-      <ChatCard :role="'bot'"></ChatCard>
-      <ChatCard :role="'user'"></ChatCard>
-      <ChatCard :role="'bot'"></ChatCard>
-      <ChatCard :role="'user'"></ChatCard>
-      <ChatCard :role="'bot'"></ChatCard>
-      <ChatCard :role="'user'"></ChatCard>
-      <ChatCard :role="'bot'"></ChatCard>
-      <ChatCard :role="'user'"></ChatCard>
-      <ChatCard :role="'bot'"></ChatCard>
-      <ChatCard :role="'user'"></ChatCard>
+      <MessageAdder @send="pushMessages" />
+      <ChatCard
+        :key="i"
+        v-for="(message, i) in messages"
+        :role="message.role"
+        :content="message.content"
+      ></ChatCard>
     </Panel>
   </div>
 </template>
 
 <script>
 import Panel from "primevue/panel";
-import InputText from "primevue/inputtext";
 import ChatCard from "../components/ChatCard.vue";
+import MessageAdder from "../components/MessageAdder.vue";
 
 export default {
   name: "ChatContainer",
-  components: { Panel, ChatCard, InputText },
+  components: { Panel, ChatCard, MessageAdder },
+  data() {
+    return { messages: [] };
+  },
+  methods: {
+    async askLLM(question) {
+      const response = await fetch(
+        "api/query-llm" +
+          new URLSearchParams({
+            question: question,
+            processor: "local",
+            identifier: "",
+          })
+      );
+      const data = await response.json();
+      return data.response;
+    },
+    pushMessages(message) {
+      this.messages = [...this.messages, { content: message, role: "user" }];
+    },
+  },
 };
 </script>
 
