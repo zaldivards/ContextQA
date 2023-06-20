@@ -1,6 +1,7 @@
 <template>
   <form @submit.prevent="setContext" class="w-7 m-5">
     <FileUpload
+      @remove="() => (this.uploadedFile = null)"
       accept=".pdf,.txt"
       :maxFileSize="100000000"
       @select="handleFileSelect"
