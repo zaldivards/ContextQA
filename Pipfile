@@ -15,6 +15,8 @@ uvicorn = "*"
 python-multipart = "*"
 pypdf = "*"
 pinecone-client = "*"
+pandas = "*"
+pyarrow = "*"
 
 [dev-packages]
 black = "*"

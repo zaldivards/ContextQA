@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 
 class SimilarityProcessor(str, Enum):
-    SKLEARN = "sklearn"
+    LOCAL = "local"
     PINECONE = "pinecone"
 
 
@@ -21,17 +21,21 @@ class VectorScanResult(BaseModel):
     response: str
 
 
-class LLMQueryRequestBodyBase(BaseModel):
-    query: str = Field(description="The query we want the llm to respond", min_length=10)
+class LLMRequestBodyBase(BaseModel):
     separator: str = Field(description="Separator to use for the text splitting", default=".")
     chunk_size: int = Field(description="size of each splitted chunk", default=100)
+    chunk_overlap: int = 50
 
 
-class LLMQueryDocumentRequestBody(LLMQueryRequestBodyBase):
-    similarity_processor: SimilarityProcessor = SimilarityProcessor.SKLEARN
+class LLMQueryRequestBody(LLMRequestBodyBase):
+    query: str = Field(description="The query we want the llm to respond", min_length=10)
 
 
-class LLMQueryTextRequestBody(LLMQueryRequestBodyBase):
+class LLMQueryDocumentRequestBody(LLMQueryRequestBody):
+    similarity_processor: SimilarityProcessor = SimilarityProcessor.LOCAL
+
+
+class LLMQueryTextRequestBody(LLMQueryRequestBody):
     content: str = Field(description="The whole content of the 'context'", min_length=500)
 
 

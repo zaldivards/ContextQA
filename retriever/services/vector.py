@@ -15,7 +15,7 @@ from retriever import models, settings
 settings_ = settings()
 
 _VECTORSTORE = {
-    "sklearn": models.VectorStoreParams(clazz=SKLearnVectorStore),
+    "local": models.VectorStoreParams(clazz=SKLearnVectorStore),
     "pinecone": models.VectorStoreParams(clazz=Pinecone, kwargs={"index_name": settings_.pinecone_index}),
 }
 
