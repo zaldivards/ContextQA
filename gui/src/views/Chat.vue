@@ -1,12 +1,22 @@
 <template>
-  <div class="justify-content-center m-auto">
+  <div class="justify-content-center m-auto z-5">
     <Toast />
 
     <Panel
+      ref="panel"
+      class="w-9 m-auto my-5 scroll-panel chat-height overflow-y-scroll"
       :header="`Chat-${identifier}`"
-      class="w-9 max-h-screen m-auto overflow-y-scroll"
+      :pt="{
+        header: {
+          class: 'bg-primary',
+          style: 'position: sticky !important; top: 0 !important;z-index: 5',
+        },
+        footer: {
+          style:
+            'position: sticky !important; bottom: 0 !important;border-top: 1px solid #eee;',
+        },
+      }"
     >
-      <MessageAdder @send="pushMessages" />
       <ChatCard
         :key="i"
         v-for="(message, i) in messages"
@@ -14,15 +24,19 @@
         :idx="i"
         :content="message.content"
       ></ChatCard>
+
+      <template #footer>
+        <MessageAdder @send="pushMessages" ref="adder" />
+      </template>
     </Panel>
   </div>
 </template>
 
 <script>
 import Panel from "primevue/panel";
+import Toast from "primevue/toast";
 import ChatCard from "@/components/ChatCard.vue";
 import MessageAdder from "@/components/MessageAdder.vue";
-import Toast from "primevue/toast";
 
 import { askLLM, showError } from "@/utils/client";
 
@@ -31,6 +45,7 @@ export default {
   components: { Panel, ChatCard, MessageAdder, Toast },
   created() {
     this.messages = this.$store.state.messages;
+    this.autoScroll();
   },
   data() {
     return { messages: [] };
@@ -38,9 +53,7 @@ export default {
   methods: {
     ask(question) {
       this.$store.dispatch("activateSpinner", true);
-      let botMessage = { content: "", role: "bot" };
-      this.$store.dispatch("setMessage", botMessage);
-      this.messages = [...this.messages, botMessage];
+      this.addMessage({ content: "", role: "bot" });
 
       askLLM("/api/context/query", {
         question: question,
@@ -49,6 +62,7 @@ export default {
       })
         .then((result) => {
           this.$store.dispatch("setLastMessage", result);
+          this.autoScroll();
         })
         .catch((error) => {
           this.$store.dispatch(
@@ -58,13 +72,25 @@ export default {
 
           showError("The LLM server did not process the message properly");
           this.$store.dispatch("activateSpinner", false);
+          this.autoScroll();
         });
     },
     pushMessages(message) {
-      let userMessage = { content: message, role: "user" };
-      this.messages = [...this.messages, userMessage];
-      this.$store.dispatch("setMessage", userMessage);
+      this.addMessage({ content: message, role: "user" });
       this.ask(message);
+    },
+    autoScroll() {
+      this.$nextTick(() => {
+        setTimeout(() => {
+          let container = this.$refs.panel.$el;
+          container.scrollTop = container.scrollHeight;
+        }, 100);
+      });
+    },
+    addMessage(message) {
+      this.messages = [...this.messages, message];
+      this.$store.dispatch("setMessage", message);
+      this.autoScroll();
     },
   },
   computed: {
@@ -75,5 +101,9 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+.chat-height {
+  height: auto !important;
+  max-height: 45rem !important;
+}
 </style>
