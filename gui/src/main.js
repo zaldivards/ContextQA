@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+import store from './store'
+
 
 import PrimeVue from 'primevue/config';
 import ToastService from 'primevue/toastservice';
@@ -13,4 +15,4 @@ import '/node_modules/primeflex/primeflex.css'
 
 export const app = createApp(App);
 
-app.use(PrimeVue).use(router).use(ToastService).mount('#app');
+app.use(PrimeVue).use(store).use(router).use(ToastService).mount('#app');
