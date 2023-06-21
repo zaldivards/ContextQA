@@ -1,6 +1,6 @@
 <template>
   <div class="mt-2">
-    <InputText
+    <Textarea
       class="mt-1 mb-2 w-5"
       id="question"
       @keyup.enter="sendQuestion"
@@ -11,18 +11,20 @@
 </template>
 
 <script>
-import InputText from "primevue/inputtext";
+import Textarea from "primevue/textarea";
 
 export default {
   name: "MessageAdder",
-  components: { InputText },
+  components: { Textarea },
   data() {
     return { question: "" };
   },
   methods: {
-    sendQuestion() {
-      this.$emit("send", this.question);
-      this.question = "";
+    sendQuestion(evt) {
+      if (!evt.shiftKey) {
+        this.$emit("send", this.question);
+        this.question = "";
+      }
     },
   },
 };
