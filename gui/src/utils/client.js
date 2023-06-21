@@ -15,6 +15,20 @@ export async function setContext(url, data) {
         body: formData
     }
     );
+    if (!response.ok)
+        throw new Error("Response was not successful")
+    const json_ = await response.json();
+    console.log(json_)
+    return json_.response;
+}
+
+export async function askLLM(url, params) {
+    const response = await fetch(
+        url + "?" +
+        new URLSearchParams(params)
+    );
+    if (!response.ok)
+        throw new Error("Response was not successful")
     const json_ = await response.json();
     console.log(json_)
     return json_.response;
