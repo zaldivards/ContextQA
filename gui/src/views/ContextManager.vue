@@ -119,6 +119,7 @@ export default {
     },
     handleFileSelect(evt) {
       this.uploadedFile = evt.files[0];
+      this.$store.dispatch("setIdentifier", this.uploadedFile.name);
     },
   },
 };

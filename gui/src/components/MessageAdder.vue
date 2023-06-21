@@ -22,6 +22,7 @@ export default {
   methods: {
     sendQuestion() {
       this.$emit("send", this.question);
+      this.question = "";
     },
   },
 };

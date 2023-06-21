@@ -1,7 +1,9 @@
 <template>
   <div class="justify-content-center m-auto">
+    <Toast />
+
     <Panel
-      header="Chat-someID"
+      :header="`Chat-${identifier}`"
       class="w-9 max-h-screen m-auto overflow-y-scroll"
     >
       <MessageAdder @send="pushMessages" />
@@ -17,30 +19,40 @@
 
 <script>
 import Panel from "primevue/panel";
-import ChatCard from "../components/ChatCard.vue";
-import MessageAdder from "../components/MessageAdder.vue";
+import ChatCard from "@/components/ChatCard.vue";
+import MessageAdder from "@/components/MessageAdder.vue";
+import Toast from "primevue/toast";
+
+import { askLLM, showError } from "@/utils/client";
 
 export default {
   name: "ChatContainer",
-  components: { Panel, ChatCard, MessageAdder },
+  components: { Panel, ChatCard, MessageAdder, Toast },
   data() {
     return { messages: [] };
   },
   methods: {
-    async askLLM(question) {
-      const response = await fetch(
-        "api/query-llm" +
-          new URLSearchParams({
-            question: question,
-            processor: "local",
-            identifier: "",
-          })
-      );
-      const data = await response.json();
-      return data.response;
+    ask(question) {
+      askLLM("/api/context/query", {
+        question: question,
+        processor: "local",
+        identifier: this.$store.state.identifier,
+      })
+        .then((result) => {
+          this.messages.push({ content: result, role: "bot" });
+        })
+        .catch((error) => {
+          showError("The LLM server did not process the message properly");
+        });
     },
     pushMessages(message) {
       this.messages = [...this.messages, { content: message, role: "user" }];
+      this.ask(message);
+    },
+  },
+  computed: {
+    identifier() {
+      return this.$store.state.identifier;
     },
   },
 };
