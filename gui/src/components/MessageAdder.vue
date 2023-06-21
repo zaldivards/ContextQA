@@ -1,13 +1,13 @@
 <template>
-  <span class="p-float-label mt-2">
+  <div class="mt-2">
     <InputText
-      class="mt-2 mb-4"
+      class="mt-1 mb-2 w-5"
       id="question"
       @keyup.enter="sendQuestion"
       v-model="question"
+      placeholder="Ask me a question"
     />
-    <label for="question">Ask me a question</label>
-  </span>
+  </div>
 </template>
 
 <script>
