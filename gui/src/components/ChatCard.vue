@@ -2,13 +2,6 @@
   <div class="formgrid grid mx-7">
     <div class="field col" v-if="!isUser"></div>
     <div class="field col">
-      <!-- <ProgressSpinner
-        v-if="activate"
-        style="width: 50px; height: 50px"
-        strokeWidth="1"
-        animationDuration="1s"
-        aria-label="Custom ProgressSpinner"
-      /> -->
       <ProgressBar
         mode="indeterminate"
         style="height: 1px"
@@ -62,13 +55,24 @@
 <script>
 import Card from "primevue/card";
 import Avatar from "primevue/avatar";
-// import ProgressSpinner from "primevue/progressspinner";
 import ProgressBar from "primevue/progressbar";
 
 export default {
   name: "ChatCard",
   props: { role: String, content: String, idx: Number },
   components: { Card, Avatar, ProgressBar },
+  data() {
+    return {
+      lastMessageLocal: "",
+    };
+  },
+  methods: {
+    setAlternativeContent() {
+      if (!this.lastMessageLocal) {
+        this.lastMessageLocal = this.$store.state.lastMessageText;
+      }
+    },
+  },
   computed: {
     isUser() {
       return this.role == "user";
@@ -86,7 +90,8 @@ export default {
       );
     },
     contentStored() {
-      return this.isUser ? this.content : this.$store.state.lastMessageText;
+      this.setAlternativeContent();
+      return this.isUser ? this.content : this.lastMessageLocal;
     },
   },
 };
