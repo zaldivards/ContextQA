@@ -21,7 +21,6 @@ export default createStore({
             state.lastMessageText = payload
             state.messages.at(-1).content = payload
             state.showSpinner = false
-            console.log(state);
         }
     },
     actions: {

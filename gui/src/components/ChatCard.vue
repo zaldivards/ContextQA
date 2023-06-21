@@ -2,7 +2,19 @@
   <div class="formgrid grid mx-7">
     <div class="field col" v-if="!isUser"></div>
     <div class="field col">
-      <div class="formgrid grid" :class="isUser ? 'w-max' : ''">
+      <!-- <ProgressSpinner
+        v-if="activate"
+        style="width: 50px; height: 50px"
+        strokeWidth="1"
+        animationDuration="1s"
+        aria-label="Custom ProgressSpinner"
+      /> -->
+      <ProgressBar
+        mode="indeterminate"
+        style="height: 1px"
+        v-if="activate"
+      ></ProgressBar>
+      <div class="formgrid grid" :class="isUser ? 'w-max' : ''" v-else>
         <Avatar
           icon="pi pi-user"
           class="user-card"
@@ -12,18 +24,17 @@
           shape="circle"
           v-if="isUser"
         />
+
         <Card
-          class="field col shadow-none"
-          :class="isUser ? ['bg-teal-500', 'text-white'] : 'bg-bluegray-100'"
+          class="field col shadow-none animation-duration-300"
+          :class="
+            isUser
+              ? ['bg-teal-500', 'fadeinleft', 'text-white']
+              : ['bg-bluegray-100', 'fadeinright']
+          "
         >
           <template #content>
-            <!-- <ProgressSpinner
-              style="width: 50px; height: 50px"
-              strokeWidth="8"
-              animationDuration="2s"
-              aria-label="Custom ProgressSpinner"
-            /> -->
-            {{ content }}
+            {{ contentStored }}
           </template>
           <template #footer>
             <div
@@ -51,12 +62,13 @@
 <script>
 import Card from "primevue/card";
 import Avatar from "primevue/avatar";
-import ProgressSpinner from "primevue/progressspinner";
+// import ProgressSpinner from "primevue/progressspinner";
+import ProgressBar from "primevue/progressbar";
 
 export default {
   name: "ChatCard",
-  props: { role: String, content: String },
-  components: { Card, Avatar },
+  props: { role: String, content: String, idx: Number },
+  components: { Card, Avatar, ProgressBar },
   computed: {
     isUser() {
       return this.role == "user";
@@ -65,6 +77,16 @@ export default {
       const now = new Date();
       const [date, time] = now.toISOString().split("T");
       return `${date} ${time.slice(0, -5)}`;
+    },
+    activate() {
+      return (
+        this.$store.state.showSpinner &&
+        !this.isUser &&
+        this.$store.state.messages.length - this.idx <= 2
+      );
+    },
+    contentStored() {
+      return this.isUser ? this.content : this.$store.state.lastMessageText;
     },
   },
 };

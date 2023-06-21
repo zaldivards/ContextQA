@@ -15,8 +15,10 @@ export async function setContext(url, data) {
         body: formData
     }
     );
-    if (!response.ok)
+    if (!response.ok) {
+        console.log(await response.json());
         throw new Error("Response was not successful")
+    }
     const json_ = await response.json();
     console.log(json_)
     return json_.response;
