@@ -2,7 +2,7 @@ import { createStore } from 'vuex'
 
 export default createStore({
     state: {
-        identifier: "Test",
+        identifier: "",
         messages: [],
         showSpinner: false,
         lastMessageText: ''
