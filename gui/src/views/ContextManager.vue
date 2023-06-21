@@ -2,7 +2,7 @@
   <div>
     <Toast />
     <form @submit.prevent="postData" class="w-7 m-5">
-      <div :class="loading ? ['opacity-50', 'disabled'] : ''">
+      <div :class="disabled ? ['opacity-50', 'disabled'] : ''">
         <FileUpload
           @remove="() => (this.uploadedFile = null)"
           accept=".pdf,.txt"
@@ -57,7 +57,7 @@
         label="Submit"
         icon="pi pi-check"
         @click="postData"
-        :disabled="nullData"
+        :disabled="nullData || disabled"
         :loading="loading"
       />
     </form>
@@ -82,6 +82,7 @@ export default {
       chunkSize: 200,
       overlap: 0,
       loading: false,
+      disabled: false,
     };
   },
   computed: {
@@ -97,6 +98,7 @@ export default {
   methods: {
     postData() {
       this.loading = true;
+      this.disabled = true;
       setContext("api/context/set", {
         separator: this.separator,
         chunkSize: this.chunkSize,
@@ -105,6 +107,7 @@ export default {
       })
         .then((result) => {
           console.log(result);
+          this.$store.dispatch("setIdentifier", this.uploadedFile.name);
           showSuccess(
             "Context set successfully, redirecting to the chat session"
           );
@@ -115,11 +118,11 @@ export default {
           console.log(error);
           showError("Something went wrong: " + error.message);
           this.loading = false;
+          this.disabled = false;
         });
     },
     handleFileSelect(evt) {
       this.uploadedFile = evt.files[0];
-      this.$store.dispatch("setIdentifier", this.uploadedFile.name);
     },
   },
 };
