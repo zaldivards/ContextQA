@@ -22,6 +22,11 @@ export default {
         {
           label: "Home",
           icon: "pi pi-fw pi-home",
+          command: () => this.$router.push({ path: "/" }),
+        },
+        {
+          label: "Chat",
+          icon: "pi pi-comments",
           command: () => this.$router.push({ path: "/chat" }),
         },
         {

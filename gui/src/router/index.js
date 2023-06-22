@@ -1,9 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import ChatContainer from "../views/Chat.vue"
-import ContextManager from "../views/ContextManager"
+import ChatContainer from "@/views/Chat.vue"
+import ContextManager from "@/views/ContextManager"
+import Home from "@/views/Home"
+
 
 
 const routes = [
+    {
+        path: '/',
+        name: 'home',
+        component: Home
+    },
     {
         path: '/chat',
         name: 'chat',
