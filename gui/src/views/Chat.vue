@@ -1,5 +1,8 @@
 <template>
-  <div class="justify-content-center m-auto z-5">
+  <div
+    class="justify-content-center m-auto z-5"
+    :class="identifier ? '' : ['opacity-50', 'disabled']"
+  >
     <Toast />
 
     <Panel
@@ -38,11 +41,18 @@ import Toast from "primevue/toast";
 import ChatCard from "@/components/ChatCard.vue";
 import MessageAdder from "@/components/MessageAdder.vue";
 
-import { askLLM, showError } from "@/utils/client";
+import { askLLM, showError, showInfo } from "@/utils/client";
 
 export default {
   name: "ChatContainer",
   components: { Panel, ChatCard, MessageAdder, Toast },
+  mounted() {
+    if (!this.identifier) {
+      showInfo(
+        "You need to set the document context in the settings section to initialize a chat"
+      );
+    }
+  },
   created() {
     this.messages = this.$store.state.messages;
     this.autoScroll();

@@ -128,8 +128,5 @@ export default {
 };
 </script>
 
-<style scoped>
-.disabled {
-  pointer-events: none;
-}
+<style>
 </style>

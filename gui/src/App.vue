@@ -37,4 +37,7 @@ export default {
 body {
   font-family: "Poppins", sans-serif;
 }
+.disabled {
+  pointer-events: none;
+}
 </style>
