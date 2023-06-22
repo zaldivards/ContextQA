@@ -27,7 +27,7 @@
           "
         >
           <template #content>
-            {{ contentStored }}
+            <div v-html="contentStored"></div>
           </template>
           <template #footer>
             <div
@@ -69,8 +69,25 @@ export default {
   methods: {
     setAlternativeContent() {
       if (!this.lastMessageLocal) {
-        this.lastMessageLocal = this.$store.state.lastMessageText;
+        this.lastMessageLocal =
+          this.$store.state.lastMessageText ?? this.content;
       }
+    },
+    formatCode(message) {
+      const formattedText = message
+        .replaceAll(/(?<=```)(?!\n{2})[^`]+(?=```)/g, (match, offset, text) => {
+          match = match.trim();
+          const lines = match.split("\n");
+          if (lines.length > 1) {
+            match = lines.slice(1).join("\n");
+          }
+          return `<code class='text-yellow-600 bg-black-alpha-70 p-3 w-auto block'>${match}</code>`;
+        })
+        .replaceAll("```", "")
+        .replaceAll(/(?<=`)(?![\s.])[^`]+(?=`)/g, (match, offset, text) => {
+          return `<code class='text-yellow-600 bg-black-alpha-70 p-1 w-min'>${match}</code>`;
+        });
+      return formattedText.replaceAll("`", "");
     },
   },
   computed: {
@@ -91,7 +108,10 @@ export default {
     },
     contentStored() {
       this.setAlternativeContent();
-      return this.isUser ? this.content : this.lastMessageLocal;
+      if (this.isUser) {
+        return this.content;
+      }
+      return this.formatCode(this.lastMessageLocal);
     },
   },
 };
