@@ -1,6 +1,10 @@
 <template>
   <div>
-    <Menubar :model="items" class="m-auto sticky z-4" />
+    <Menubar :model="items" class="m-auto sticky z-4">
+      <template #start>
+        <img alt="logo" src="@/assets/logo.png" height="40" class="mr-2" />
+      </template>
+    </Menubar>
     <router-view />
   </div>
 </template>
