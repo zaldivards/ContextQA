@@ -7,7 +7,7 @@
         style="height: 1px"
         v-if="activate"
       ></ProgressBar>
-      <div class="formgrid grid" :class="isUser ? 'w-max' : ''" v-else>
+      <div class="formgrid grid" :class="isUser ? 'max-w-max' : ''" v-else>
         <Avatar
           icon="pi pi-user"
           class="user-card"
@@ -19,7 +19,7 @@
         />
 
         <Card
-          class="field col shadow-none animation-duration-300"
+          class="field col shadow-none animation-duration-300 breakline-ok"
           :class="
             isUser
               ? ['bg-teal-500', 'fadeinleft', 'text-white']
@@ -97,5 +97,8 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+.breakline-ok {
+  white-space: pre-wrap;
+}
 </style>
