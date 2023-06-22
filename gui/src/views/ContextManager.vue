@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Toast />
+    <Toast class="z-5" />
     <form @submit.prevent="postData" class="w-7 m-5">
       <div :class="disabled ? ['opacity-50', 'disabled'] : ''">
         <FileUpload
@@ -115,7 +115,7 @@ export default {
         })
         .catch((error) => {
           console.log(error);
-          showError("Something went wrong: " + error.message);
+          showError(error.message);
           this.loading = false;
           this.disabled = false;
         });

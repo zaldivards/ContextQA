@@ -1,9 +1,9 @@
 <template>
   <div
-    class="justify-content-center m-auto z-5"
+    class="justify-content-center m-auto"
     :class="identifier ? '' : ['opacity-50', 'disabled']"
   >
-    <Toast />
+    <Toast class="z-5" />
 
     <Panel
       ref="panel"
@@ -12,7 +12,7 @@
       :pt="{
         header: {
           class: 'bg-primary',
-          style: 'position: sticky !important; top: 0 !important;z-index: 4',
+          style: 'position: sticky !important; top: 0 !important;z-index: 3',
         },
         footer: {
           style:
@@ -41,14 +41,14 @@ import Toast from "primevue/toast";
 import ChatCard from "@/components/ChatCard.vue";
 import MessageAdder from "@/components/MessageAdder.vue";
 
-import { askLLM, showError, showInfo } from "@/utils/client";
+import { askLLM, showError, showWarning } from "@/utils/client";
 
 export default {
   name: "ChatContainer",
   components: { Panel, ChatCard, MessageAdder, Toast },
   mounted() {
     if (!this.identifier) {
-      showInfo(
+      showWarning(
         "You need to set the document context in the settings section to initialize a chat"
       );
     }
