@@ -39,5 +39,6 @@ body {
 }
 .disabled {
   pointer-events: none;
+  outline: none;
 }
 </style>
