@@ -1,6 +1,18 @@
 import { ToastSeverity } from 'primevue/api';
 import { app } from '@/main';
 
+
+async function handleResponse(res) {
+    const responseText = await res.text()
+    if (responseText.includes('ECONNREFUSED'))
+        throw new Error("The server refused the connection")
+    else {
+        console.log(responseText);
+        return "Something went wrong in the server"
+    }
+}
+
+
 export async function setContext(url, data) {
     const formData = new FormData()
     formData.append('separator', data.separator)
@@ -15,10 +27,8 @@ export async function setContext(url, data) {
         body: formData
     }
     );
-    if (!response.ok) {
-        console.log(await response.json());
-        throw new Error("Response was not successful")
-    }
+    if (!response.ok)
+        return handleResponse(response)
     const json_ = await response.json();
     return json_.response;
 }
@@ -29,9 +39,9 @@ export async function askLLM(url, params) {
         new URLSearchParams(params)
     );
     if (!response.ok)
-        throw new Error("Response was not successful")
+        return handleResponse(response)
+
     const json_ = await response.json();
-    console.log(json_)
     return json_.response;
 }
 
@@ -45,5 +55,9 @@ export const showInfo = (message) => {
 };
 
 export const showError = (message) => {
-    app.config.globalProperties.$toast.add({ severity: ToastSeverity.ERROR, summary: 'Error', detail: message, life: 3000 });
+    app.config.globalProperties.$toast.add({ severity: ToastSeverity.ERROR, summary: 'Error', detail: message, life: 10000 });
+};
+
+export const showWarning = (message, life = 30000) => {
+    app.config.globalProperties.$toast.add({ severity: ToastSeverity.WARN, summary: 'Warning', detail: message, life: life });
 };
