@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Menubar :model="items" class="m-auto sticky" />
+    <Menubar :model="items" class="m-auto sticky z-5" />
     <router-view />
   </div>
 </template>

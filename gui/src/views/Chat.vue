@@ -12,7 +12,7 @@
       :pt="{
         header: {
           class: 'bg-primary',
-          style: 'position: sticky !important; top: 0 !important;z-index: 5',
+          style: 'position: sticky !important; top: 0 !important;z-index: 4',
         },
         footer: {
           style:
