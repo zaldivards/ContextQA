@@ -18,8 +18,12 @@ export default createStore({
             state.showSpinner = payload
         },
         updateLastMessage(state, payload) {
-            state.lastMessageText = payload
-            state.messages.at(-1).content = payload
+
+            state.lastMessageText = payload.content
+            if (!payload.isInit) {
+                state.messages.pop()
+                state.messages.push({ content: payload.content, role: 'bot' })
+            }
             state.showSpinner = false
         }
     },

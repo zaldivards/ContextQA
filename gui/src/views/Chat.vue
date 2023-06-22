@@ -8,7 +8,7 @@
     <Panel
       ref="panel"
       class="w-9 m-auto my-5 scroll-panel chat-height overflow-y-scroll"
-      :header="`Chat-${identifier}`"
+      :header="`Context: ${identifier ?? 'None'}`"
       :pt="{
         header: {
           class: 'bg-primary',
@@ -55,6 +55,7 @@ export default {
   },
   created() {
     this.messages = this.$store.state.messages;
+    this.$store.dispatch("setLastMessage", { isInit: true, content: null });
     this.autoScroll();
   },
   data() {
@@ -71,7 +72,10 @@ export default {
         identifier: this.$store.state.identifier,
       })
         .then((result) => {
-          this.$store.dispatch("setLastMessage", result);
+          this.$store.dispatch("setLastMessage", {
+            isInit: false,
+            content: result,
+          });
           this.autoScroll();
         })
         .catch((error) => {
