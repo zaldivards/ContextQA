@@ -20,7 +20,6 @@ export async function setContext(url, data) {
         throw new Error("Response was not successful")
     }
     const json_ = await response.json();
-    console.log(json_)
     return json_.response;
 }
 

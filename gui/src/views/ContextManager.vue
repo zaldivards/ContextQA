@@ -106,7 +106,6 @@ export default {
         file: this.uploadedFile,
       })
         .then((result) => {
-          console.log(result);
           this.$store.dispatch("setIdentifier", this.uploadedFile.name);
           showSuccess(
             "Context set successfully, redirecting to the chat session"
