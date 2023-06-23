@@ -1,5 +1,7 @@
 <template>
   <div class="m-6 justify-content-center">
+    <ConfirmDialog></ConfirmDialog>
+
     <Toast class="z-5" />
     <form @submit.prevent="postData" class="w-7 m-auto">
       <div :class="disabled ? ['opacity-50', 'disabled'] : ''">
@@ -68,25 +70,56 @@
         type="button"
         label="Submit"
         icon="pi pi-check"
-        @click="postData"
+        @click="postData(doPost)"
         :disabled="nullData || disabled"
         :loading="loading"
       />
     </form>
   </div>
 </template>
+<script setup>
+import { useConfirm } from "primevue/useconfirm";
+import { useStore } from "vuex";
+const confirm = useConfirm();
+const store = useStore();
+function postData(postFunction) {
+  if (store.state.vectorStore) {
+    confirm.require({
+      message: "Are you sure you want to replace the context?",
+      header: "Confirmation",
+      icon: "pi pi-exclamation-triangle",
+      accept: () => {
+        postFunction();
+      },
+    });
+  } else {
+    postFunction();
+  }
+}
+</script>
 
 <script>
+import ConfirmDialog from "primevue/confirmdialog";
 import FileUpload from "primevue/fileupload";
 import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
 import Button from "primevue/button";
 import Toast from "primevue/toast";
+import Dropdown from "primevue/dropdown";
+
 import { setContext, showSuccess, showError } from "@/utils/client";
 
 export default {
   name: "ContextManager",
-  components: { FileUpload, InputText, Button, InputNumber, Toast, Dropdown },
+  components: {
+    FileUpload,
+    InputText,
+    Button,
+    InputNumber,
+    Toast,
+    Dropdown,
+    ConfirmDialog,
+  },
   data() {
     return {
       uploadedFile: null,
@@ -111,7 +144,7 @@ export default {
     },
   },
   methods: {
-    postData() {
+    doPost() {
       this.loading = true;
       this.disabled = true;
 
