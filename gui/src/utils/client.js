@@ -4,12 +4,9 @@ import { app } from '@/main';
 
 async function handleResponse(res) {
     const responseText = await res.text()
-    if (responseText.includes('ECONNREFUSED'))
-        throw new Error("The server refused the connection")
-    else {
-        console.log(responseText);
-        return "Something went wrong in the server"
-    }
+    console.log(responseText);
+    const errorMessage = responseText.includes('ECONNREFUSED') ? "The server refused the connection" : "The LLM server did not process the message properly"
+    throw new Error(errorMessage)
 }
 
 
@@ -28,7 +25,7 @@ export async function setContext(url, data) {
     }
     );
     if (!response.ok)
-        return handleResponse(response)
+        await handleResponse(response)
     const json_ = await response.json();
     return json_.response;
 }
@@ -39,7 +36,7 @@ export async function askLLM(url, params) {
         new URLSearchParams(params)
     );
     if (!response.ok)
-        return handleResponse(response)
+        await handleResponse(response)
 
     const json_ = await response.json();
     return json_.response;

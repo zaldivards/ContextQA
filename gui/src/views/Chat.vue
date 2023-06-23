@@ -79,12 +79,12 @@ export default {
           this.autoScroll();
         })
         .catch((error) => {
-          this.$store.dispatch(
-            "setLastMessage",
-            "I am having connection issues, my apologies. Try again later."
-          );
+          this.$store.dispatch("setLastMessage", {
+            content: "I am having issues, my apologies. Try again later.",
+            role: "bot",
+          });
 
-          showError("The LLM server did not process the message properly");
+          showError(error.message);
           this.$store.dispatch("activateSpinner", false);
           this.autoScroll();
         });
