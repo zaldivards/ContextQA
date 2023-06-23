@@ -2,7 +2,13 @@
   <div>
     <Menubar :model="items" class="m-auto sticky z-4">
       <template #start>
-        <img alt="logo" src="@/assets/logo.png" height="40" class="mr-2" />
+        <img
+          alt="logo"
+          src="@/assets/logo.png"
+          height="40"
+          class="mr-2"
+          title="ContextQA"
+        />
       </template>
       <template #end>
         <span class="font-semibold text-xl">{{ context }}</span>
