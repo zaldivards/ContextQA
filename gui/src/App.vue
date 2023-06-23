@@ -4,6 +4,9 @@
       <template #start>
         <img alt="logo" src="@/assets/logo.png" height="40" class="mr-2" />
       </template>
+      <template #end>
+        <span class="font-semibold text-xl">{{ context }}</span>
+      </template>
     </Menubar>
     <router-view />
   </div>
@@ -36,6 +39,11 @@ export default {
         },
       ],
     };
+  },
+  computed: {
+    context() {
+      return `Context: ${this.$store.state.identifier ?? "None"}`;
+    },
   },
 };
 </script>
