@@ -5,11 +5,14 @@ export default createStore({
         identifier: "",
         messages: [],
         showSpinner: false,
-        lastMessageText: ''
+        lastMessageText: '',
+        vectorStore: ''
     },
     mutations: {
-        updateIdentifier(state, payload) {
-            state.identifier = payload;
+        updateApiParams(state, payload) {
+            state.identifier = payload.identifier;
+            state.vectorStore = payload.vectorStore;
+
         },
         updateMessages(state, payload) {
             state.messages.push(payload)
@@ -28,8 +31,8 @@ export default createStore({
         }
     },
     actions: {
-        setIdentifier({ commit }, payload) {
-            commit('updateIdentifier', payload);
+        setApiParams({ commit }, payload) {
+            commit('updateApiParams', payload);
         },
         setMessage({ commit }, payload) {
             commit('updateMessages', payload);

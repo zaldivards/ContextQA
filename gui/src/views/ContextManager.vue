@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <div class="m-6 justify-content-center">
     <Toast class="z-5" />
-    <form @submit.prevent="postData" class="w-7 m-5">
+    <form @submit.prevent="postData" class="w-7 m-auto">
       <div :class="disabled ? ['opacity-50', 'disabled'] : ''">
         <FileUpload
           @remove="() => (this.uploadedFile = null)"
@@ -13,11 +13,11 @@
           :multiple="false"
           :pt="{ badge: { style: 'display: none !important' } }"
         />
-        <div class="my-4">
-          <div class="flex flex-column gap-2">
-            <label for="username">Separator</label>
+        <div class="my-4 grid w-9">
+          <div class="col-6">
+            <label for="separator">Separator</label>
             <InputText
-              class="block mb-2 p-inputtext-lg w-auto max-w-max"
+              class="block my-2 p-inputtext-lg w-auto max-w-max"
               v-model="separator"
               type="text"
               placeholder="Text separator, default '.'"
@@ -25,10 +25,10 @@
             />
           </div>
 
-          <div class="flex flex-column gap-2">
+          <div class="col-6">
             <label for="chunkSize">Chunk size</label>
             <InputNumber
-              class="block mb-2 p-inputtext-lg w-max"
+              class="block my-2 p-inputtext-lg w-max"
               v-model="chunkSize"
               inputId="integeronly"
               placeholder="Chunk size, default 200"
@@ -38,10 +38,10 @@
             />
           </div>
 
-          <div class="flex flex-column gap-2">
+          <div class="col-6">
             <label for="overlap">Overlap</label>
             <InputNumber
-              class="block outline-none mb-2 p-inputtext-lg w-max"
+              class="block outline-none my-2 p-inputtext-lg w-max"
               inputId="integeronly"
               v-model="overlap"
               placeholder="Chunk overlap, default 0"
@@ -49,6 +49,18 @@
               :min="0"
               :max="200"
             />
+          </div>
+          <div class="col-6">
+            <label for="store">Vector store</label>
+            <div class="vertical-justify-center">
+              <Dropdown
+                v-model="selectedStore"
+                :options="stores"
+                placeholder="Choose a vector store"
+                class="my-2 p-inputtext-lg w-max"
+                id="store"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -74,7 +86,7 @@ import { setContext, showSuccess, showError } from "@/utils/client";
 
 export default {
   name: "ContextManager",
-  components: { FileUpload, InputText, Button, InputNumber, Toast },
+  components: { FileUpload, InputText, Button, InputNumber, Toast, Dropdown },
   data() {
     return {
       uploadedFile: null,
@@ -83,6 +95,8 @@ export default {
       overlap: 0,
       loading: false,
       disabled: false,
+      selectedStore: "Local",
+      stores: ["Local", "Pinecone"],
     };
   },
   computed: {
@@ -91,7 +105,8 @@ export default {
         this.uploadedFile === null ||
         !this.separator ||
         this.chunkSize === null ||
-        this.overlap === null
+        this.overlap === null ||
+        !this.selectedStore
       );
     },
   },
@@ -99,6 +114,7 @@ export default {
     postData() {
       this.loading = true;
       this.disabled = true;
+
       setContext("api/context/set", {
         separator: this.separator,
         chunkSize: this.chunkSize,
@@ -106,7 +122,10 @@ export default {
         file: this.uploadedFile,
       })
         .then((result) => {
-          this.$store.dispatch("setIdentifier", this.uploadedFile.name);
+          this.$store.dispatch("setApiParams", {
+            identifier: this.uploadedFile.name,
+            vectorStore: this.selectedStore.toLowerCase(),
+          });
           showSuccess(
             "Context set successfully, redirecting to the chat session"
           );
@@ -127,5 +146,9 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+.vertical-justify-center {
+  display: flex;
+  align-items: flex-end;
+}
 </style>
