@@ -35,7 +35,7 @@
             <a
               href="https://github.com/zaldivards/llm-retriever/tree/dev"
               class="text-teal-300 no-underline"
-              title="Visit github"
+              title="Go to repo"
               target="_blank"
               >Github</a
             >.
@@ -50,7 +50,7 @@
 <script>
 import Card from "primevue/card";
 export default {
-  name: "SiteHome",
+  name: "HomeSite",
   components: { Card },
 };
 </script>
