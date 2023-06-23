@@ -1,8 +1,12 @@
-# LLM data retriever
+<p  style="display: flex;align-items: center;">
+   <img src="static/logo.png" width="5%" alt="SuperAGI logo" />
+   <span style="font-size: 40px; padding-left: 10px;">QueryMan</span>
+</p>
 
-Basic project powered by LLMs to retrieve certain information
+<p style="font-size: 20px">Open-source utility to query documents by leveraging the power of LLMs and vector databases</p>
 
-## Setup
+## ⚙️ Setting up
+---
 
 1. Install docker
 2. Set the following envs in a `.env` file
@@ -14,7 +18,8 @@ Basic project powered by LLMs to retrieve certain information
    - TWITTER_ACCESS_TOKEN
    - TWITTER_ACCESS_SECRET
 
-## Usage
+## 💻 Usage
+---
 
 ```bash
 bash run.sh dockerized [--build]
