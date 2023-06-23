@@ -1,6 +1,6 @@
 <p  style="display: flex;align-items: center;">
    <img src="static/logo.png" width="5%" alt="SuperAGI logo" />
-   <span style="font-size: 40px; padding-left: 10px;">QueryMan</span>
+   <span style="font-size: 40px; padding-left: 10px;">ContextQA</span>
 </p>
 
 <p style="font-size: 20px">Open-source utility to query documents by leveraging the power of LLMs and vector databases</p>

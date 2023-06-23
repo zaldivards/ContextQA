@@ -11,7 +11,7 @@
       >
         <template #content>
           <p class="w-8 m-auto p-2">
-            Hi! <span class="text-teal-300">QueryMan</span> is a tool that
+            Hi! <span class="text-teal-300">ContextQA</span> is a tool that
             leverages the power of LLMs and it allows you to query any document
             you set. This version supports
             <span class="font-semibold">pdf</span> and
