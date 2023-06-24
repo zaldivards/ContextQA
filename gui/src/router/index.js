@@ -12,8 +12,13 @@ const routes = [
         component: Home
     },
     {
-        path: '/chat',
-        name: 'chat',
+        path: '/chat/document',
+        name: 'chat-document',
+        component: ChatContainer
+    },
+    {
+        path: '/chat/talk',
+        name: 'chat-talk',
         component: ChatContainer
     },
     {

@@ -35,8 +35,19 @@ export default {
         },
         {
           label: "Chat",
-          icon: "pi pi-comments",
-          command: () => this.$router.push({ path: "/chat" }),
+          icon: "pi pi-comment",
+          items: [
+            {
+              label: "Talk",
+              icon: "pi pi-comments",
+              command: () => this.$router.push({ path: "/chat/talk" }),
+            },
+            {
+              label: "Query document",
+              icon: "pi pi-file-o",
+              command: () => this.$router.push({ path: "/chat/document" }),
+            },
+          ],
         },
         {
           label: "Settings",

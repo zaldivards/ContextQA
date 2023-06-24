@@ -163,7 +163,7 @@ export default {
             "Context set successfully, redirecting to the chat session"
           );
           this.loading = false;
-          setTimeout(() => this.$router.push("/chat"), 2000);
+          setTimeout(() => this.$router.push("/chat/document"), 2000);
         })
         .catch((error) => {
           console.log(error);
