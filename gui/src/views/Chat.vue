@@ -68,7 +68,7 @@ export default {
 
       askLLM("/api/context/query", {
         question: question,
-        processor: "local",
+        processor: this.$store.state.vectorStore,
         identifier: this.$store.state.identifier,
       })
         .then((result) => {
