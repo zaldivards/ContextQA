@@ -44,6 +44,7 @@ start(){
         echo "$startUsage"
         exit
     fi
+    echo -e '\n::::: Starting ContextQA :::::\n'
     env=$1
     shift
     $compose -f "docker-compose-$env.yml" up "$@"
@@ -54,6 +55,7 @@ restart(){
         echo "$restartUsage"
         exit
     fi
+    echo -e '\n::::: Restarting ContextQA :::::\n'
     if [ "$2" == "--from-scratch" ]; then
         $compose -f "docker-compose-$1.yml" down
         $compose -f "docker-compose-$1.yml" build --no-cache
