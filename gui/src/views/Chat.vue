@@ -66,7 +66,7 @@ export default {
       this.$store.dispatch("activateSpinner", true);
       this.addMessage({ content: "", role: "bot" });
 
-      askLLM("/api/context/query", {
+      askLLM("/context/query", {
         question: question,
         processor: this.$store.state.vectorStore,
         identifier: this.$store.state.identifier,

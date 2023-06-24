@@ -2,15 +2,16 @@ import { ToastSeverity } from 'primevue/api';
 import { app } from '@/main';
 
 
+const API_BASE_URL = process.env.VUE_APP_API_BASE_URL
+
 async function handleResponse(res) {
     const responseText = await res.text()
-    console.log(responseText);
     const errorMessage = responseText.includes('ECONNREFUSED') ? "The server refused the connection" : "The LLM server did not process the message properly"
     throw new Error(errorMessage)
 }
 
 
-export async function setContext(url, data) {
+export async function setContext(endpoint, data) {
     const formData = new FormData()
     formData.append('separator', data.separator)
     formData.append('chunk_size', data.chunkSize)
@@ -19,7 +20,7 @@ export async function setContext(url, data) {
     formData.append('document', data.file)
 
     const response = await fetch(
-        url, {
+        API_BASE_URL + endpoint, {
         method: 'POST',
         body: formData
     }
@@ -30,9 +31,9 @@ export async function setContext(url, data) {
     return json_.response;
 }
 
-export async function askLLM(url, params) {
+export async function askLLM(endpoint, params) {
     const response = await fetch(
-        url + "?" +
+        API_BASE_URL + endpoint + "?" +
         new URLSearchParams(params)
     );
     if (!response.ok)

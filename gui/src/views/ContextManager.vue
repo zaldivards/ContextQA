@@ -148,7 +148,7 @@ export default {
       this.loading = true;
       this.disabled = true;
 
-      setContext("api/context/set", {
+      setContext("/context/set", {
         separator: this.separator,
         chunkSize: this.chunkSize,
         overlap: this.overlap,
