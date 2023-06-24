@@ -1,6 +1,7 @@
 from typing import Optional
 
 from fastapi import APIRouter, FastAPI, Form, HTTPException, Query, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 
 # pylint: disable=C0413
 from retriever import context, models, social_media, vector
@@ -9,6 +10,14 @@ one_time_router = APIRouter()
 context_router = APIRouter()
 
 app = FastAPI(title="LLM Retriever", openapi_url="/openapi.json", docs_url="/docs", redoc_url="/redoc")
+origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+]
+
+app.add_middleware(
+    CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"]
+)
 
 
 @app.get("/social-media", response_model=models.Summary)
