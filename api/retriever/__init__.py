@@ -13,6 +13,11 @@ class AppSettings(BaseSettings):
     pinecone_token: str = ""
     pinecone_index: str = ""
     pinecone_environment_region: str = ""
+    deployment: str
+
+    @property
+    def debug(self) -> bool:
+        return self.deployment == "dev"
 
 
 @lru_cache()

@@ -1,4 +1,3 @@
-import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -12,11 +11,10 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import SKLearnVectorStore
 from langchain.vectorstores.base import VectorStore
-from retriever import models
+from retriever import models, settings
 
 LOCAL_STORE_HOME = Path("/var") / "embeddings"
 LOADERS = {"pdf": PyPDFLoader, "txt": TextLoader}
-DEBUG = os.getenv("DEPLOYMENT") == "dev"
 
 
 def get_loader(extension: str) -> BaseLoader:
@@ -109,12 +107,13 @@ class LLMContextManager(ABC):
         models.VectorScanResult
             The final response of the LLM
         """
+        envs = settings()
         context_util = self.context_object(filename)
         llm = ChatOpenAI(verbose=True, temperature=0)
         qa_chain = RetrievalQA.from_chain_type(
-            llm=llm, retriever=context_util.as_retriever(), return_source_documents=DEBUG
+            llm=llm, retriever=context_util.as_retriever(), return_source_documents=envs.debug
         )
-        if DEBUG:
+        if envs.debug:
             result = qa_chain({"query": question})
             print(result["source_documents"])
             return models.VectorScanResult(response=result["result"])
