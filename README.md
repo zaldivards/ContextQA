@@ -1,8 +1,8 @@
 <p  align="center">
    <img src="static/logo.png" width="200px" alt="SuperAGI logo" />
 </p>
-<p align="center" style="font-size: 40px">
-ContextQA
+<p  align="center">
+   <img src="static/title.png" width="200px" alt="SuperAGI logo" />
 </p>
 
 <p align="center" style="font-size: 20px">Open-source utility to query documents by leveraging the power of LLMs and vector databases</p>
