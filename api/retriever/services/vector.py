@@ -9,7 +9,6 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import Pinecone, SKLearnVectorStore
-
 from retriever import models, settings
 
 settings_ = settings()
@@ -20,7 +19,7 @@ _VECTORSTORE = {
 }
 
 
-def simple_scan(params: models.LLMQueryTextRequestBody) -> models.VectorScanResult:
+def simple_scan(params: models.LLMQueryTextRequestBody) -> models.LLMResult:
     """Query the llm providing the best context found by using the KNearestNeighbors model
 
     Parameters
@@ -39,10 +38,10 @@ def simple_scan(params: models.LLMQueryTextRequestBody) -> models.VectorScanResu
     store = SKLearnVectorStore.from_documents(texts, embeddings_util)
     finder = RetrievalQA.from_chain_type(OpenAI(), retriever=store.as_retriever())
     result = finder.run(params.query)
-    return models.VectorScanResult(response=result)
+    return models.LLMResult(response=result)
 
 
-def document_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO) -> models.VectorScanResult:
+def document_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO) -> models.LLMResult:
     """Query the llm providing the best context found in the given pdf
 
     Parameters
@@ -64,10 +63,10 @@ def document_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO
     store = processor_params.clazz.from_documents(texts, embeddings_util, **processor_params.kwargs)
     finder = RetrievalQA.from_chain_type(OpenAI(), retriever=store.as_retriever())
     result = finder.run(params.query)
-    return models.VectorScanResult(response=result)
+    return models.LLMResult(response=result)
 
 
-def pdf_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO) -> models.VectorScanResult:
+def pdf_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO) -> models.LLMResult:
     """Query the bot about the pdf content
 
     Parameters
@@ -96,4 +95,4 @@ def pdf_scan(params: models.LLMQueryDocumentRequestBody, document: BinaryIO) -> 
     store = processor_params.clazz.from_documents(texts, embeddings_util, **processor_params.kwargs)
     finder = RetrievalQA.from_chain_type(OpenAI(), retriever=store.as_retriever())
     result = finder.run(params.query)
-    return models.VectorScanResult(response=result)
+    return models.LLMResult(response=result)

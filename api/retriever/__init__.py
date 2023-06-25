@@ -27,4 +27,4 @@ def settings() -> AppSettings:
 
 # pylint: disable=C0413
 from retriever.parsers import models
-from retriever.services import context, social_media, vector
+from retriever.services import chat, context, social_media, vector

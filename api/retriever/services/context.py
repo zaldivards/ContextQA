@@ -26,7 +26,7 @@ class LLMContextManager(ABC):
 
     def load_and_preprocess(
         self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO
-    ) -> models.VectorScanResult:
+    ) -> models.LLMResult:
         """Load and preprocess the file content
 
         Parameters
@@ -55,7 +55,7 @@ class LLMContextManager(ABC):
         return texts
 
     @abstractmethod
-    def persist(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> models.VectorScanResult:
+    def persist(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> models.LLMResult:
         """Persist the embedded documents
 
         Parameters
@@ -91,7 +91,7 @@ class LLMContextManager(ABC):
         """
         raise NotImplementedError
 
-    def load_and_respond(self, question: str, filename: Optional[str] = None) -> models.VectorScanResult:
+    def load_and_respond(self, question: str, filename: Optional[str] = None) -> models.LLMResult:
         """Load the context and answer the question
 
         Parameters
@@ -116,16 +116,16 @@ class LLMContextManager(ABC):
         if envs.debug:
             result = qa_chain({"query": question})
             print(result["source_documents"])
-            return models.VectorScanResult(response=result["result"])
+            return models.LLMResult(response=result["result"])
         result = qa_chain.run(question)
-        return models.VectorScanResult(response=result)
+        return models.LLMResult(response=result)
 
 
 class LocalManager(LLMContextManager):
     """Local manager implementation. It uses `SKLearnVectorStore` as its processor and the context is persisted as a
     parquet file"""
 
-    def persist(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> models.VectorScanResult:
+    def persist(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> models.LLMResult:
         documents = self.load_and_preprocess(filename, params, file_)
         db_path = LOCAL_STORE_HOME / filename
         db_path.parent.mkdir(exist_ok=True, parents=True)
@@ -134,7 +134,7 @@ class LocalManager(LLMContextManager):
             documents, embeddings_util, persist_path=str(db_path.with_suffix(".parquet")), serializer="parquet"
         )
         processor.persist()
-        return models.VectorScanResult(response="success")
+        return models.LLMResult(response="success")
 
     def context_object(self, filename: Optional[str] = None) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
