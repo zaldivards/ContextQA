@@ -1,5 +1,5 @@
 <template>
-  <div class="justify-content-center h-screen">
+  <div class="justify-content-center h-max">
     <div class="m-8">
       <Card
         class="m-auto w-7 text-xl"
@@ -7,38 +7,50 @@
           content: {
             class: 'justify-content-center',
           },
+          header: {
+            class: 'text-center',
+          },
         }"
       >
+        <template #header>
+          <img alt="user header" src="@/assets/logo.png" class="w-1 mt-7" />
+        </template>
         <template #content>
           <p class="w-8 m-auto p-2">
             Hi! <span class="text-teal-300">ContextQA</span> is a tool that
-            leverages the power of LLMs and it allows you to query any document
-            you set. This version supports
+            leverages the power of LLMs to help you query any document you wan.
+            This version of
+            <span class="text-teal-300">ContextQA</span> supports
             <span class="font-semibold">pdf</span> and
             <span class="font-semibold">txt</span> files.
           </p>
           <p class="w-8 m-auto p-2">
             Before starting querying any document you need to first set the
-            vector processor/store in the settings tab. Currently we support the
-            <span class="font-semibold">local</span> and
-            <span class="font-semibold">pinecone</span>
-            processor. Note that some extra settings are required to use the
-            pinecone processor. You should choose the local processor if you
-            want a quick start.
+            vector processor/store, which is used to encode and store the
+            document representations and to find the most relevant context, you
+            can set this in the settings tab. Currently, we support two types of
+            vector processors/stores: the
+            <span class="font-semibold">local</span> processor, which runs on
+            your local machine, and the
+            <span class="font-semibold">pinecone</span> processor, which is a
+            cloud-based service. Note that the pinecone processor requires some
+            extra settings to be configured. If you want a quick start, we
+            recommend choosing the local processor
           </p>
           <p class="w-8 m-auto p-2">
-            Additionally, this UI might be used as a sustitute of the ChatGPT
-            one, which most of the times idles too much.
+            Additionally, this UI can be used as an alternative to the ChatGPT
+            UI, which is another conversational AI tool that may experience long
+            idle times.
           </p>
           <p class="w-8 m-auto p-2">
-            Please give us a start on
+            Please give us a star on
             <a
               href="https://github.com/zaldivards/llm-retriever/tree/dev"
               class="text-teal-300 no-underline"
               title="Go to repo"
               target="_blank"
               >Github</a
-            >.
+            >. if you find <span class="text-teal-300">ContextQA</span> helpful.
           </p>
           <p class="w-8 m-auto p-2">Happy Querying!</p>
         </template>
@@ -49,6 +61,7 @@
 
 <script>
 import Card from "primevue/card";
+
 export default {
   name: "HomeSite",
   components: { Card },
