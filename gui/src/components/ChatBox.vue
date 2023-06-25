@@ -63,15 +63,23 @@ export default {
     return { messages: [] };
   },
   methods: {
+    promise(question) {
+      if (this.requiresContext) {
+        return askLLM("/context/query", {
+          question: question,
+          processor: this.$store.state.vectorStore,
+          identifier: this.$store.state.identifier,
+        });
+      }
+      return askLLM("/qa", {
+        message: question,
+      });
+    },
     ask(question) {
       this.$store.dispatch("activateSpinner", true);
       this.addMessage({ content: "", role: "bot" });
 
-      askLLM("/context/query", {
-        question: question,
-        processor: this.$store.state.vectorStore,
-        identifier: this.$store.state.identifier,
-      })
+      this.promise(question)
         .then((result) => {
           this.$store.dispatch("setLastMessage", {
             isInit: false,
