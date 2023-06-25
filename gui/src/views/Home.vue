@@ -17,11 +17,22 @@
         </template>
         <template #content>
           <p class="w-8 m-auto p-2">
-            Hi! <span class="text-teal-300">ContextQA</span> is a tool that
-            leverages the power of LLMs to help you query any document you wan.
-            This version of
-            <span class="text-teal-300">ContextQA</span> supports
-            <span class="font-semibold">pdf</span> and
+            Hi!
+            <span class="relative"
+              ><img
+                alt="user header"
+                src="@/assets/title.png"
+                class="w-2 relative top-img"
+            /></span>
+            is a tool that leverages the power of LLMs to help you query any
+            document you wan. This version of
+            <span class="relative"
+              ><img
+                alt="user header"
+                src="@/assets/title.png"
+                class="w-2 relative top-img"
+            /></span>
+            supports <span class="font-semibold">pdf</span> and
             <span class="font-semibold">txt</span> files.
           </p>
           <p class="w-8 m-auto p-2">
@@ -50,7 +61,14 @@
               title="Go to repo"
               target="_blank"
               >Github</a
-            >. if you find <span class="text-teal-300">ContextQA</span> helpful.
+            >. if you find
+            <span class="relative"
+              ><img
+                alt="user header"
+                src="@/assets/title.png"
+                class="w-2 relative top-img"
+            /></span>
+            helpful.
           </p>
           <p class="w-8 m-auto p-2">Happy Querying!</p>
         </template>
@@ -68,5 +86,8 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+.top-img {
+  top: 3px;
+}
 </style>
