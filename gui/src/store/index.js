@@ -3,9 +3,11 @@ import { createStore } from 'vuex'
 export default createStore({
     state: {
         identifier: null,
-        messages: [],
+        chatMessages: [],
+        documentMessages: [],
         showSpinner: false,
-        lastMessageText: '',
+        lastDocumentMessageText: '',
+        lastChatMessageText: '',
         vectorStore: ''
     },
     mutations: {
@@ -14,18 +16,30 @@ export default createStore({
             state.vectorStore = payload.vectorStore;
 
         },
-        updateMessages(state, payload) {
-            state.messages.push(payload)
+        updateChatMessages(state, payload) {
+            state.chatMessages.push(payload)
+        },
+        updateDocumentMessages(state, payload) {
+            state.documentMessages.push(payload)
         },
         updateFlag(state, payload) {
             state.showSpinner = payload
         },
-        updateLastMessage(state, payload) {
+        updateLastChatMessage(state, payload) {
 
-            state.lastMessageText = payload.content
+            state.lastChatMessageText = payload.content
             if (!payload.isInit) {
-                state.messages.pop()
-                state.messages.push({ content: payload.content, role: 'bot' })
+                state.chatMessages.pop()
+                state.chatMessages.push({ content: payload.content, role: 'bot' })
+            }
+            state.showSpinner = false
+        },
+        updateLastDocumentMessage(state, payload) {
+
+            state.lastDocumentMessageText = payload.content
+            if (!payload.isInit) {
+                state.documentMessages.pop()
+                state.documentMessages.push({ content: payload.content, role: 'bot' })
             }
             state.showSpinner = false
         }
@@ -34,14 +48,20 @@ export default createStore({
         setApiParams({ commit }, payload) {
             commit('updateApiParams', payload);
         },
-        setMessage({ commit }, payload) {
-            commit('updateMessages', payload);
+        setDocumentMessage({ commit }, payload) {
+            commit('updateDocumentMessages', payload);
+        },
+        setChatMessage({ commit }, payload) {
+            commit('updateChatMessages', payload);
         },
         activateSpinner({ commit }, payload) {
             commit('updateFlag', payload);
         },
-        setLastMessage({ commit }, payload) {
-            commit('updateLastMessage', payload);
+        setLastChatMessage({ commit }, payload) {
+            commit('updateLastChatMessage', payload);
+        },
+        setLastDocumentMessage({ commit }, payload) {
+            commit('updateLastDocumentMessage', payload);
         }
     }
 });

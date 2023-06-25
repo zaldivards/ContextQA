@@ -59,7 +59,7 @@ import ProgressBar from "primevue/progressbar";
 
 export default {
   name: "ChatCard",
-  props: { role: String, content: String, idx: Number },
+  props: { role: String, content: String, idx: Number, documentQA: Boolean },
   components: { Card, Avatar, ProgressBar },
   data() {
     return {
@@ -69,8 +69,10 @@ export default {
   methods: {
     setAlternativeContent() {
       if (!this.lastMessageLocal) {
-        this.lastMessageLocal =
-          this.$store.state.lastMessageText ?? this.content;
+        const lastMessageState = this.documentQA
+          ? this.$store.state.lastDocumentMessageText
+          : this.$store.state.lastChatMessageText;
+        this.lastMessageLocal = lastMessageState ?? this.content;
       }
     },
     formatCode(message) {
@@ -100,10 +102,11 @@ export default {
       return `${date} ${time.slice(0, -5)}`;
     },
     activate() {
+      const length = this.documentQA
+        ? this.$store.state.documentMessages.length
+        : this.$store.state.chatMessages.length;
       return (
-        this.$store.state.showSpinner &&
-        !this.isUser &&
-        this.$store.state.messages.length - this.idx <= 2
+        this.$store.state.showSpinner && !this.isUser && length - this.idx <= 2
       );
     },
     contentStored() {

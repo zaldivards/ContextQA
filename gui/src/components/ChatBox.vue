@@ -26,6 +26,7 @@
         :role="message.role"
         :idx="i"
         :content="message.content"
+        :documentQA="requiresContext"
       ></ChatCard>
 
       <template #footer>
@@ -48,15 +49,20 @@ export default {
   components: { Panel, ChatCard, MessageAdder, Toast },
   props: { requiresContext: Boolean },
   mounted() {
-    if (!this.identifier) {
+    if (!this.identifier && this.requiresContext) {
       showWarning(
         "You need to set the document context in the settings section to initialize a chat"
       );
     }
   },
   created() {
-    this.messages = this.$store.state.messages;
-    this.$store.dispatch("setLastMessage", { isInit: true, content: null });
+    const action = this.requiresContext
+      ? "setLastDocumentMessage"
+      : "setLastChatMessage";
+    this.messages = this.requiresContext
+      ? this.$store.state.documentMessages
+      : this.$store.state.chatMessages;
+    this.$store.dispatch(action, { isInit: true, content: null });
     this.autoScroll();
   },
   data() {
@@ -78,17 +84,20 @@ export default {
     ask(question) {
       this.$store.dispatch("activateSpinner", true);
       this.addMessage({ content: "", role: "bot" });
+      const action = this.requiresContext
+        ? "setLastDocumentMessage"
+        : "setLastChatMessage";
 
       this.promise(question)
         .then((result) => {
-          this.$store.dispatch("setLastMessage", {
+          this.$store.dispatch(action, {
             isInit: false,
             content: result,
           });
           this.autoScroll();
         })
         .catch((error) => {
-          this.$store.dispatch("setLastMessage", {
+          this.$store.dispatch(action, {
             content: "I am having issues, my apologies. Try again later.",
             role: "bot",
           });
@@ -111,8 +120,11 @@ export default {
       });
     },
     addMessage(message) {
+      const action = this.requiresContext
+        ? "setDocumentMessage"
+        : "setChatMessage";
       this.messages = [...this.messages, message];
-      this.$store.dispatch("setMessage", message);
+      this.$store.dispatch(action, message);
       this.autoScroll();
     },
   },
