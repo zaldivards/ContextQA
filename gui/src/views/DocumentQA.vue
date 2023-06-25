@@ -1,11 +1,11 @@
 <template>
-  <ChatBox />
+  <ChatBox requiresContext />
 </template>
 
 <script>
 import ChatBox from "@/components/ChatBox";
 export default {
-  name: "ChatCOntainer",
+  name: "DocumentQA",
   components: { ChatBox },
 };
 </script>

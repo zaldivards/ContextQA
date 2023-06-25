@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import ChatContainer from "@/views/Chat.vue"
+import Chat from "@/views/Chat.vue"
+import DocumentQA from "@/views/DocumentQA.vue"
 import ContextManager from "@/views/ContextManager"
 import Home from "@/views/Home"
 
@@ -14,12 +15,12 @@ const routes = [
     {
         path: '/chat/document',
         name: 'chat-document',
-        component: ChatContainer
+        component: DocumentQA
     },
     {
         path: '/chat/talk',
         name: 'chat-talk',
-        component: ChatContainer
+        component: Chat
     },
     {
         path: '/context',
