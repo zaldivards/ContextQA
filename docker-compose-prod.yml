@@ -10,7 +10,7 @@ services:
     ports:
       - 8080:8080
     env_file:
-      - ./api/.env
+      - ./contextqa.env
     environment:
       - DEPLOYMENT=prod
     entrypoint: uvicorn main:app --host 0.0.0.0 --port 8080

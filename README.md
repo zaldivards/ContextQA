@@ -12,7 +12,7 @@
 ---
 
 1. Install docker
-2. Set the following envs in a `.env` file in the `api` root
+2. Set the following envs in the `contextqa.env` file
 
    - OPENAI_API_KEY  **(required)**
    - SERPAPI_API_KEY
