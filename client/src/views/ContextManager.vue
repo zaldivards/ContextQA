@@ -4,6 +4,8 @@
 
     <Toast class="z-5" />
     <form @submit.prevent="postData" class="w-7 m-auto">
+      <h2 class="mb-5">⚙️ Set the context document</h2>
+
       <div :class="disabled ? ['opacity-50', 'disabled'] : ''">
         <FileUpload
           @remove="() => (this.uploadedFile = null)"
