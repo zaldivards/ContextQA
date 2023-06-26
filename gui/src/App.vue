@@ -75,4 +75,7 @@ body {
   pointer-events: none;
   outline: none;
 }
+.top-img {
+  top: 3px;
+}
 </style>

@@ -13,23 +13,23 @@
         }"
       >
         <template #header>
-          <img alt="user header" src="@/assets/logo.png" class="w-1 mt-7" />
+          <img alt="contextqa logo" src="@/assets/logo.png" class="w-1 mt-7" />
         </template>
         <template #content>
           <p class="w-8 m-auto p-2">
             Hi!
             <span class="relative"
               ><img
-                alt="user header"
-                src="@/assets/title.png"
+                alt="contextqa text"
+                src="/images/title.png"
                 class="w-2 relative top-img"
             /></span>
             is a tool that leverages the power of LLMs to help you query any
             document you wan. This version of
             <span class="relative"
               ><img
-                alt="user header"
-                src="@/assets/title.png"
+                alt="contextqa text"
+                src="/images/title.png"
                 class="w-2 relative top-img"
             /></span>
             supports <span class="font-semibold">pdf</span> and
@@ -64,8 +64,8 @@
             >. if you find
             <span class="relative"
               ><img
-                alt="user header"
-                src="@/assets/title.png"
+                alt="contextqa text"
+                src="/images/title.png"
                 class="w-2 relative top-img"
             /></span>
             helpful.
@@ -86,8 +86,5 @@ export default {
 };
 </script>
 
-<style scoped>
-.top-img {
-  top: 3px;
-}
+<style>
 </style>

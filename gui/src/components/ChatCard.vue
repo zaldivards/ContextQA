@@ -89,7 +89,15 @@ export default {
         .replaceAll(/(?<=`)(?![\s.])[^`]+(?=`)/g, (match, offset, text) => {
           return `<code class='text-yellow-600 bg-black-alpha-70 p-1 w-min'>${match}</code>`;
         });
-      return formattedText.replaceAll("`", "");
+      return formattedText.replaceAll("`", "").replaceAll(
+        "ContextQA",
+        `<span class="relative"
+              ><img
+                alt="contextqa text"
+                src="/images/title.png"
+                class="w-2 top-img relative"
+            /></span>`
+      );
     },
   },
   computed: {
