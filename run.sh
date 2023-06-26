@@ -23,6 +23,17 @@ Options:
   --from-scratch   Restart ContextQA server and client after a clean build with no cache 
 "
 
+shitdownUsage="Usage: bash run.sh shutdown ENV
+  
+  Shutdown ContextQA server and client
+
+Arguments:
+  ENV [dev|prod]  The environment name [required]
+
+Options:
+  --help           Show this message
+"
+
 
 if command -v docker-compose > /dev/null 2>&1; then
     compose="docker-compose"
@@ -47,7 +58,7 @@ start(){
     echo -e '\n::::: Starting ContextQA :::::\n'
     env=$1
     shift
-    $compose -f "docker-compose-$env.yml" up "$@"
+    $compose -f "docker-compose-$env.yml" up -d "$@"
 }
 
 restart(){
@@ -59,12 +70,20 @@ restart(){
     if [ "$2" == "--from-scratch" ]; then
         $compose -f "docker-compose-$1.yml" down
         $compose -f "docker-compose-$1.yml" build --no-cache
-        $compose -f "docker-compose-$1.yml" up 
+        $compose -f "docker-compose-$1.yml" up -d
     elif [ "$2" == "--strict" ]; then
         start $1 --build
     else
         $compose -f "docker-compose-$1.yml" restart
     fi
+}
+
+shutdown(){
+  if [ "$1" == "--help" ]; then
+    echo "$shitdownUsage"
+    exit
+  fi
+  $compose -f "docker-compose-$1.yml" down
 }
 
 "$@"
