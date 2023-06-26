@@ -4,6 +4,7 @@ services:
   contextqa-server-prod:
     build: ./api
     container_name: contextqa-server-prod
+    restart: unless-stopped
     volumes:
       - $VECTOR_STORE_HOME:/var/embeddings
       - ./api:/app/
@@ -18,7 +19,8 @@ services:
       - contextqa-prod
   contextqa-client-prod:
     build: ./client
-    container_name: contextqa-client-prod
+    container_name: contextqa-client-
+    restart: unless-stopped
     ports:
       - 3000:3000
     volumes:
