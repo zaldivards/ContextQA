@@ -1,4 +1,4 @@
-# gui
+# Contextqa client
 
 ## Project setup
 ```

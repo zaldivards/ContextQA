@@ -17,12 +17,12 @@ services:
     networks:
       - contextqa-dev
   contextqa-client-dev:
-    build: ./gui
+    build: ./client
     container_name: contextqa-client-dev
     ports:
       - 3001:3000
     volumes:
-      - ./gui:/app/
+      - ./client:/app/
       - /app/dist # avoids to replacement of this directory
     depends_on:
       - contextqa-server-dev
