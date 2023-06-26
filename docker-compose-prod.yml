@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  contextqa-server-prod:
+    build: ./api
+    container_name: contextqa-server-prod
+    restart: unless-stopped
+    volumes:
+      - $VECTOR_STORE_HOME:/var/embeddings
+      - ./api:/app/
+    ports:
+      - 8080:8080
+    env_file:
+      - ./contextqa.env
+    environment:
+      - DEPLOYMENT=prod
+    entrypoint: uvicorn main:app --host 0.0.0.0 --port 8080
+    networks:
+      - contextqa-prod
+  contextqa-client-prod:
+    build: ./client
+    container_name: contextqa-client-
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    volumes:
+      - ./client:/app/
+      - /app/dist # avoids to replacement of this directory
+    depends_on:
+      - contextqa-server-prod
+    entrypoint: serve -s dist
+    networks:
+      - contextqa-prod
+networks:
+  contextqa-prod:

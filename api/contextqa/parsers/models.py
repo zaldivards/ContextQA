@@ -17,7 +17,7 @@ class Summary(BaseModel):
     ice_breakers: list[str] = Field(description="Topics of interest of the person")
 
 
-class VectorScanResult(BaseModel):
+class LLMResult(BaseModel):
     response: str
 
 

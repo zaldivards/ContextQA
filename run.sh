@@ -1,33 +1,89 @@
-current_path="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-command_="uvicorn main:app --host 0.0.0.0 --port 8080 --reload"
+startUsage="Usage: bash run.sh start ENV [OPTIONS]
+  
+  Start ContextQA server and client
+
+Arguments:
+  ENV [dev|prod]  The environment name [required]
+
+Options:
+  --help    Show this message
+  --build   Flag to build and start the server and client
+"
+
+restartUsage="Usage: bash run.sh restart ENV [OPTIONS]
+  
+  Restart ContextQA server and client
+
+Arguments:
+  ENV [dev|prod]  The environment name [required]
+
+Options:
+  --help           Show this message
+  --strict         Restart ContextQA server and client after building
+  --from-scratch   Restart ContextQA server and client after a clean build with no cache 
+"
+
+shitdownUsage="Usage: bash run.sh shutdown ENV
+  
+  Shutdown ContextQA server and client
+
+Arguments:
+  ENV [dev|prod]  The environment name [required]
+
+Options:
+  --help           Show this message
+"
 
 
-check-envs(){
-    if [ -f "$current_path/.env" ]; then
-        echo ".env file found, loading environment variables"
-        export `cat $current_path/.env | xargs`
+if command -v docker-compose > /dev/null 2>&1; then
+    compose="docker-compose"
+elif command -v docker compose > /dev/null 2>&1; then
+    compose="docker compose"
+else
+    echo "Please install docker and docker-compose to continue, more information here: https://docs.docker.com/engine/install/"
+    exit
+fi
+
+if [ ! -d /var/contextqa/embeddings ]; then
+    echo "Setting /var/contextqa/embeddings as the local vector store"
+    sudo mkdir -p /var/contextqa/embeddings
+fi
+export VECTOR_STORE_HOME="/var/contextqa/embeddings"
+
+start(){
+    if [ "$1" == "--help" ]; then
+        echo "$startUsage"
+        exit
+    fi
+    echo -e '\n::::: Starting ContextQA :::::\n'
+    env=$1
+    shift
+    $compose -f "docker-compose-$env.yml" up -d "$@"
+}
+
+restart(){
+    if [ "$1" == "--help" ]; then
+        echo "$restartUsage"
+        exit
+    fi
+    echo -e '\n::::: Restarting ContextQA :::::\n'
+    if [ "$2" == "--from-scratch" ]; then
+        $compose -f "docker-compose-$1.yml" down
+        $compose -f "docker-compose-$1.yml" build --no-cache
+        $compose -f "docker-compose-$1.yml" up -d
+    elif [ "$2" == "--strict" ]; then
+        start $1 --build
     else
-        echo ".env file not found, stopping initialization"
-        exit 1
+        $compose -f "docker-compose-$1.yml" restart
     fi
 }
 
-local(){
-    check-envs
-    exec $command_
-}
-
-build-docker(){
-    echo "..:: build-docker ::.."
-    docker build -t llm-retriever $current_path
-}
-
-dockerized(){
-    if [ "$1" == "--build" ]; then
-        build-docker
-    fi
-    check-envs
-    docker run --env-file $current_path/.env --rm  -p 8080:8080 -v $current_path:/app llm-retriever $command_
+shutdown(){
+  if [ "$1" == "--help" ]; then
+    echo "$shitdownUsage"
+    exit
+  fi
+  $compose -f "docker-compose-$1.yml" down
 }
 
 "$@"

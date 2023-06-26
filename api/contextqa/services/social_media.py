@@ -1,11 +1,10 @@
+from contextqa.agents.general import get_people_information
+from contextqa.external.twitter import get_user_tweets
+from contextqa.parsers.models import Summary
+from contextqa.parsers.output import summary_parser
 from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
-
-from retriever.agents.general import get_people_information
-from retriever.external.twitter import get_user_tweets
-from retriever.parsers.models import Summary
-from retriever.parsers.output import summary_parser
 
 
 def seach_user_info(name: str) -> Summary:

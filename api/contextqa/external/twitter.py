@@ -1,6 +1,5 @@
 import tweepy
-
-from retriever import settings
+from contextqa import settings
 
 settings = settings()
 
