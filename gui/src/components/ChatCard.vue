@@ -9,9 +9,7 @@
       ></ProgressBar>
       <div class="formgrid grid" :class="isUser ? 'max-w-max' : ''" v-else>
         <Avatar
-          icon="pi pi-user"
-          class="user-card"
-          style="background-color: #2196f3; color: #ffffff"
+          image="/images/user.png"
           :class="isUser ? 'mr-3' : 'ml-3'"
           size="large"
           shape="circle"
@@ -22,8 +20,8 @@
           class="field col shadow-none animation-duration-300 breakline-ok"
           :class="
             isUser
-              ? ['bg-teal-500', 'fadeinleft', 'text-white']
-              : ['bg-bluegray-100', 'fadeinright']
+              ? ['bg-teal-600', 'fadeinleft', 'text-white']
+              : ['bg-bluegray-500', 'fadeinright', 'text-white']
           "
         >
           <template #content>
@@ -31,8 +29,7 @@
           </template>
           <template #footer>
             <div
-              class="date w-max justify-content-end text-xs"
-              :class="isUser ? 'text-white-alpha-70' : 'text-gray-700'"
+              class="date w-max justify-content-end text-xs text-white-alpha-70"
             >
               {{ dateStr }}
             </div>
@@ -40,7 +37,7 @@
         </Card>
 
         <Avatar
-          icon="pi pi-prime"
+          image="/images/logo.png"
           :class="!isUser ? 'ml-3' : 'mr-3'"
           size="large"
           shape="circle"

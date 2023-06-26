@@ -13,7 +13,7 @@
         }"
       >
         <template #header>
-          <img alt="contextqa logo" src="@/assets/logo.png" class="w-1 mt-7" />
+          <img alt="contextqa logo" src="/images/logo.png" class="w-1 mt-7" />
         </template>
         <template #content>
           <p class="w-8 m-auto p-2">
