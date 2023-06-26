@@ -33,8 +33,8 @@ else
     exit
 fi
 
-echo "Setting /var/contextqa/embeddings as the local vector store"
 if [ ! -d /var/contextqa/embeddings ]; then
+    echo "Setting /var/contextqa/embeddings as the local vector store"
     sudo mkdir -p /var/contextqa/embeddings
 fi
 export VECTOR_STORE_HOME="/var/contextqa/embeddings"
