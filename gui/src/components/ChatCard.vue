@@ -40,7 +40,6 @@
           image="/images/logo.png"
           :class="!isUser ? 'ml-3' : 'mr-3'"
           size="large"
-          shape="circle"
           v-if="!isUser"
         />
       </div>

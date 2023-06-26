@@ -4,8 +4,8 @@
       <template #start>
         <img
           alt="logo"
-          src="/images/logo.png"
-          height="40"
+          src="/images/title.png"
+          height="30"
           class="mr-2"
           title="ContextQA"
         />
