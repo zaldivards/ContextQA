@@ -29,6 +29,11 @@
 bash run.sh [start|restart] [dev|prod] OPTIONS
 ```
 
+### Examples
+```bash
+- bash run.sh start dev --build
+- bash run.sh restart dev --strict
+```
 You can display the usage message with the `--help` flag, for instance:
 
 ```bash
@@ -39,11 +44,4 @@ or
 
 ```bash
 bash run.sh restart --help
-```
-
-### Examples
-
-```bash
-- bash run.sh start dev --build
-- bash run.sh restart dev --strict
 ```
