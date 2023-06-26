@@ -11,7 +11,8 @@
         />
       </template>
       <template #end>
-        <span class="font-semibold text-xl">{{ context }}</span>
+        <span class="text-xl">Context: </span
+        ><span class="font-semibold text-xl">{{ context }}</span>
       </template>
     </Menubar>
     <router-view />
@@ -59,7 +60,7 @@ export default {
   },
   computed: {
     context() {
-      return `Context: ${this.$store.state.identifier ?? "None"}`;
+      return this.$store.state.identifier ?? "None";
     },
   },
 };
