@@ -94,7 +94,6 @@ export default {
             isInit: false,
             content: result,
           });
-          this.autoScroll();
         })
         .catch((error) => {
           this.$store.dispatch(action, {
@@ -104,7 +103,10 @@ export default {
 
           showError(error.message);
           this.$store.dispatch("activateSpinner", false);
+        })
+        .finally(() => {
           this.autoScroll();
+          this.$refs.adder.$refs.textarea.$el.focus();
         });
     },
     pushMessages(message) {
