@@ -102,6 +102,7 @@ export default {
     },
     dateStr() {
       const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
       const [date, time] = now.toISOString().split("T");
       return `${date} ${time.slice(0, -5)}`;
     },
