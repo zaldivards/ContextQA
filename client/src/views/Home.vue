@@ -25,7 +25,7 @@
                 class="w-2 relative top-img"
             /></span>
             is a tool that leverages the power of LLMs to help you query any
-            document you wan. This version of
+            document you want. This version of
             <span class="relative"
               ><img
                 alt="contextqa text"
