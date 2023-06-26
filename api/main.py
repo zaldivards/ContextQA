@@ -1,15 +1,14 @@
 from typing import Optional
 
+# pylint: disable=C0413
+from contextqa import chat, context, models, social_media, vector
 from fastapi import APIRouter, FastAPI, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-
-# pylint: disable=C0413
-from retriever import chat, context, models, social_media, vector
 
 one_time_router = APIRouter()
 context_router = APIRouter()
 
-app = FastAPI(title="LLM Retriever", openapi_url="/openapi.json", docs_url="/docs", redoc_url="/redoc")
+app = FastAPI(title="ContextQA api", openapi_url="/openapi.json", docs_url="/docs", redoc_url="/redoc")
 origins = [
     "http://localhost:3000",
     "http://localhost:3001",

@@ -3,6 +3,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import BinaryIO, Optional
 
+from contextqa import models, settings
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import PyPDFLoader, TextLoader
@@ -11,7 +12,6 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import SKLearnVectorStore
 from langchain.vectorstores.base import VectorStore
-from retriever import models, settings
 
 LOCAL_STORE_HOME = Path("/var") / "embeddings"
 LOADERS = {"pdf": PyPDFLoader, "txt": TextLoader}

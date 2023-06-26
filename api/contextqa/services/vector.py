@@ -2,6 +2,7 @@ from tempfile import NamedTemporaryFile
 from typing import BinaryIO
 
 import pinecone
+from contextqa import models, settings
 from langchain import OpenAI
 from langchain.chains import RetrievalQA
 from langchain.docstore.document import Document
@@ -9,7 +10,6 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import Pinecone, SKLearnVectorStore
-from retriever import models, settings
 
 settings_ = settings()
 

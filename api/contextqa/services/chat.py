@@ -1,3 +1,4 @@
+from contextqa import models
 from langchain import LLMChain
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts.chat import (
@@ -6,7 +7,6 @@ from langchain.prompts.chat import (
     HumanMessagePromptTemplate,
     SystemMessagePromptTemplate,
 )
-from retriever import models
 
 _SYSTEM_MESSAGE = SystemMessagePromptTemplate.from_template(
     """You are helpful assistant called ContextQA that answer user inputs. You emphasize your name in every greeting.
