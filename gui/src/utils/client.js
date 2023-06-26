@@ -4,6 +4,13 @@ import { app } from '@/main';
 
 const API_BASE_URL = process.env.VUE_APP_API_BASE_URL
 
+export function getDateTimeStr() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const [date, time] = now.toISOString().split("T");
+    return `${date} ${time.slice(0, -5)}`;
+}
+
 async function handleResponse(res) {
     const responseText = await res.text()
     const errorMessage = responseText.includes('ECONNREFUSED') ? "The server refused the connection" : "The LLM server did not process the message properly"

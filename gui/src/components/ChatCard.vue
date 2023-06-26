@@ -31,7 +31,7 @@
             <div
               class="date w-max justify-content-end text-xs text-white-alpha-70"
             >
-              {{ dateStr }}
+              {{ sentDate }}
             </div>
           </template>
         </Card>
@@ -55,7 +55,13 @@ import ProgressBar from "primevue/progressbar";
 
 export default {
   name: "ChatCard",
-  props: { role: String, content: String, idx: Number, documentQA: Boolean },
+  props: {
+    role: String,
+    content: String,
+    sentDate: String,
+    idx: Number,
+    documentQA: Boolean,
+  },
   components: { Card, Avatar, ProgressBar },
   data() {
     return {
@@ -99,12 +105,6 @@ export default {
   computed: {
     isUser() {
       return this.role == "user";
-    },
-    dateStr() {
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      const [date, time] = now.toISOString().split("T");
-      return `${date} ${time.slice(0, -5)}`;
     },
     activate() {
       const length = this.documentQA

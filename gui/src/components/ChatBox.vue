@@ -27,6 +27,7 @@
         :idx="i"
         :content="message.content"
         :documentQA="requiresContext"
+        :sentDate="message.date"
       ></ChatCard>
 
       <template #footer>
@@ -42,7 +43,7 @@ import Toast from "primevue/toast";
 import ChatCard from "@/components/ChatCard.vue";
 import MessageAdder from "@/components/MessageAdder.vue";
 
-import { askLLM, showError, showWarning } from "@/utils/client";
+import { askLLM, showError, showWarning, getDateTimeStr } from "@/utils/client";
 
 export default {
   name: "ChatContainer",
@@ -82,35 +83,45 @@ export default {
       });
     },
     ask(question) {
+      let sentDate = "";
       this.$store.dispatch("activateSpinner", true);
-      this.addMessage({ content: "", role: "bot" });
+      this.addMessage({ content: "", role: "bot", date: sentDate });
       const action = this.requiresContext
         ? "setLastDocumentMessage"
         : "setLastChatMessage";
 
       this.promise(question)
         .then((result) => {
+          sentDate = getDateTimeStr();
           this.$store.dispatch(action, {
             isInit: false,
             content: result,
+            date: sentDate,
           });
         })
         .catch((error) => {
+          sentDate = getDateTimeStr();
           this.$store.dispatch(action, {
             content: "I am having issues, my apologies. Try again later.",
             role: "bot",
+            date: sentDate,
           });
 
           showError(error.message);
           this.$store.dispatch("activateSpinner", false);
         })
         .finally(() => {
+          this.messages.at(-1).date = sentDate;
           this.autoScroll();
           this.$refs.adder.$refs.textarea.$el.focus();
         });
     },
     pushMessages(message) {
-      this.addMessage({ content: message, role: "user" });
+      this.addMessage({
+        content: message,
+        role: "user",
+        date: getDateTimeStr(),
+      });
       this.ask(message);
     },
     autoScroll() {

@@ -28,18 +28,20 @@ export default createStore({
         updateLastChatMessage(state, payload) {
 
             state.lastChatMessageText = payload.content
-            if (!payload.isInit) {
+            const { isInit, ...message } = payload
+            if (!isInit) {
                 state.chatMessages.pop()
-                state.chatMessages.push({ content: payload.content, role: 'bot' })
+                state.chatMessages.push(message)
             }
             state.showSpinner = false
         },
         updateLastDocumentMessage(state, payload) {
 
             state.lastDocumentMessageText = payload.content
-            if (!payload.isInit) {
+            const { isInit, ...message } = payload
+            if (!isInit) {
                 state.documentMessages.pop()
-                state.documentMessages.push({ content: payload.content, role: 'bot' })
+                state.documentMessages.push(message)
             }
             state.showSpinner = false
         }
