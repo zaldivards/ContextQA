@@ -5,11 +5,11 @@ from pydantic import BaseSettings
 
 class AppSettings(BaseSettings):
     openai_api_key: str
-    serpapi_api_key: str
-    twitter_api_key: str
-    twitter_api_secret: str
-    twitter_access_token: str
-    twitter_api_secret: str
+    serpapi_api_key: str = "no token"
+    twitter_api_key: str = "no token"
+    twitter_api_secret: str = "no token"
+    twitter_access_token: str = "no token"
+    twitter_api_secret: str = "no token"
     pinecone_token: str = ""
     pinecone_index: str = ""
     pinecone_environment_region: str = ""
