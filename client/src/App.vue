@@ -11,8 +11,13 @@
         />
       </template>
       <template #end>
-        <span class="text-xl">Context: </span
-        ><span class="font-semibold text-xl">{{ context }}</span>
+        <div>
+          <span class="text-xl">Context: </span
+          ><span class="font-semibold text-xl">{{ context }}</span>
+          <span class="text-xl ml-2" v-if="store"
+            ><span class="text-400">|</span> Vector store: </span
+          ><span class="font-semibold text-xl">{{ store }}</span>
+        </div>
       </template>
     </Menubar>
     <router-view />
@@ -61,6 +66,10 @@ export default {
   computed: {
     context() {
       return this.$store.state.identifier ?? "None";
+    },
+    store() {
+      const store = this.$store.state.vectorStore;
+      return store.charAt(0).toUpperCase() + store.slice(1);
     },
   },
 };
