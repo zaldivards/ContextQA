@@ -15,7 +15,10 @@
           @select="handleFileSelect"
           :showUploadButton="false"
           :multiple="false"
-          :pt="{ badge: { style: 'display: none !important' } }"
+          :pt="{
+            badge: { class: 'hidden' },
+            details: { class: 'ml-6' },
+          }"
         />
         <div class="my-4 grid w-9">
           <div class="col-6">
