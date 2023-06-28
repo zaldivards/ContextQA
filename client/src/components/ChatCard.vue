@@ -88,7 +88,7 @@ export default {
           return `<code class='text-yellow-600 bg-black-alpha-70 p-3 w-auto block'>${match}</code>`;
         })
         .replaceAll("```", "")
-        .replaceAll(/(?<=`)(?![\s.])[^`]+(?=`)/g, (match, offset, text) => {
+        .replaceAll(/(?<=`)(?![\s.,])[^`]+(?=`)/g, (match, offset, text) => {
           return `<code class='text-yellow-600 bg-black-alpha-70 p-1 w-min'>${match}</code>`;
         });
       return formattedText.replaceAll("`", "").replaceAll(
