@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import BinaryIO
+from typing import BinaryIO, Optional
 
 import pinecone
 from contextqa import get_logger, models, settings
@@ -82,9 +82,14 @@ class LLMContextManager(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def context_object(self, **kwargs) -> VectorStore:
+    def context_object(self, filename: Optional[str]) -> VectorStore:
         """Prepare the processor object. This method needs specific implementations because most of the VectorStores
         are initialized with different parameters
+
+        Parameters
+        ----------
+        filename : Optional[str]
+            Name of the file. If provided, it will be used as the identifier to load the existing context(embeddings).
 
         Returns
         -------
@@ -93,20 +98,23 @@ class LLMContextManager(ABC):
         """
         raise NotImplementedError
 
-    def load_and_respond(self, question: str, **kwargs) -> models.LLMResult:
+    def load_and_respond(self, question: str, filename: Optional[str] = None) -> models.LLMResult:
         """Load the context and answer the question
 
         Parameters
         ----------
         question : str
             The question to answer
+        filename : Optional[str], optional
+            Name of the file. If provided, it will be used as the identifier to load the existing context(embeddings),
+            by default None
 
         Returns
         -------
         models.VectorScanResult
             The final response of the LLM
         """
-        context_util = self.context_object(**kwargs)
+        context_util = self.context_object(filename)
         llm = ChatOpenAI(verbose=True, temperature=0)
         qa_chain = RetrievalQA.from_chain_type(
             llm=llm, retriever=context_util.as_retriever(), return_source_documents=self.envs.debug
@@ -134,11 +142,11 @@ class LocalManager(LLMContextManager):
         processor.persist()
         return models.LLMResult(response="success")
 
-    def context_object(self, **kwargs) -> VectorStore:
+    def context_object(self, filename: Optional[str] = None) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
         processor = SKLearnVectorStore(
             embedding=embeddings_util,
-            persist_path=str((LOCAL_STORE_HOME / kwargs["filename"]).with_suffix(".parquet")),
+            persist_path=str((LOCAL_STORE_HOME / filename).with_suffix(".parquet")),
             serializer="parquet",
         )
         return processor
@@ -156,18 +164,34 @@ class PineconeManager(LLMContextManager):
         documents = self.load_and_preprocess(filename, params, file_)
         embeddings_util = OpenAIEmbeddings()
         try:
-            Pinecone.from_documents(documents, embeddings_util, index_name=self.envs.pinecone_index)
+            Pinecone.from_documents(
+                documents, embeddings_util, index_name=self.envs.pinecone_index, namespace=Path(filename).stem
+            )
         except Exception as ex:
             raise VectorStoreConnectionError from ex
         return models.LLMResult(response="success")
 
-    def context_object(self, **kwargs) -> VectorStore:
+    def context_object(self, filename: Optional[str] = None) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
-        processor = Pinecone.from_existing_index(index_name=self.envs.pinecone_index, embedding=embeddings_util)
+        processor = Pinecone.from_existing_index(
+            index_name=self.envs.pinecone_index, embedding=embeddings_util, namespace=Path(filename).stem
+        )
         return processor
 
 
 def get_setter(processor: models.SimilarityProcessor) -> LLMContextManager:
+    """LLMContextManager factory function
+
+    Parameters
+    ----------
+    processor : models.SimilarityProcessor
+        Manager identifier
+
+    Returns
+    -------
+    LLMContextManager
+        Specific LLMContextManager implementation
+    """
     match processor:
         case models.SimilarityProcessor.LOCAL:
             return LocalManager()
