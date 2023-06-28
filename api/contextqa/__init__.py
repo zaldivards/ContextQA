@@ -8,6 +8,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 class AppSettings(BaseSettings):
     openai_api_key: str
+    redis_url: str
     serpapi_api_key: str = "no token"
     twitter_api_key: str = "no token"
     twitter_api_secret: str = "no token"

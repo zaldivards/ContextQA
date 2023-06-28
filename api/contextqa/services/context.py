@@ -5,7 +5,7 @@ from typing import BinaryIO, Optional
 
 import pinecone
 from contextqa import get_logger, models, settings
-from langchain.chains import RetrievalQA
+from langchain.chains import ConversationalRetrievalChain, RetrievalQA
 from langchain.chat_models import ChatOpenAI
 from langchain.docstore.document import Document
 from langchain.document_loaders import PyPDFLoader, TextLoader
