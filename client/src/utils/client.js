@@ -17,7 +17,7 @@ async function handleResponse(res) {
     if (responseText.includes('ECONNREFUSED'))
         errorMessage = "The server refused the connection"
     else {
-        const json_ = await res.json()
+        const json_ = JSON.parse(responseText)
         errorMessage = json_.detail.message
     }
     throw new Error(errorMessage)

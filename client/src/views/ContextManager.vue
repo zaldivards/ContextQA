@@ -172,7 +172,6 @@ export default {
           setTimeout(() => this.$router.push("/chat/document"), 2000);
         })
         .catch((error) => {
-          console.log(error);
           showError(error.message);
           this.loading = false;
           this.disabled = false;
