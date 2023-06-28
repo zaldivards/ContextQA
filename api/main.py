@@ -86,7 +86,10 @@ def query_pdf(
             document.file,
         )
     except Exception as ex:
-        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
+        raise HTTPException(
+            status_code=424,
+            detail={"message": "ContextQA server did not process the request successfully", "cause": str(ex)},
+        ) from ex
 
 
 @context_router.post("/set", response_model=models.LLMResult)
@@ -122,7 +125,10 @@ def set_context(
         ) from ex
     except Exception as ex:
         LOGGER.exception("Error while setting context. Cause: %s", ex)
-        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
+        raise HTTPException(
+            status_code=424,
+            detail={"message": "ContextQA server did not process the request successfully", "cause": str(ex)},
+        ) from ex
 
 
 @context_router.get("/query", response_model=models.LLMResult)
@@ -132,7 +138,10 @@ def query_llm(question: str, processor: models.SimilarityProcessor, identifier: 
         # pylint: disable=E1102
         return context_setter.load_and_respond(question, identifier)
     except Exception as ex:
-        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
+        raise HTTPException(
+            status_code=424,
+            detail={"message": "ContextQA server did not process the request successfully", "cause": str(ex)},
+        ) from ex
 
 
 app.include_router(one_time_router, prefix="/query", tags=["Queries with one-time context"])
