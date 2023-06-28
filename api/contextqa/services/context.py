@@ -19,6 +19,10 @@ LOCAL_STORE_HOME = Path("/var") / "embeddings"
 LOADERS = {"pdf": PyPDFLoader, "txt": TextLoader}
 
 
+class VectorStoreConnectionError(Exception):
+    """This exception is raised when a connection could not be established or credentials are invalid"""
+
+
 def get_loader(extension: str) -> BaseLoader:
     return LOADERS[extension]
 
@@ -143,8 +147,10 @@ class PineconeManager(LLMContextManager):
     """Pinecone manager implementation. It uses `Pinecone` as its processor and vector store"""
 
     def persist(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> models.LLMResult:
-        pinecone.init(api_key=self.envs.pinecone_token, environment=self.envs.pinecone_environment_region)
-
+        try:
+            pinecone.init(api_key=self.envs.pinecone_token, environment=self.envs.pinecone_environment_region)
+        except Exception as ex:
+            raise VectorStoreConnectionError from ex
         documents = self.load_and_preprocess(filename, params, file_)
         embeddings_util = OpenAIEmbeddings()
         Pinecone.from_documents(documents, embeddings_util, index_name=self.envs.pinecone_index)

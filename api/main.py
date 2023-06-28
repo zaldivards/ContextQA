@@ -1,9 +1,11 @@
 from typing import Optional
 
 # pylint: disable=C0413
-from contextqa import chat, context, models, social_media, vector
+from contextqa import chat, context, get_logger, models, social_media, vector
 from fastapi import APIRouter, FastAPI, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+
+LOGGER = get_logger()
 
 one_time_router = APIRouter()
 context_router = APIRouter()
@@ -107,7 +109,16 @@ def set_context(
             ),
             document.file,
         )
+    except ConnectionError as ex:
+        raise HTTPException(
+            status_code=424,
+            detail={
+                "message": "Connection error trying to set the context using the selected vector store",
+                "cause": str(ex),
+            },
+        ) from ex
     except Exception as ex:
+        LOGGER.error("Error while setting context. Cause: %s", ex)
         raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
 
 
