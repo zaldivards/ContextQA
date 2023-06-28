@@ -109,16 +109,19 @@ def set_context(
             ),
             document.file,
         )
-    except ConnectionError as ex:
+    except context.VectorStoreConnectionError as ex:
         raise HTTPException(
             status_code=424,
             detail={
-                "message": "Connection error trying to set the context using the selected vector store",
+                "message": (
+                    "Connection error trying to set the context using the selected vector store. Please double check"
+                    " your credentials"
+                ),
                 "cause": str(ex),
             },
         ) from ex
     except Exception as ex:
-        LOGGER.error("Error while setting context. Cause: %s", ex)
+        LOGGER.exception("Error while setting context. Cause: %s", ex)
         raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
 
 

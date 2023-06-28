@@ -4,7 +4,7 @@ from tempfile import NamedTemporaryFile
 from typing import BinaryIO
 
 import pinecone
-from contextqa import models, settings
+from contextqa import get_logger, models, settings
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
 from langchain.docstore.document import Document
@@ -16,6 +16,7 @@ from langchain.vectorstores import Pinecone, SKLearnVectorStore
 from langchain.vectorstores.base import VectorStore
 
 LOCAL_STORE_HOME = Path("/var") / "embeddings"
+LOGGER = get_logger()
 LOADERS = {"pdf": PyPDFLoader, "txt": TextLoader}
 
 
@@ -148,12 +149,16 @@ class PineconeManager(LLMContextManager):
 
     def persist(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> models.LLMResult:
         try:
+            LOGGER.info("Initializing Pinecone connection")
             pinecone.init(api_key=self.envs.pinecone_token, environment=self.envs.pinecone_environment_region)
         except Exception as ex:
             raise VectorStoreConnectionError from ex
         documents = self.load_and_preprocess(filename, params, file_)
         embeddings_util = OpenAIEmbeddings()
-        Pinecone.from_documents(documents, embeddings_util, index_name=self.envs.pinecone_index)
+        try:
+            Pinecone.from_documents(documents, embeddings_util, index_name=self.envs.pinecone_index)
+        except Exception as ex:
+            raise VectorStoreConnectionError from ex
         return models.LLMResult(response="success")
 
     def context_object(self, **kwargs) -> VectorStore:
