@@ -13,7 +13,13 @@ export function getDateTimeStr() {
 
 async function handleResponse(res) {
     const responseText = await res.text()
-    const errorMessage = responseText.includes('ECONNREFUSED') ? "The server refused the connection" : "The LLM server did not process the message properly"
+    let errorMessage = ""
+    if (responseText.includes('ECONNREFUSED'))
+        errorMessage = "The server refused the connection"
+    else {
+        const json_ = await res.json()
+        errorMessage = json_.detail.message
+    }
     throw new Error(errorMessage)
 }
 
@@ -32,10 +38,13 @@ export async function setContext(endpoint, data) {
         body: formData
     }
     );
-    if (!response.ok)
+    if (response.ok) {
+        const json_ = await response.json();
+        return json_.response
+    }
+    else {
         await handleResponse(response)
-    const json_ = await response.json();
-    return json_.response;
+    }
 }
 
 export async function askLLM(endpoint, params) {
@@ -43,11 +52,12 @@ export async function askLLM(endpoint, params) {
         API_BASE_URL + endpoint + "?" +
         new URLSearchParams(params)
     );
-    if (!response.ok)
+    if (response.ok) {
+        const json_ = await response.json();
+        return json_.response
+    }
+    else
         await handleResponse(response)
-
-    const json_ = await response.json();
-    return json_.response;
 }
 
 
