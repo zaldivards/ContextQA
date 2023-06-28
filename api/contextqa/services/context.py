@@ -3,18 +3,25 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import BinaryIO, Optional
 
-from contextqa import models, settings
+import pinecone
+from contextqa import get_logger, models, settings
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
+from langchain.docstore.document import Document
 from langchain.document_loaders import PyPDFLoader, TextLoader
 from langchain.document_loaders.base import BaseLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import SKLearnVectorStore
+from langchain.vectorstores import Pinecone, SKLearnVectorStore
 from langchain.vectorstores.base import VectorStore
 
 LOCAL_STORE_HOME = Path("/var") / "embeddings"
+LOGGER = get_logger()
 LOADERS = {"pdf": PyPDFLoader, "txt": TextLoader}
+
+
+class VectorStoreConnectionError(Exception):
+    """This exception is raised when a connection could not be established or credentials are invalid"""
 
 
 def get_loader(extension: str) -> BaseLoader:
@@ -24,9 +31,9 @@ def get_loader(extension: str) -> BaseLoader:
 class LLMContextManager(ABC):
     """Base llm manager"""
 
-    def load_and_preprocess(
-        self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO
-    ) -> models.LLMResult:
+    envs = settings()
+
+    def load_and_preprocess(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> list[Document]:
         """Load and preprocess the file content
 
         Parameters
@@ -40,8 +47,8 @@ class LLMContextManager(ABC):
 
         Returns
         -------
-        models.VectorScanResult
-            process status
+        List[Document]
+            splitted document content as documents
         """
         extension = Path(filename).suffix.removeprefix(".")
         with NamedTemporaryFile(mode="wb") as temp:
@@ -107,13 +114,12 @@ class LLMContextManager(ABC):
         models.VectorScanResult
             The final response of the LLM
         """
-        envs = settings()
         context_util = self.context_object(filename)
         llm = ChatOpenAI(verbose=True, temperature=0)
         qa_chain = RetrievalQA.from_chain_type(
-            llm=llm, retriever=context_util.as_retriever(), return_source_documents=envs.debug
+            llm=llm, retriever=context_util.as_retriever(), return_source_documents=self.envs.debug
         )
-        if envs.debug:
+        if self.envs.debug:
             result = qa_chain({"query": question})
             print(result["source_documents"])
             return models.LLMResult(response=result["result"])
@@ -146,7 +152,48 @@ class LocalManager(LLMContextManager):
         return processor
 
 
+class PineconeManager(LLMContextManager):
+    """Pinecone manager implementation. It uses `Pinecone` as its processor and vector store"""
+
+    def persist(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> models.LLMResult:
+        try:
+            LOGGER.info("Initializing Pinecone connection")
+            pinecone.init(api_key=self.envs.pinecone_token, environment=self.envs.pinecone_environment_region)
+        except Exception as ex:
+            raise VectorStoreConnectionError from ex
+        documents = self.load_and_preprocess(filename, params, file_)
+        embeddings_util = OpenAIEmbeddings()
+        try:
+            Pinecone.from_documents(
+                documents, embeddings_util, index_name=self.envs.pinecone_index, namespace=Path(filename).stem
+            )
+        except Exception as ex:
+            raise VectorStoreConnectionError from ex
+        return models.LLMResult(response="success")
+
+    def context_object(self, filename: Optional[str] = None) -> VectorStore:
+        embeddings_util = OpenAIEmbeddings()
+        processor = Pinecone.from_existing_index(
+            index_name=self.envs.pinecone_index, embedding=embeddings_util, namespace=Path(filename).stem
+        )
+        return processor
+
+
 def get_setter(processor: models.SimilarityProcessor) -> LLMContextManager:
+    """LLMContextManager factory function
+
+    Parameters
+    ----------
+    processor : models.SimilarityProcessor
+        Manager identifier
+
+    Returns
+    -------
+    LLMContextManager
+        Specific LLMContextManager implementation
+    """
     match processor:
         case models.SimilarityProcessor.LOCAL:
             return LocalManager()
+        case models.SimilarityProcessor.PINECONE:
+            return PineconeManager()

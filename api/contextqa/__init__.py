@@ -1,6 +1,9 @@
+import logging
 from functools import lru_cache
 
 from pydantic import BaseSettings
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 class AppSettings(BaseSettings):
@@ -23,6 +26,10 @@ class AppSettings(BaseSettings):
 @lru_cache()
 def settings() -> AppSettings:
     return AppSettings()
+
+
+def get_logger() -> logging.Logger:
+    return logging.getLogger("contextqa")
 
 
 # pylint: disable=C0413

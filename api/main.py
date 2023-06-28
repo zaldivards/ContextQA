@@ -1,9 +1,11 @@
 from typing import Optional
 
 # pylint: disable=C0413
-from contextqa import chat, context, models, social_media, vector
+from contextqa import chat, context, get_logger, models, social_media, vector
 from fastapi import APIRouter, FastAPI, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+
+LOGGER = get_logger()
 
 one_time_router = APIRouter()
 context_router = APIRouter()
@@ -25,6 +27,12 @@ def get_user_info(name: str = Query(min_length=4)):
         return social_media.seach_user_info(name)
     except Exception as ex:
         raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
+
+
+@app.get("/ping")
+def ping():
+    """Test whether the api is up and running"""
+    return "Pong!"
 
 
 @app.get("/qa", response_model=models.LLMResult)
@@ -78,7 +86,10 @@ def query_pdf(
             document.file,
         )
     except Exception as ex:
-        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
+        raise HTTPException(
+            status_code=424,
+            detail={"message": "ContextQA server did not process the request successfully", "cause": str(ex)},
+        ) from ex
 
 
 @context_router.post("/set", response_model=models.LLMResult)
@@ -101,8 +112,23 @@ def set_context(
             ),
             document.file,
         )
+    except context.VectorStoreConnectionError as ex:
+        raise HTTPException(
+            status_code=424,
+            detail={
+                "message": (
+                    "Connection error trying to set the context using the selected vector store. Please double check"
+                    " your credentials"
+                ),
+                "cause": str(ex),
+            },
+        ) from ex
     except Exception as ex:
-        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
+        LOGGER.exception("Error while setting context. Cause: %s", ex)
+        raise HTTPException(
+            status_code=424,
+            detail={"message": "ContextQA server did not process the request successfully", "cause": str(ex)},
+        ) from ex
 
 
 @context_router.get("/query", response_model=models.LLMResult)
@@ -112,7 +138,10 @@ def query_llm(question: str, processor: models.SimilarityProcessor, identifier: 
         # pylint: disable=E1102
         return context_setter.load_and_respond(question, identifier)
     except Exception as ex:
-        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
+        raise HTTPException(
+            status_code=424,
+            detail={"message": "ContextQA server did not process the request successfully", "cause": str(ex)},
+        ) from ex
 
 
 app.include_router(one_time_router, prefix="/query", tags=["Queries with one-time context"])
