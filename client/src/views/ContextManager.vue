@@ -158,6 +158,7 @@ export default {
         chunkSize: this.chunkSize,
         overlap: this.overlap,
         file: this.uploadedFile,
+        processor: this.selectedStore.toLowerCase(),
       })
         .then((result) => {
           this.$store.dispatch("setApiParams", {
