@@ -27,6 +27,12 @@ def get_user_info(name: str = Query(min_length=4)):
         raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
 
 
+@app.get("/ping")
+def ping():
+    """Test whether the api is up and running"""
+    return "Pong!"
+
+
 @app.get("/qa", response_model=models.LLMResult)
 def llm_qa(message: str):
     try:
