@@ -122,7 +122,7 @@ class LLMContextManager(ABC):
         qa_chain = ConversationalRetrievalChain.from_llm(
             llm=llm,
             retriever=context_util.as_retriever(),
-            memory=memory.Redis(),
+            memory=memory.Redis(session="context"),
             condense_question_prompt=prompts.CONTEXTQA_RETRIEVAL_PROMPT,
             verbose=self.envs.debug,
         )

@@ -1,4 +1,5 @@
-from contextqa import settings
+from typing import Literal
+
 from langchain.llms import OpenAI
 from langchain.memory import (
     ConversationBufferWindowMemory,
@@ -8,18 +9,27 @@ from langchain.memory import (
 )
 from langchain.schema import BaseMemory
 
+from contextqa import settings
+
 envs = settings()
-history_db = RedisChatMessageHistory(session_id="default", url=envs.redis_url)
+_PROMPT_KEYS = {
+    "default": {"input_key": "input", "memory_key": "history"},
+    "context": {"input_key": "question", "memory_key": "chat_history"},
+}
 
 
-def _redis() -> BaseMemory:
+def _requires_raw(session: str) -> bool:
+    return session != "default"
+
+
+def _redis(session: Literal["default", "context"] = "default") -> BaseMemory:
+    history_db = RedisChatMessageHistory(session_id=session, url=envs.redis_url)
     return ConversationBufferWindowMemory(
         chat_memory=history_db,
-        input_key="question",
-        memory_key="chat_history",
         max_token_limit=1000,
         k=5,
-        return_messages=True,
+        return_messages=_requires_raw(session),
+        **_PROMPT_KEYS[session]
     )
 
 
@@ -27,14 +37,14 @@ def _summary_memory() -> BaseMemory:
     return ConversationSummaryMemory(llm=OpenAI(temperature=0), input_key="question")
 
 
-def _redis_with_summary() -> BaseMemory:
+def _redis_with_summary(session: Literal["default", "context"] = "default") -> BaseMemory:
+    history_db = RedisChatMessageHistory(session_id=session, url=envs.redis_url)
     memory = ConversationSummaryBufferMemory(
         llm=OpenAI(temperature=0),
-        input_key="question",
-        memory_key="chat_history",
         chat_memory=history_db,
-        return_messages=True,
+        return_messages=_requires_raw(session),
         max_token_limit=1000,
+        **_PROMPT_KEYS[session]
     )
     return memory
 
