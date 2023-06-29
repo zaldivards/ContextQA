@@ -40,8 +40,16 @@ git clone https://github.com/zaldivards/contextqa.git && cd contextqa
 ```bash
 bash run.sh [start|restart|shutdown] [dev|prod] OPTIONS
 ```
+### Starting the development or production environment for the first time
+```bash
+bash run.sh start dev
+```
+or
 
-### Examples
+```bash
+bash run.sh start prod
+```
+### Other examples
 
 ```bash
 bash run.sh start dev --build
