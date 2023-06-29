@@ -79,16 +79,18 @@ export default {
     },
     formatCode(message) {
       const formattedText = message
-        .replaceAll(/(?<=```)(?!\n{2})[^`]+(?=```)/g, (match, offset, text) => {
-          match = match.trim();
-          const lines = match.split("\n");
-          if (lines.length > 1) {
-            match = lines.slice(1).join("\n");
+        .replaceAll(
+          /(?<=```)(?!\n{2}|\s+\-)[^`]+(?:`[^`]+)?(?=```)/g,
+          (match, offset, text) => {
+            const lines = match.split("\n");
+            if (lines.length > 1 && /[\w\s]/.test(lines[0].at(-1))) {
+              match = lines.slice(1).join("\n");
+            }
+            return `<code class='text-yellow-600 bg-black-alpha-70 p-3 w-auto block'>${match.trim()}</code>`;
           }
-          return `<code class='text-yellow-600 bg-black-alpha-70 p-3 w-auto block'>${match}</code>`;
-        })
+        )
         .replaceAll("```", "")
-        .replaceAll(/(?<=`)(?![\s.,])[^`]+(?=`)/g, (match, offset, text) => {
+        .replaceAll(/(?<=`)(?![\s.,)])[^`]+(?=`)/g, (match, offset, text) => {
           return `<code class='text-yellow-600 bg-black-alpha-70 p-1 w-min'>${match}</code>`;
         });
       return formattedText.replaceAll("`", "").replaceAll(
