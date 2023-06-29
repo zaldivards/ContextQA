@@ -148,7 +148,7 @@ export default {
     header() {
       return this.requiresContext
         ? `Context: ${this.identifier ?? "None"}`
-        : "Chat";
+        : "ContextQA Chat";
     },
   },
 };

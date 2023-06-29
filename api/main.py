@@ -1,9 +1,8 @@
-from typing import Optional
-
 # pylint: disable=C0413
-from contextqa import chat, context, get_logger, models, social_media, vector
-from fastapi import APIRouter, FastAPI, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, FastAPI, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+
+from contextqa import chat, context, get_logger, models
 
 LOGGER = get_logger()
 
@@ -21,75 +20,21 @@ app.add_middleware(
 )
 
 
-@app.get("/social-media", response_model=models.Summary)
-def get_user_info(name: str = Query(min_length=4)):
-    try:
-        return social_media.seach_user_info(name)
-    except Exception as ex:
-        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
-
-
 @app.get("/ping")
 def ping():
     """Test whether the api is up and running"""
     return "Pong!"
 
 
-@app.get("/qa", response_model=models.LLMResult)
-def llm_qa(message: str):
+@app.post("/qa", response_model=models.LLMResult)
+def llm_qa(params: models.LLMQueryRequest):
+    """
+    Provide a message and receive a response from the LLM
+    """
     try:
-        return chat.qa_service(message)
+        return chat.qa_service(params.message)
     except Exception as ex:
         raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
-
-
-@one_time_router.post("", response_model=models.LLMResult)
-def query_text(params: models.LLMQueryTextRequestBody):
-    try:
-        return vector.simple_scan(params)
-    except Exception as ex:
-        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
-
-
-@one_time_router.post("/document", response_model=models.LLMResult)
-def query_document(
-    document: UploadFile,
-    query: str = Form(min_length=10),
-    separator: str = Form(default="."),
-    chunk_size: int = Form(default=100),
-    similarity_processor: models.SimilarityProcessor = Form(default="local"),
-):
-    try:
-        return vector.document_scan(
-            models.LLMQueryDocumentRequestBody(
-                query=query, separator=separator, chunk_size=chunk_size, similarity_processor=similarity_processor
-            ),
-            document.file,
-        )
-    except Exception as ex:
-        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
-
-
-@one_time_router.post("/pdf", response_model=models.LLMResult)
-def query_pdf(
-    document: UploadFile,
-    query: str = Form(min_length=10),
-    separator: str = Form(default="."),
-    chunk_size: int = Form(default=100),
-    similarity_processor: models.SimilarityProcessor = Form(default="local"),
-):
-    try:
-        return vector.pdf_scan(
-            models.LLMQueryDocumentRequestBody(
-                query=query, separator=separator, chunk_size=chunk_size, similarity_processor=similarity_processor
-            ),
-            document.file,
-        )
-    except Exception as ex:
-        raise HTTPException(
-            status_code=424,
-            detail={"message": "ContextQA server did not process the request successfully", "cause": str(ex)},
-        ) from ex
 
 
 @context_router.post("/set", response_model=models.LLMResult)
@@ -100,6 +45,14 @@ def set_context(
     chunk_overlap: int = Form(default=50),
     similarity_processor: models.SimilarityProcessor = Form(default="local"),
 ):
+    """
+    Set the document context to query it using the LLM and the vector store/processor
+
+    **NOTE**: You need to set the following to use the pinecone vector store/processor:
+    1. `PINECONE_TOKEN`
+    2. `PINECONE_INDEX`
+    3. `PINECONE_ENVIRONMENT_REGION`
+    """
     try:
         context_setter = context.get_setter(similarity_processor)
         # pylint: disable=E1102
@@ -131,12 +84,18 @@ def set_context(
         ) from ex
 
 
-@context_router.get("/query", response_model=models.LLMResult)
-def query_llm(question: str, processor: models.SimilarityProcessor, identifier: Optional[str] = None):
+@context_router.post("/query", response_model=models.LLMResult)
+def query_llm(params: models.LLMContextQueryRequest):
+    """
+    Perform a query against the document context
+
+    **Note**: The `processor` and `identifier` parameters must be the same you set with the `/context/set` endpoint.
+    The `identifier` parameter was set using the provided document's name
+    """
     try:
-        context_setter = context.get_setter(processor)
+        context_setter = context.get_setter(params.processor)
         # pylint: disable=E1102
-        return context_setter.load_and_respond(question, identifier)
+        return context_setter.load_and_respond(params.question, params.identifier)
     except Exception as ex:
         raise HTTPException(
             status_code=424,

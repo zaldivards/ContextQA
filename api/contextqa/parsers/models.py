@@ -27,6 +27,16 @@ class LLMRequestBodyBase(BaseModel):
     chunk_overlap: int = 50
 
 
+class LLMContextQueryRequest(BaseModel):
+    question: str
+    processor: SimilarityProcessor
+    identifier: str
+
+
+class LLMQueryRequest(BaseModel):
+    message: str
+
+
 class LLMQueryRequestBody(LLMRequestBodyBase):
     query: str = Field(description="The query we want the llm to respond", min_length=10)
 

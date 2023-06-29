@@ -1,6 +1,16 @@
 version: '3.8'
 
 services:
+  contextqa-chat-history-prod:
+    image: redis:7.0.11-alpine
+    container_name: contextqa-chat-history-prod
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-prod:/data
+    networks:
+      - contextqa-prod
   contextqa-server-prod:
     build: ./api
     container_name: contextqa-server-prod
@@ -14,9 +24,12 @@ services:
       - ./contextqa.env
     environment:
       - DEPLOYMENT=prod
+      - REDIS_URL=redis://contextqa-chat-history-prod:6379/0
     entrypoint: uvicorn main:app --host 0.0.0.0 --port 8080
     networks:
       - contextqa-prod
+    depends_on:
+      - contextqa-chat-history-prod
   contextqa-client-prod:
     build: ./client
     container_name: contextqa-client-
@@ -33,3 +46,6 @@ services:
       - contextqa-prod
 networks:
   contextqa-prod:
+volumes:
+  redis-prod:
+    driver: local

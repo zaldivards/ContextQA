@@ -23,7 +23,7 @@ Options:
   --from-scratch   Restart ContextQA server and client after a clean build with no cache 
 "
 
-shitdownUsage="Usage: bash run.sh shutdown ENV
+shutdownUsage="Usage: bash run.sh shutdown ENV
   
   Shutdown ContextQA server and client
 
@@ -80,7 +80,7 @@ restart(){
 
 shutdown(){
   if [ "$1" == "--help" ]; then
-    echo "$shitdownUsage"
+    echo "$shutdownUsage"
     exit
   fi
   $compose -f "docker-compose-$1.yml" down

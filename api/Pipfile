@@ -17,6 +17,8 @@ pypdf = "*"
 pinecone-client = "*"
 pandas = "*"
 pyarrow = "*"
+redis = "*"
+async-timeout = "*"
 
 [dev-packages]
 black = "*"

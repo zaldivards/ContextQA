@@ -49,8 +49,13 @@ export async function setContext(endpoint, data) {
 
 export async function askLLM(endpoint, params) {
     const response = await fetch(
-        API_BASE_URL + endpoint + "?" +
-        new URLSearchParams(params)
+        API_BASE_URL + endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params)
+    }
     );
     if (response.ok) {
         const json_ = await response.json();
