@@ -123,7 +123,7 @@ class LLMContextManager(ABC):
             llm=llm,
             retriever=context_util.as_retriever(),
             memory=memory.Redis(),
-            condense_question_prompt=prompts.CONTEXTQA_PROMPT,
+            condense_question_prompt=prompts.CONTEXTQA_RETRIEVAL_PROMPT,
             verbose=self.envs.debug,
         )
         result = qa_chain.run(question)

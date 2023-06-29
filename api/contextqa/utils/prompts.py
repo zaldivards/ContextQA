@@ -24,4 +24,4 @@ Follow Up Input: {question}
 Standalone question:"""
 
 
-CONTEXTQA_PROMPT = PromptTemplate.from_template(_template)
+CONTEXTQA_RETRIEVAL_PROMPT = PromptTemplate.from_template(_template)
