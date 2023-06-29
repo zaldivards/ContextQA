@@ -40,11 +40,11 @@ export default {
           command: () => this.$router.push({ path: "/" }),
         },
         {
-          label: "Chat",
+          label: "Features",
           icon: "pi pi-comment",
           items: [
             {
-              label: "Talk",
+              label: "Chat",
               icon: "pi pi-comments",
               command: () => this.$router.push({ path: "/chat/talk" }),
             },
