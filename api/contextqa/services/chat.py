@@ -1,5 +1,5 @@
-from contextqa import models
-from langchain import LLMChain
+from langchain import ConversationChain
+from langchain.chains.conversation.prompt import DEFAULT_TEMPLATE
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts.chat import (
     AIMessagePromptTemplate,
@@ -8,15 +8,22 @@ from langchain.prompts.chat import (
     SystemMessagePromptTemplate,
 )
 
-_SYSTEM_MESSAGE = SystemMessagePromptTemplate.from_template(
-    """You are helpful assistant called ContextQA that answer user inputs. You emphasize your name in every greeting.
+from contextqa import models, settings
+from contextqa.utils import memory
+
+
+_MESSAGES = [
+    SystemMessagePromptTemplate.from_template(
+        """You are helpful assistant called ContextQA that answer user inputs. You emphasize your name in every greeting.
     
     
     Example: Hello, I am ContextQA, how can I help you?
     """
-)
-_HUMAN_MESSAGE_EXAMPLE = HumanMessagePromptTemplate.from_template("Hi")
-_AI_MESSAGE_EXAMPLE = AIMessagePromptTemplate.from_template("Hello, I am your assitant ContextQA, how may I help you?")
+    ),
+    HumanMessagePromptTemplate.from_template("Hi"),
+    AIMessagePromptTemplate.from_template("Hello, I am your assitant ContextQA, how may I help you?"),
+    SystemMessagePromptTemplate.from_template(DEFAULT_TEMPLATE),
+]
 
 
 def qa_service(message: str) -> models.LLMResult:
@@ -33,10 +40,6 @@ def qa_service(message: str) -> models.LLMResult:
         LLM response
     """
     llm = ChatOpenAI(temperature=0)
-    human_template = "{input}"
-    human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
-    prompt = ChatPromptTemplate.from_messages(
-        [_SYSTEM_MESSAGE, _HUMAN_MESSAGE_EXAMPLE, _AI_MESSAGE_EXAMPLE, human_message_prompt]
-    )
-    chain = LLMChain(llm=llm, prompt=prompt)
+    prompt = ChatPromptTemplate.from_messages(_MESSAGES)
+    chain = ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings().debug)
     return models.LLMResult(response=chain.run(input=message))
