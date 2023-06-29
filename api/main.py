@@ -1,9 +1,8 @@
-from typing import Optional
-
 # pylint: disable=C0413
-from contextqa import chat, context, get_logger, models
 from fastapi import APIRouter, FastAPI, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+
+from contextqa import chat, context, get_logger, models
 
 LOGGER = get_logger()
 
@@ -27,10 +26,10 @@ def ping():
     return "Pong!"
 
 
-@app.get("/qa", response_model=models.LLMResult)
-def llm_qa(message: str):
+@app.post("/qa", response_model=models.LLMResult)
+def llm_qa(params: models.LLMQueryRequest):
     try:
-        return chat.qa_service(message)
+        return chat.qa_service(params.message)
     except Exception as ex:
         raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
 
@@ -74,12 +73,12 @@ def set_context(
         ) from ex
 
 
-@context_router.get("/query", response_model=models.LLMResult)
-def query_llm(question: str, processor: models.SimilarityProcessor, identifier: Optional[str] = None):
+@context_router.post("/query", response_model=models.LLMResult)
+def query_llm(params: models.LLMContextQueryRequest):
     try:
-        context_setter = context.get_setter(processor)
+        context_setter = context.get_setter(params.processor)
         # pylint: disable=E1102
-        return context_setter.load_and_respond(question, identifier)
+        return context_setter.load_and_respond(params.question, params.identifier)
     except Exception as ex:
         raise HTTPException(
             status_code=424,
