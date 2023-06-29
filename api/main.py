@@ -28,6 +28,9 @@ def ping():
 
 @app.post("/qa", response_model=models.LLMResult)
 def llm_qa(params: models.LLMQueryRequest):
+    """
+    Provide a message and receive a response from the LLM
+    """
     try:
         return chat.qa_service(params.message)
     except Exception as ex:
@@ -42,6 +45,14 @@ def set_context(
     chunk_overlap: int = Form(default=50),
     similarity_processor: models.SimilarityProcessor = Form(default="local"),
 ):
+    """
+    Set the document context to query it using the LLM and the vector store/processor
+
+    **NOTE**: You need to set the following to use the pinecone vector store/processor:
+    1. `PINECONE_TOKEN`
+    2. `PINECONE_INDEX`
+    3. `PINECONE_ENVIRONMENT_REGION`
+    """
     try:
         context_setter = context.get_setter(similarity_processor)
         # pylint: disable=E1102
@@ -75,6 +86,12 @@ def set_context(
 
 @context_router.post("/query", response_model=models.LLMResult)
 def query_llm(params: models.LLMContextQueryRequest):
+    """
+    Perform a query against the document context
+
+    **Note**: The `processor` and `identifier` parameters must be the same you set with the `/context/set` endpoint.
+    The `identifier` parameter was set using the provided document's name
+    """
     try:
         context_setter = context.get_setter(params.processor)
         # pylint: disable=E1102
