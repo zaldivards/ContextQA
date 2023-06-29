@@ -4,8 +4,7 @@ from tempfile import NamedTemporaryFile
 from typing import BinaryIO, Optional
 
 import pinecone
-from contextqa import get_logger, models, settings
-from langchain.chains import ConversationalRetrievalChain, RetrievalQA
+from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.docstore.document import Document
 from langchain.document_loaders import PyPDFLoader, TextLoader
@@ -14,6 +13,10 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Pinecone, SKLearnVectorStore
 from langchain.vectorstores.base import VectorStore
+
+from contextqa import get_logger, models, settings
+from contextqa.utils import memory, prompts
+
 
 LOCAL_STORE_HOME = Path("/var") / "embeddings"
 LOGGER = get_logger()
@@ -116,13 +119,13 @@ class LLMContextManager(ABC):
         """
         context_util = self.context_object(filename)
         llm = ChatOpenAI(verbose=True, temperature=0)
-        qa_chain = RetrievalQA.from_chain_type(
-            llm=llm, retriever=context_util.as_retriever(), return_source_documents=self.envs.debug
+        qa_chain = ConversationalRetrievalChain.from_llm(
+            llm=llm,
+            retriever=context_util.as_retriever(),
+            memory=memory.Redis(),
+            condense_question_prompt=prompts.CONTEXTQA_PROMPT,
+            verbose=self.envs.debug,
         )
-        if self.envs.debug:
-            result = qa_chain({"query": question})
-            print(result["source_documents"])
-            return models.LLMResult(response=result["result"])
         result = qa_chain.run(question)
         return models.LLMResult(response=result)
 
