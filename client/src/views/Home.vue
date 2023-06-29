@@ -56,12 +56,13 @@
           <p class="w-8 m-auto p-2">
             Please give us a star on
             <a
-              href="https://github.com/zaldivards/contextqa/tree/dev"
+              href="https://github.com/zaldivards/ContextQA"
               class="text-teal-300 no-underline"
               title="Go to repo"
               target="_blank"
               >Github</a
-            >. if you find
+            >
+            if you find
             <span class="relative"
               ><img
                 alt="contextqa text"
