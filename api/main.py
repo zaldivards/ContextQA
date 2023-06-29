@@ -1,8 +1,8 @@
 from typing import Optional
 
 # pylint: disable=C0413
-from contextqa import chat, context, get_logger, models, social_media, vector
-from fastapi import APIRouter, FastAPI, Form, HTTPException, Query, UploadFile
+from contextqa import chat, context, get_logger, models
+from fastapi import APIRouter, FastAPI, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 LOGGER = get_logger()
@@ -21,14 +21,6 @@ app.add_middleware(
 )
 
 
-@app.get("/social-media", response_model=models.Summary)
-def get_user_info(name: str = Query(min_length=4)):
-    try:
-        return social_media.seach_user_info(name)
-    except Exception as ex:
-        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
-
-
 @app.get("/ping")
 def ping():
     """Test whether the api is up and running"""
@@ -41,55 +33,6 @@ def llm_qa(message: str):
         return chat.qa_service(message)
     except Exception as ex:
         raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
-
-
-@one_time_router.post("", response_model=models.LLMResult)
-def query_text(params: models.LLMQueryTextRequestBody):
-    try:
-        return vector.simple_scan(params)
-    except Exception as ex:
-        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
-
-
-@one_time_router.post("/document", response_model=models.LLMResult)
-def query_document(
-    document: UploadFile,
-    query: str = Form(min_length=10),
-    separator: str = Form(default="."),
-    chunk_size: int = Form(default=100),
-    similarity_processor: models.SimilarityProcessor = Form(default="local"),
-):
-    try:
-        return vector.document_scan(
-            models.LLMQueryDocumentRequestBody(
-                query=query, separator=separator, chunk_size=chunk_size, similarity_processor=similarity_processor
-            ),
-            document.file,
-        )
-    except Exception as ex:
-        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
-
-
-@one_time_router.post("/pdf", response_model=models.LLMResult)
-def query_pdf(
-    document: UploadFile,
-    query: str = Form(min_length=10),
-    separator: str = Form(default="."),
-    chunk_size: int = Form(default=100),
-    similarity_processor: models.SimilarityProcessor = Form(default="local"),
-):
-    try:
-        return vector.pdf_scan(
-            models.LLMQueryDocumentRequestBody(
-                query=query, separator=separator, chunk_size=chunk_size, similarity_processor=similarity_processor
-            ),
-            document.file,
-        )
-    except Exception as ex:
-        raise HTTPException(
-            status_code=424,
-            detail={"message": "ContextQA server did not process the request successfully", "cause": str(ex)},
-        ) from ex
 
 
 @context_router.post("/set", response_model=models.LLMResult)

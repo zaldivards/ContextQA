@@ -35,4 +35,4 @@ def get_logger() -> logging.Logger:
 
 # pylint: disable=C0413
 from contextqa.parsers import models
-from contextqa.services import chat, context, social_media, vector
+from contextqa.services import chat, context
