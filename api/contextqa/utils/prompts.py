@@ -1,5 +1,6 @@
 """Custom Prompt templates"""
 
+from langchain.agents.conversational.prompt import FORMAT_INSTRUCTIONS
 from langchain.prompts import PromptTemplate
 
 # part of this template was taken from langchain.chains.conversational_retrieval.prompts
@@ -24,4 +25,14 @@ Follow Up Input: {question}
 Standalone question:"""
 
 
+_COMMON_TEAMPLATE_SEGMENT = """You are helpful assistant called ContextQA that answer user inputs. You emphasize your
+name in every greeting.
+
+Example: 
+Human: Hi
+Assistant: Hello, I am ContextQA, how can I help you?
+
+"""
+
 CONTEXTQA_RETRIEVAL_PROMPT = PromptTemplate.from_template(_template)
+CONTEXTQA_AGENT_TEMPLATE = _COMMON_TEAMPLATE_SEGMENT + FORMAT_INSTRUCTIONS
