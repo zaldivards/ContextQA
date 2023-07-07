@@ -1,6 +1,7 @@
+from langchain.agents import initialize_agent, AgentType, Agent
+from langchain.chat_models import ChatOpenAI
 from langchain import ConversationChain
 from langchain.chains.conversation.prompt import DEFAULT_TEMPLATE
-from langchain.chat_models import ChatOpenAI
 from langchain.prompts.chat import (
     AIMessagePromptTemplate,
     ChatPromptTemplate,
@@ -9,7 +10,8 @@ from langchain.prompts.chat import (
 )
 
 from contextqa import models, settings
-from contextqa.utils import memory
+from contextqa.utils import memory, prompts
+from contextqa.agents.tools import searcher
 
 
 _MESSAGES = [
@@ -26,6 +28,33 @@ _MESSAGES = [
 ]
 
 
+def get_llm_assistant() -> ConversationChain | Agent:
+    """Return certain LLM assistant based on the system configuration
+
+    Returns
+    -------
+    ConversationChain | Agent
+    """
+    llm = ChatOpenAI(temperature=0)
+
+    if settings().enable_internet_access:
+        return initialize_agent(
+            [searcher],
+            llm=llm,
+            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+            memory=memory.Redis("default"),
+            verbose=settings().debug,
+            agent_kwargs={
+                # "output_parser": CustomOP(),
+                # "format_instructions": prompts.CONTEXTQA_AGENT_TEMPLATE,
+                "prefix": prompts.PREFIX,
+            },
+            handle_parsing_errors=True,
+        )
+    prompt = ChatPromptTemplate.from_messages(_MESSAGES)
+    return ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings().debug)
+
+
 def qa_service(message: str) -> models.LLMResult:
     """Chat with the llm
 
@@ -39,7 +68,5 @@ def qa_service(message: str) -> models.LLMResult:
     models.LLMResult
         LLM response
     """
-    llm = ChatOpenAI(temperature=0)
-    prompt = ChatPromptTemplate.from_messages(_MESSAGES)
-    chain = ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings().debug)
-    return models.LLMResult(response=chain.run(input=message))
+    assistant = get_llm_assistant()
+    return models.LLMResult(response=assistant.run(input=message))
