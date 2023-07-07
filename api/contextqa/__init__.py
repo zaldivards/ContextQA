@@ -18,6 +18,7 @@ class AppSettings(BaseSettings):
     pinecone_index: str = ""
     pinecone_environment_region: str = ""
     deployment: str
+    enable_internet_access: bool = True
 
     @property
     def debug(self) -> bool:
