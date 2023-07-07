@@ -4,7 +4,6 @@ from langchain.llms import OpenAI
 from langchain.memory import (
     ConversationBufferWindowMemory,
     ConversationSummaryBufferMemory,
-    ConversationSummaryMemory,
     RedisChatMessageHistory,
 )
 from langchain.schema import BaseMemory
@@ -13,13 +12,13 @@ from contextqa import settings
 
 envs = settings()
 _PROMPT_KEYS = {
-    "default": {"input_key": "input", "memory_key": "history"},
+    "default": {"input_key": "input", "memory_key": "chat_history" if envs.enable_internet_access else "history"},
     "context": {"input_key": "question", "memory_key": "chat_history"},
 }
 
 
 def _requires_raw(session: str) -> bool:
-    return session != "default"
+    return session != "default" or envs.enable_internet_access
 
 
 def _redis(session: Literal["default", "context"] = "default") -> BaseMemory:
@@ -31,10 +30,6 @@ def _redis(session: Literal["default", "context"] = "default") -> BaseMemory:
         return_messages=_requires_raw(session),
         **_PROMPT_KEYS[session]
     )
-
-
-def _summary_memory() -> BaseMemory:
-    return ConversationSummaryMemory(llm=OpenAI(temperature=0), input_key="question")
 
 
 def _redis_with_summary(session: Literal["default", "context"] = "default") -> BaseMemory:
