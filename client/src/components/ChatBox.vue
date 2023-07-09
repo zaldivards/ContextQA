@@ -72,7 +72,7 @@
 
       <template #footer>
         <MessageAdder @send="pushMessages" ref="adder" class="col-9" />
-        <div class="col-3 flex align-items-center">
+        <div class="col-3 flex align-items-center" v-if="!requiresContext">
           <span class="mr-2">Enable internet access</span>
           <InputSwitch v-model="internetEnabled" @input="switchHandler" />
         </div>
