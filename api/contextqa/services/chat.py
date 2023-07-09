@@ -16,7 +16,7 @@ from contextqa.agents.tools import searcher
 
 _MESSAGES = [
     SystemMessagePromptTemplate.from_template(
-        """You are helpful assistant called ContextQA that answer user inputs. You emphasize your name in every greeting.
+        """You are a helpful assistant called ContextQA that answer user inputs. You emphasize your name in every greeting.
     
     
     Example: Hello, I am ContextQA, how can I help you?
@@ -28,8 +28,13 @@ _MESSAGES = [
 ]
 
 
-def get_llm_assistant() -> ConversationChain | Agent:
+def get_llm_assistant(internet_access: bool) -> ConversationChain | Agent:
     """Return certain LLM assistant based on the system configuration
+
+    Parameters
+    ----------
+    internet_access : bool
+        flag indicating whether an assistant with internet access was requested
 
     Returns
     -------
@@ -37,12 +42,12 @@ def get_llm_assistant() -> ConversationChain | Agent:
     """
     llm = ChatOpenAI(temperature=0)
 
-    if settings().enable_internet_access:
+    if internet_access:
         return initialize_agent(
             [searcher],
             llm=llm,
             agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
-            memory=memory.Redis("default"),
+            memory=memory.Redis("default", internet_access=True),
             verbose=settings().debug,
             agent_kwargs={
                 # "output_parser": CustomOP(),
@@ -55,18 +60,18 @@ def get_llm_assistant() -> ConversationChain | Agent:
     return ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings().debug)
 
 
-def qa_service(message: str) -> models.LLMResult:
+def qa_service(params: models.LLMQueryRequest) -> models.LLMResult:
     """Chat with the llm
 
     Parameters
     ----------
-    message : str
-        User message
+    params : models.LLMQueryRequest
+        request body parameters
 
     Returns
     -------
     models.LLMResult
         LLM response
     """
-    assistant = get_llm_assistant()
-    return models.LLMResult(response=assistant.run(input=message))
+    assistant = get_llm_assistant(params.internet_access)
+    return models.LLMResult(response=assistant.run(input=params.message))

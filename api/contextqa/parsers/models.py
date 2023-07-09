@@ -35,6 +35,7 @@ class LLMContextQueryRequest(BaseModel):
 
 class LLMQueryRequest(BaseModel):
     message: str
+    internet_access: bool = False
 
 
 class LLMQueryRequestBody(LLMRequestBodyBase):
