@@ -5,6 +5,7 @@ from langchain.agents import Tool
 
 from contextqa import get_logger
 
+
 LOGGER = get_logger()
 
 
