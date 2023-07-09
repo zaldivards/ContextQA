@@ -13,6 +13,7 @@
         position="topright"
         modal
         header="Internet access enabled"
+        class="w-6"
       >
         <template #closeicon>
           <button @click="closeDialog" class="no-background">
@@ -24,8 +25,21 @@
           internet access:
         </p>
         <ul>
-          <li>This type of assistant will request the LLM api a little more</li>
-          <li>Sometimes its accuracy is not the best</li>
+          <li>
+            <b>Increased API usage</b>: With internet access, the assistant may
+            need to make additional API calls to fetch information from the web.
+            This can result in slightly higher API usage compared to when
+            internet access is disabled.
+          </li>
+          <li>
+            <b>Accuracy limitations</b>: While internet access can provide the
+            assistant with access to a vast amount of information, it's
+            important to note that the assistant's responses are still based on
+            a mixture of licensed data, data created by human trainers, and
+            publicly available data. Therefore, there may be instances where the
+            assistant's accuracy is not the best, especially when it comes to
+            real-time or highly specific information.
+          </li>
         </ul>
       </Dialog>
     </div>
