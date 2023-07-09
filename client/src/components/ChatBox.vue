@@ -60,7 +60,7 @@
         <MessageAdder @send="pushMessages" ref="adder" class="col-9" />
         <div class="col-3 flex align-items-center">
           <span class="mr-2">Enable internet access</span>
-          <InputSwitch v-model="enableInternet" @input="switchHandler" />
+          <InputSwitch v-model="internetEnabled" @input="switchHandler" />
         </div>
       </template>
     </Panel>
@@ -89,17 +89,20 @@ export default {
     }
   },
   created() {
-    const action = this.requiresContext
-      ? "setLastDocumentMessage"
-      : "setLastChatMessage";
-    this.messages = this.requiresContext
-      ? this.$store.state.documentMessages
-      : this.$store.state.chatMessages;
+    let action = "";
+    if (this.requiresContext) {
+      action = "setLastDocumentMessage";
+      this.messages = this.$store.state.documentMessages;
+    } else {
+      action = "setLastChatMessage";
+      this.messages = this.$store.state.chatMessages;
+      this.internetEnabled = this.$store.state.internetEnabled;
+    }
     this.$store.dispatch(action, { isInit: true, content: null });
     this.autoScroll();
   },
   data() {
-    return { messages: [], enableInternet: false, showDialog: false };
+    return { messages: [], internetEnabled: false, showDialog: false };
   },
   methods: {
     promise(question) {
@@ -112,6 +115,7 @@ export default {
       }
       return askLLM("/qa", {
         message: question,
+        internet_access: this.internetEnabled,
       });
     },
     ask(question) {
@@ -174,6 +178,8 @@ export default {
     },
     switchHandler(value) {
       this.showDialog = value;
+      if (!this.requiresContext)
+        this.$store.dispatch("setInternetAccess", value);
     },
     closeDialog() {
       this.showDialog = false;
