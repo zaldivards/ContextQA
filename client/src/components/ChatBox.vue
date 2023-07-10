@@ -10,7 +10,6 @@
         :closable="true"
         :visible="showDialog"
         :draggable="false"
-        position="topright"
         modal
         header="Internet access enabled"
         class="w-6"
