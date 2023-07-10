@@ -1,4 +1,6 @@
 import requests
+from requests.exceptions import HTTPError
+from urllib3.exceptions import ReadTimeoutError
 from bs4 import BeautifulSoup
 from googlesearch import search
 from langchain.agents import Tool
@@ -25,7 +27,7 @@ def _searcher(search_term: str):
     for url in results:
         try:
             html_content = BeautifulSoup(_get_content(url), "html.parser")
-        except requests.exceptions.HTTPError as ex:
+        except (ReadTimeoutError, HTTPError) as ex:
             LOGGER.warning("Got HTTP error when requesting %s. Error %s", url, ex)
             continue
         else:
