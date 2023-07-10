@@ -32,7 +32,7 @@ def llm_qa(params: models.LLMQueryRequest):
     Provide a message and receive a response from the LLM
     """
     try:
-        return chat.qa_service(params.message)
+        return chat.qa_service(params)
     except Exception as ex:
         raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
 

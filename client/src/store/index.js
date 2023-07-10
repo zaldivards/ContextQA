@@ -8,7 +8,8 @@ export default createStore({
         showSpinner: false,
         lastDocumentMessageText: '',
         lastChatMessageText: '',
-        vectorStore: ''
+        vectorStore: '',
+        internetEnabled: false
     },
     mutations: {
         updateApiParams(state, payload) {
@@ -44,6 +45,9 @@ export default createStore({
                 state.documentMessages.push(message)
             }
             state.showSpinner = false
+        },
+        updateInternetAccess(state, payload) {
+            state.internetEnabled = payload
         }
     },
     actions: {
@@ -64,6 +68,9 @@ export default createStore({
         },
         setLastDocumentMessage({ commit }, payload) {
             commit('updateLastDocumentMessage', payload);
+        },
+        setInternetAccess({ commit }, payload) {
+            commit('updateInternetAccess', payload);
         }
     }
 });

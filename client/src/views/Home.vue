@@ -51,7 +51,9 @@
           <p class="w-8 m-auto p-2">
             Additionally, this UI can be used as an alternative to the ChatGPT
             UI, which is another conversational AI tool that may experience long
-            idle times.
+            idle times. Furthermore, in this latest version you can enable
+            internet access for the assistant, which helps to expand its
+            knowledge.
           </p>
           <p class="w-8 m-auto p-2">
             Please give us a star on

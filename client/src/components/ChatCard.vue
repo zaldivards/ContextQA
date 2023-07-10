@@ -92,6 +92,10 @@ export default {
         .replaceAll("```", "")
         .replaceAll(/(?<=`)(?![\s.,)])[^`]+(?=`)/g, (match, offset, text) => {
           return `<code class='text-yellow-600 bg-black-alpha-70 p-1 w-min'>${match}</code>`;
+        })
+        .replaceAll(/\[.+\]\([\w:\/.\-]+\)/g, (match, offset, text) => {
+          const parts = match.match(/\[(.*?)\]\((.*?)\)/, "$1");
+          return `<a href="${parts[2]}">${parts[1]}</a>`;
         });
       return formattedText.replaceAll("`", "").replaceAll(
         "ContextQA",
