@@ -11,7 +11,6 @@ from langchain.schema import BaseMemory
 from contextqa import settings
 
 envs = settings()
-
 _PROMPT_KEYS = {
     "default": {"input_key": "input", "memory_key": "history"},
     "defaultv2": {"input_key": "input", "memory_key": "chat_history"},

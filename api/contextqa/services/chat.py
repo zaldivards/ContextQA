@@ -14,9 +14,11 @@ from contextqa.utils import memory, prompts
 from contextqa.agents.tools import searcher
 
 
+
 _MESSAGES = [
     SystemMessagePromptTemplate.from_template(
         """You are a helpful assistant called ContextQA that answer user inputs. You emphasize your name in every greeting.
+
     
     
     Example: Hello, I am ContextQA, how can I help you?
