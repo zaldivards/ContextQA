@@ -3,6 +3,45 @@
     class="justify-content-center m-auto"
     :class="identifier || !requiresContext ? '' : ['opacity-50', 'disabled']"
   >
+    <div>
+      <Dialog
+        :dismissableMask="true"
+        :closeOnEscape="true"
+        :closable="true"
+        :visible="showDialog"
+        :draggable="false"
+        modal
+        header="Internet access enabled"
+        class="w-6"
+      >
+        <template #closeicon>
+          <button @click="closeDialog" class="no-background">
+            <i class="pi pi-times" style="color: red"></i>
+          </button>
+        </template>
+        <p>
+          There are two main points you need to take into account when enabling
+          internet access:
+        </p>
+        <ul>
+          <li>
+            <b>Increased API usage</b>: With internet access, the assistant may
+            need to make additional API calls to fetch information from the web.
+            This can result in slightly higher API usage compared to when
+            internet access is disabled.
+          </li>
+          <li>
+            <b>Accuracy limitations</b>: While internet access can provide the
+            assistant with access to a vast amount of information, it's
+            important to note that the assistant's responses are still based on
+            a mixture of licensed data, data created by human trainers, and
+            publicly available data. Therefore, there may be instances where the
+            assistant's accuracy is not the best, especially when it comes to
+            real-time or highly specific information.
+          </li>
+        </ul>
+      </Dialog>
+    </div>
     <Toast class="z-5" />
 
     <Panel
@@ -15,8 +54,8 @@
           style: 'position: sticky !important; top: 0 !important;z-index: 3',
         },
         footer: {
-          style:
-            'position: sticky !important; bottom: 0 !important;border-top: 1px solid #eee;',
+          style: 'border-top: 1px solid #eee;',
+          class: 'grid mr-0 ml-0 sticky bottom-0',
         },
       }"
     >
@@ -31,7 +70,11 @@
       ></ChatCard>
 
       <template #footer>
-        <MessageAdder @send="pushMessages" ref="adder" />
+        <MessageAdder @send="pushMessages" ref="adder" class="col-9" />
+        <div class="col-3 flex align-items-center" v-if="!requiresContext">
+          <span class="mr-2">Enable internet access</span>
+          <InputSwitch v-model="internetEnabled" @input="switchHandler" />
+        </div>
       </template>
     </Panel>
   </div>
@@ -39,6 +82,8 @@
 
 <script>
 import Panel from "primevue/panel";
+import InputSwitch from "primevue/inputswitch";
+import Dialog from "primevue/dialog";
 import Toast from "primevue/toast";
 import ChatCard from "@/components/ChatCard.vue";
 import MessageAdder from "@/components/MessageAdder.vue";
@@ -47,7 +92,7 @@ import { askLLM, showError, showWarning, getDateTimeStr } from "@/utils/client";
 
 export default {
   name: "ChatContainer",
-  components: { Panel, ChatCard, MessageAdder, Toast },
+  components: { Panel, ChatCard, MessageAdder, Toast, InputSwitch, Dialog },
   props: { requiresContext: Boolean },
   mounted() {
     if (!this.identifier && this.requiresContext) {
@@ -57,17 +102,20 @@ export default {
     }
   },
   created() {
-    const action = this.requiresContext
-      ? "setLastDocumentMessage"
-      : "setLastChatMessage";
-    this.messages = this.requiresContext
-      ? this.$store.state.documentMessages
-      : this.$store.state.chatMessages;
+    let action = "";
+    if (this.requiresContext) {
+      action = "setLastDocumentMessage";
+      this.messages = this.$store.state.documentMessages;
+    } else {
+      action = "setLastChatMessage";
+      this.messages = this.$store.state.chatMessages;
+      this.internetEnabled = this.$store.state.internetEnabled;
+    }
     this.$store.dispatch(action, { isInit: true, content: null });
     this.autoScroll();
   },
   data() {
-    return { messages: [] };
+    return { messages: [], internetEnabled: false, showDialog: false };
   },
   methods: {
     promise(question) {
@@ -80,6 +128,7 @@ export default {
       }
       return askLLM("/qa", {
         message: question,
+        internet_access: this.internetEnabled,
       });
     },
     ask(question) {
@@ -140,6 +189,14 @@ export default {
       this.$store.dispatch(action, message);
       this.autoScroll();
     },
+    switchHandler(value) {
+      this.showDialog = value;
+      if (!this.requiresContext)
+        this.$store.dispatch("setInternetAccess", value);
+    },
+    closeDialog() {
+      this.showDialog = false;
+    },
   },
   computed: {
     identifier() {
@@ -158,5 +215,12 @@ export default {
 .chat-height {
   height: auto !important;
   max-height: 45rem !important;
+}
+.no-background {
+  background: none;
+  border: none;
+}
+.no-background:hover {
+  cursor: pointer;
 }
 </style>

@@ -6,8 +6,6 @@ name = "pypi"
 [packages]
 langchain = "*"
 openai = "*"
-google-search-results = "*"
-tweepy = "*"
 scikit-learn = "*"
 tiktoken = "*"
 fastapi = "*"
@@ -19,6 +17,8 @@ pandas = "*"
 pyarrow = "*"
 redis = "*"
 async-timeout = "*"
+beautifulsoup4 = "*"
+googlesearch-python = "*"
 
 [dev-packages]
 black = "*"
