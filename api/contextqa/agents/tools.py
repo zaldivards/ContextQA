@@ -47,6 +47,6 @@ searcher = Tool(
     name="Crawl google for external knowledge",
     func=_searcher,
     description=(
-        "useful for when the assitant does not know the answer of the human input and it needs external knowledge"
+        "useful for when the assistant does not know the answer of the human input and it needs external knowledge"
     ),
 )
