@@ -7,6 +7,13 @@
 
 <p align="center" style="font-size: 20px">Open-source utility to query documents by leveraging the power of LLMs and vector databases</p>
 
+## 📽 Demo Video
+
+
+https://github.com/zaldivards/ContextQA/assets/32210667/479ad4df-4b0f-4988-88c4-a2590f46ace7
+
+
+
 ## ⚙️ Setting up
 
 ---
