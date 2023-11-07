@@ -51,11 +51,14 @@
       :pt="{
         header: {
           class: 'bg-primary',
-          style: 'position: sticky !important; top: 0 !important;z-index: 3',
+          style: 'position: sticky !important;   top: 0 !important;z-index: 3',
         },
         footer: {
           style: 'border-top: 1px solid #eee;',
-          class: 'grid mr-0 ml-0 sticky bottom-0',
+          class: 'grid fixed bottom-0 w-screen',
+        },
+        content: {
+          class: 'border-none',
         },
       }"
     >
@@ -68,14 +71,13 @@
         :documentQA="requiresContext"
         :sentDate="message.date"
       ></ChatCard>
-
-      <template #footer>
-        <MessageAdder @send="pushMessages" ref="adder" class="col-9" />
-        <div class="col-3 flex align-items-center" v-if="!requiresContext">
+      <div class="fixed bottom-0 w-full mb-5">
+        <div class="col-2 flex align-items-center" v-if="!requiresContext">
           <span class="mr-2">Enable internet access</span>
           <InputSwitch v-model="internetEnabled" @input="switchHandler" />
         </div>
-      </template>
+        <MessageAdder @send="pushMessages" ref="adder" />
+      </div>
     </Panel>
   </div>
 </template>

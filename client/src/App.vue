@@ -1,35 +1,38 @@
 <template>
   <div>
-    <Menubar :model="items" class="m-auto sticky z-4">
-      <template #start>
-        <img
-          alt="logo"
-          src="/images/title.png"
-          height="30"
-          class="mr-2"
-          title="ContextQA"
-        />
+    <MainLayout>
+      <template #menu>
+        <Menu
+          :model="items"
+          class="m-4 sticky z-4 border-none"
+          :pt="{ label: { class: 'text-gl' }, icon: { class: 'text-gl' } }"
+        >
+          <template #start>
+            <img
+              alt="logo"
+              src="/images/title.png"
+              height="30"
+              class="px-3"
+              title="ContextQA"
+            />
+          </template>
+        </Menu>
       </template>
-      <template #end>
-        <div>
-          <span class="text-xl">Context: </span
-          ><span class="font-semibold text-xl">{{ context }}</span>
-          <span class="text-xl ml-2" v-if="store"
-            ><span class="text-400">|</span> Vector store: </span
-          ><span class="font-semibold text-xl">{{ store }}</span>
-        </div>
+      <template #main>
+        <router-view />
       </template>
-    </Menubar>
-    <router-view />
+    </MainLayout>
   </div>
 </template>
 
 <script>
-import Menubar from "primevue/menubar";
+import MainLayout from "@/components/MainLayout.vue";
+import Menu from "primevue/menu";
 export default {
   name: "App",
   components: {
-    Menubar,
+    Menu,
+    MainLayout,
   },
   data() {
     return {
@@ -40,20 +43,14 @@ export default {
           command: () => this.$router.push({ path: "/" }),
         },
         {
-          label: "Features",
-          icon: "pi pi-comment",
-          items: [
-            {
-              label: "Chat",
-              icon: "pi pi-comments",
-              command: () => this.$router.push({ path: "/chat/talk" }),
-            },
-            {
-              label: "Query document",
-              icon: "pi pi-file-o",
-              command: () => this.$router.push({ path: "/chat/document" }),
-            },
-          ],
+          label: "Chat",
+          icon: "pi pi-comments",
+          command: () => this.$router.push({ path: "/chat/talk" }),
+        },
+        {
+          label: "QA",
+          icon: "pi pi-file-o",
+          command: () => this.$router.push({ path: "/chat/document" }),
         },
         {
           label: "Settings",
@@ -80,12 +77,13 @@ export default {
 
 body {
   font-family: "Poppins", sans-serif;
+  margin: 0;
 }
 .disabled {
   pointer-events: none;
   outline: none;
 }
 .top-img {
-  top: 3px;
+  top: 4px;
 }
 </style>
