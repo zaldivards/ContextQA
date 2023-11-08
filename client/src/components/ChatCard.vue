@@ -22,6 +22,7 @@
       "
       :pt="{
         content: { class: 'py-1' },
+        body: { class: isUser ? 'pt-0' : '' },
       }"
     >
       <template #content>
