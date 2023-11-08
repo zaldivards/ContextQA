@@ -20,7 +20,7 @@
             details: { class: 'ml-6' },
           }"
         />
-        <div class="my-4 grid w-9">
+        <div class="my-4 grid w-9 input-bg">
           <div class="col-6">
             <label for="separator">Separator</label>
             <InputText

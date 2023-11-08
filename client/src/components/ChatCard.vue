@@ -17,8 +17,8 @@
       class="field col ml-2 shadow-none animation-duration-300 breakline-ok"
       :class="
         isUser
-          ? ['bg-teal-600', 'fadeinleft', 'text-white']
-          : ['bg-bluegray-500', 'fadeinright', 'text-white']
+          ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
+          : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
       "
       :pt="{
         content: { class: 'py-1' },

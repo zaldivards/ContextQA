@@ -4,17 +4,26 @@
       <template #menu>
         <Menu
           :model="items"
-          class="m-4 sticky z-4 border-none"
-          :pt="{ label: { class: 'text-gl' }, icon: { class: 'text-gl' } }"
+          class="my-4 sticky z-4 border-none w-full bg-inherit"
+          :pt="{
+            label: { class: 'text-gl text-white-alpha-80 shadow-6' },
+            icon: { class: 'text-gl text-white-alpha-80 shadow-6' },
+            separator: { class: 'border-black-alpha-10' },
+            action: ({ props, state, context }) => ({
+              class: context.focused ? 'bg-primary-900' : undefined,
+            }),
+          }"
         >
           <template #start>
-            <img
-              alt="logo"
-              src="/images/title.png"
-              height="30"
-              class="px-3"
-              title="ContextQA"
-            />
+            <div class="w-full">
+              <img
+                alt="logo"
+                src="/images/title.png"
+                height="30"
+                class="m-auto mb-3 block"
+                title="ContextQA"
+              />
+            </div>
           </template>
         </Menu>
       </template>
@@ -37,6 +46,7 @@ export default {
   data() {
     return {
       items: [
+        { separator: true },
         {
           label: "Home",
           icon: "pi pi-fw pi-home",
@@ -44,12 +54,12 @@ export default {
         },
         {
           label: "Chat",
-          icon: "pi pi-comments",
+          icon: "pi pi-fw pi-comments",
           command: () => this.$router.push({ path: "/chat/talk" }),
         },
         {
           label: "QA",
-          icon: "pi pi-file-o",
+          icon: "pi pi-fw pi-file-o",
           command: () => this.$router.push({ path: "/chat/document" }),
         },
         {
@@ -78,6 +88,7 @@ export default {
 body {
   font-family: "Poppins", sans-serif;
   margin: 0;
+  background-color: #0e1b30;
 }
 .disabled {
   pointer-events: none;
@@ -85,5 +96,26 @@ body {
 }
 .top-img {
   top: 4px;
+}
+
+.bg-inherit {
+  background-color: inherit !important;
+}
+
+.p-menuitem:hover * {
+  background-color: #183462 !important;
+}
+
+.input-bg input,
+.input-bg span,
+.input-bg p-inputtext,
+.input-bg .p-fileupload-content,
+.input-bg .p-dropdown-trigger {
+  background-color: #394d6d !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.bg-contextqa-primary {
+  background-color: #0e1624 !important;
 }
 </style>

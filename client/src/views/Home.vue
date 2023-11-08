@@ -2,7 +2,7 @@
   <div class="justify-content-center h-max">
     <div class="m-8">
       <Card
-        class="m-auto w-7 text-xl"
+        class="text-lg text-white-alpha-80 max-h-full bg-contextqa-primary"
         :pt="{
           content: {
             class: 'justify-content-center',
@@ -22,7 +22,7 @@
               ><img
                 alt="contextqa text"
                 src="/images/title.png"
-                class="w-2 relative top-img"
+                class="w-1 relative top-img"
             /></span>
             is a tool that leverages the power of LLMs to help you query any
             document you want. This version of
@@ -30,7 +30,7 @@
               ><img
                 alt="contextqa text"
                 src="/images/title.png"
-                class="w-2 relative top-img"
+                class="w-1 relative top-img"
             /></span>
             supports <span class="font-semibold">pdf</span> and
             <span class="font-semibold">txt</span> files.
@@ -69,7 +69,7 @@
               ><img
                 alt="contextqa text"
                 src="/images/title.png"
-                class="w-2 relative top-img"
+                class="w-1 relative top-img"
             /></span>
             helpful.
           </p>
@@ -89,5 +89,8 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+.top-img {
+  top: 2px;
+}
 </style>

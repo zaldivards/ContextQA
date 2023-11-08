@@ -46,19 +46,18 @@
 
     <Panel
       ref="panel"
-      class="w-9 m-auto my-5 scroll-panel chat-height overflow-y-scroll"
+      class="w-8 m-auto my-5 scroll-panel chat-height overflow-y-scroll bg-inherit"
       :header="header"
       :pt="{
         header: {
-          class: 'bg-primary',
-          style: 'position: sticky !important;   top: 0 !important;z-index: 3',
+          class: 'border-none bg-inherit',
         },
         footer: {
           style: 'border-top: 1px solid #eee;',
           class: 'grid fixed bottom-0 w-screen',
         },
         content: {
-          class: 'border-none',
+          class: 'border-none bg-inherit',
         },
       }"
     >
@@ -71,12 +70,14 @@
         :documentQA="requiresContext"
         :sentDate="message.date"
       ></ChatCard>
-      <div class="fixed bottom-0 w-full mb-5">
-        <div class="col-2 flex align-items-center" v-if="!requiresContext">
-          <span class="mr-2">Enable internet access</span>
-          <InputSwitch v-model="internetEnabled" @input="switchHandler" />
+      <div class="fixed bottom-0 w-7 mb-5 align-items-center">
+        <div class="m-auto">
+          <div class="flex align-items-center mb-2" v-if="!requiresContext">
+            <span class="mr-2">Enable internet access</span>
+            <InputSwitch v-model="internetEnabled" @input="switchHandler" />
+          </div>
+          <MessageAdder @send="pushMessages" ref="adder" />
         </div>
-        <MessageAdder @send="pushMessages" ref="adder" />
       </div>
     </Panel>
   </div>
