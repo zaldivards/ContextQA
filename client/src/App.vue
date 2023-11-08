@@ -10,7 +10,7 @@
             icon: { class: 'text-gl text-white-alpha-80 shadow-6' },
             separator: { class: 'border-black-alpha-10' },
             action: ({ props, state, context }) => ({
-              class: context.focused ? 'bg-primary-900' : undefined,
+              class: context.focused ? 'bg-menu-focus' : undefined,
             }),
           }"
         >
@@ -96,6 +96,10 @@ body {
 }
 .top-img {
   top: 4px;
+}
+
+.bg-menu-focus {
+  background-color: #183462 !important;
 }
 
 .bg-inherit {
