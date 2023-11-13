@@ -46,7 +46,7 @@
 
     <Panel
       ref="panel"
-      class="w-12 lg:w-8 m-auto lg:my-5 scroll-panel chat-height overflow-y-scroll bg-inherit relative"
+      class="w-12 lg:w-8 m-auto lg:my-5 scroll-panel chat-height overflow-y-scroll scrollbar bg-inherit relative"
       :header="header"
       :pt="{
         header: {
@@ -225,5 +225,14 @@ export default {
 }
 .no-background:hover {
   cursor: pointer;
+}
+
+.scrollbar::-webkit-scrollbar {
+  width: 1px;
+  background-color: #0e1b30 !important;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background-color: #aaa;
 }
 </style>
