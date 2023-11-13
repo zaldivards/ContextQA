@@ -114,6 +114,7 @@ export default {
 }
 #menu-button {
   grid-row: button;
+  box-shadow: none !important;
 }
 #main {
   grid-area: main;
