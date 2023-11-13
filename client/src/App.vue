@@ -122,4 +122,7 @@ body {
 .bg-contextqa-primary {
   background-color: #0e1624 !important;
 }
+.bg-contextqa-primary-main {
+  background-color: #0e1b30 !important;
+}
 </style>

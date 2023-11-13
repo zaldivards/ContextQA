@@ -1,12 +1,12 @@
 <template>
-  <div class="m-6 justify-content-center">
+  <div class="my-6 justify-content-center">
     <ConfirmDialog></ConfirmDialog>
 
     <Toast class="z-5" />
-    <form @submit.prevent="postData" class="w-7 m-auto">
+    <form @submit.prevent="postData" class="px-3 lg:px-0 w-full lg:w-7 m-auto">
       <h2 class="mb-5">⚙️ Set the context document</h2>
 
-      <div :class="disabled ? ['opacity-50', 'disabled'] : ''">
+      <div :class="disabled ? ['opacity-50', 'disabled'] : ''" class="grid">
         <FileUpload
           @remove="() => (this.uploadedFile = null)"
           accept=".pdf,.txt"
@@ -18,56 +18,54 @@
           :pt="{
             badge: { class: 'hidden' },
             details: { class: 'ml-6' },
+            root: { class: 'col-12' },
           }"
         />
-        <div class="my-4 grid w-9 input-bg">
-          <div class="col-6">
-            <label for="separator">Separator</label>
-            <InputText
-              class="block my-2 p-inputtext-lg w-auto max-w-max"
-              v-model="separator"
-              type="text"
-              placeholder="Text separator, default '.'"
-              id="separator"
-            />
-          </div>
+        <div class="col-12 lg:col-6 input-bg">
+          <label for="separator">Separator</label>
+          <InputText
+            class="block my-2"
+            v-model="separator"
+            type="text"
+            placeholder="Text separator, default '.'"
+            id="separator"
+          />
+        </div>
 
-          <div class="col-6">
-            <label for="chunkSize">Chunk size</label>
-            <InputNumber
-              class="block my-2 p-inputtext-lg w-max"
-              v-model="chunkSize"
-              inputId="integeronly"
-              placeholder="Chunk size, default 200"
-              :min="0"
-              :max="1000"
-              id="chunkSize"
-            />
-          </div>
+        <div class="col-12 md:col-12 input-bg lg:col-6">
+          <label for="chunkSize">Chunk size</label>
+          <InputNumber
+            class="block my-2 w-max"
+            v-model="chunkSize"
+            inputId="integeronly"
+            placeholder="Chunk size, default 200"
+            :min="0"
+            :max="1000"
+            id="chunkSize"
+          />
+        </div>
 
-          <div class="col-6">
-            <label for="overlap">Overlap</label>
-            <InputNumber
-              class="block outline-none my-2 p-inputtext-lg w-max"
-              inputId="integeronly"
-              v-model="overlap"
-              placeholder="Chunk overlap, default 0"
-              id="overlap"
-              :min="0"
-              :max="200"
+        <div class="col-12 md:col-12 input-bg lg:col-6">
+          <label for="overlap">Overlap</label>
+          <InputNumber
+            class="block outline-none my-2 w-max"
+            inputId="integeronly"
+            v-model="overlap"
+            placeholder="Chunk overlap, default 0"
+            id="overlap"
+            :min="0"
+            :max="200"
+          />
+        </div>
+        <div class="col-12 md:col-12 input-bg lg:col-6">
+          <label for="store">Vector store</label>
+          <div class="vertical-justify-center">
+            <Dropdown
+              v-model="selectedStore"
+              :options="stores"
+              placeholder="Choose a vector store"
+              id="store"
             />
-          </div>
-          <div class="col-6">
-            <label for="store">Vector store</label>
-            <div class="vertical-justify-center">
-              <Dropdown
-                v-model="selectedStore"
-                :options="stores"
-                placeholder="Choose a vector store"
-                class="my-2 p-inputtext-lg w-max"
-                id="store"
-              />
-            </div>
           </div>
         </div>
       </div>
@@ -78,6 +76,7 @@
         @click="postData(doPost)"
         :disabled="nullData || disabled"
         :loading="loading"
+        class="col-offset-4 lg:col-offset-0 col-4 lg:col-2 mt-5"
       />
     </form>
   </div>

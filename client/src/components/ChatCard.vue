@@ -14,7 +14,7 @@
     <Avatar image="/images/logo.png" size="small" v-if="!isUser" />
 
     <Card
-      class="field col ml-2 shadow-none animation-duration-300 breakline-ok"
+      class="field col mx-2 shadow-none animation-duration-300 breakline-ok"
       :class="
         isUser
           ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="justify-content-center m-auto"
+    class="justify-content-center mx-auto"
     :class="identifier || !requiresContext ? '' : ['opacity-50', 'disabled']"
   >
     <div>
@@ -12,7 +12,7 @@
         :draggable="false"
         modal
         header="Internet access enabled"
-        class="w-6"
+        class="w-full lg:w-6"
       >
         <template #closeicon>
           <button @click="closeDialog" class="no-background">
@@ -42,15 +42,15 @@
         </ul>
       </Dialog>
     </div>
-    <Toast class="z-5" />
+    <Toast class="z-5 w-9 lg:w-3" />
 
     <Panel
       ref="panel"
-      class="w-8 m-auto my-5 scroll-panel chat-height overflow-y-scroll bg-inherit"
+      class="w-12 lg:w-8 m-auto lg:my-5 scroll-panel chat-height overflow-y-scroll bg-inherit relative"
       :header="header"
       :pt="{
         header: {
-          class: 'border-none bg-inherit',
+          class: 'border-none bg-contextqa-primary-main sticky top-0',
         },
         footer: {
           style: 'border-top: 1px solid #eee;',
@@ -70,7 +70,7 @@
         :documentQA="requiresContext"
         :sentDate="message.date"
       ></ChatCard>
-      <div class="fixed bottom-0 w-7 mb-5 align-items-center">
+      <div class="fixed bottom-0 w-11 lg:w-7 mb-5 align-items-center">
         <div class="m-auto">
           <div class="flex align-items-center mb-2" v-if="!requiresContext">
             <span class="mr-2">Enable internet access</span>

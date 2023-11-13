@@ -1,11 +1,17 @@
 <template>
   <div id="container" class="text-white-alpha-80" :class="customClass">
-    <aside id="sidebar" ref="sidebar" v-if="show">
+    <aside
+      id="sidebar"
+      ref="sidebar"
+      v-if="show"
+      class="animation-duration-200"
+      :class="animation"
+    >
       <slot name="menu"></slot>
     </aside>
     <Button
       type="button"
-      icon="pi pi-ellipsis-v"
+      :icon="icon"
       @click="toggle"
       aria-haspopup="true"
       aria-controls="overlay_menu"
@@ -13,7 +19,7 @@
       class="hidden"
     />
 
-    <section id="main">
+    <section id="main" @click="hideMenu" class="h-screen">
       <slot name="main"></slot>
     </section>
   </div>
@@ -28,12 +34,27 @@ export default {
     return {
       customClass: "marker",
       originalWindowWidth: 1000,
+      icon: "pi pi-angle-double-down",
+      animation: "",
     };
+  },
+  updated() {
+    document.querySelectorAll(".p-menuitem").forEach((element) => {
+      element.onclick = () => {
+        if (this.customClass === "normal-grid") {
+          this.customClass = "hidden-grid";
+          this.icon = "pi pi-angle-double-down";
+        }
+      };
+    });
   },
   mounted() {
     // Define the media query condition
     const mediaQuery = window.matchMedia("(min-width: 700px)");
-
+    if (window.innerWidth < 1000) {
+      this.customClass = "hidden-grid";
+      this.animation = "flipright";
+    }
     // Attach an event listener to the window's resize event
     window.addEventListener("resize", (evt) => {
       this.handleResize(mediaQuery);
@@ -42,9 +63,11 @@ export default {
   methods: {
     toggle() {
       if (!this.customClass || this.customClass == "hidden-grid") {
+        this.icon = "pi pi-angle-double-up";
         this.customClass = "normal-grid";
       } else {
         this.customClass = "hidden-grid";
+        this.icon = "pi pi-angle-double-down";
       }
     },
     handleResize(mediaQuery) {
@@ -52,7 +75,18 @@ export default {
         const currentWindowWidth = window.innerWidth;
         if (this.originalWindowWidth < currentWindowWidth) {
           this.customClass = "marker";
-        } else this.customClass = "";
+          this.animation = "";
+        } else {
+          this.icon = "pi pi-angle-double-down";
+          this.customClass = "";
+          this.animation = "flipright";
+        }
+      }
+    },
+    hideMenu() {
+      if (this.customClass !== "marker") {
+        this.customClass = "hidden-grid";
+        this.icon = "pi pi-angle-double-down";
       }
     },
   },
