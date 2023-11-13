@@ -1,23 +1,24 @@
 <template>
   <div id="container" class="text-white-alpha-80" :class="customClass">
-    <aside
-      id="sidebar"
-      ref="sidebar"
-      v-if="show"
-      class="animation-duration-200"
-      :class="animation"
-    >
-      <slot name="menu"></slot>
-    </aside>
-    <Button
-      type="button"
-      :icon="icon"
-      @click="toggle"
-      aria-haspopup="true"
-      aria-controls="overlay_menu"
-      id="menu-button"
-      class="hidden"
-    />
+    <div id="sidebar" class="sticky top-0 z-3">
+      <aside
+        ref="sidebar"
+        v-if="show"
+        class="animation-duration-200"
+        :class="animation"
+      >
+        <slot name="menu"></slot>
+      </aside>
+      <Button
+        type="button"
+        :icon="icon"
+        @click="toggle"
+        aria-haspopup="true"
+        aria-controls="overlay_menu"
+        id="menu-button"
+        class="hidden"
+      />
+    </div>
 
     <section id="main" @click="hideMenu" class="h-screen">
       <slot name="main"></slot>
@@ -117,7 +118,7 @@ export default {
 #main {
   grid-area: main;
 }
-#sidebar > * {
+#sidebar > * :not(button, span) {
   background-color: #1d2d39 !important;
 }
 
@@ -132,20 +133,20 @@ export default {
 .normal-grid {
   height: auto !important;
   grid-template-columns: 1fr !important;
-  grid-template-areas: "sidebar" "button" "main" !important;
+  grid-template-areas: "sidebar" "main" !important;
 }
 
 .hidden-grid {
   height: auto !important;
   grid-template-columns: 1fr !important;
-  grid-template-areas: "button" "main" !important;
+  /* grid-template-areas: "button" "main" !important; */
 }
 
 @media screen and (max-width: 1000px) {
   #container {
     height: auto;
     grid-template-columns: 1fr;
-    grid-template-areas: "button" "main";
+    grid-template-areas: "sidebar" "main";
   }
 
   #menu-button {
