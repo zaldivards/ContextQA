@@ -7,11 +7,12 @@ import pinecone
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.docstore.document import Document
-from langchain.document_loaders import PyPDFLoader, TextLoader
+from langchain.document_loaders import PyMuPDFLoader, TextLoader
 from langchain.document_loaders.base import BaseLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Pinecone, SKLearnVectorStore
+from langchain.vectorstores.pinecone import Pinecone
+from langchain.vectorstores.chroma import Chroma
 from langchain.vectorstores.base import VectorStore
 
 from contextqa import get_logger, settings
@@ -19,9 +20,8 @@ from contextqa.parsers.models import Source, LLMResult, LLMRequestBodyBase, QARe
 from contextqa.utils import memory, prompts
 
 
-LOCAL_STORE_HOME = Path("/var") / "embeddings"
 LOGGER = get_logger()
-LOADERS = {"pdf": PyPDFLoader, "txt": TextLoader}
+LOADERS = {".pdf": PyMuPDFLoader, ".txt": TextLoader}
 
 
 class VectorStoreConnectionError(Exception):
@@ -35,16 +35,15 @@ def get_loader(extension: str) -> BaseLoader:
 def prepare_sources(sources: list[Document]) -> list[Source]:
     result = []
     for source in sources:
-        id_ = source.metadata.pop("id")
-        path = source.metadata.pop("source")
-        result.append(Source(id=id_, name=path, extras=source.metadata))
+        name = source.metadata.pop("source")
+        result.append(Source(name=name, extras=source.metadata))
     return result
 
 
 class LLMContextManager(ABC):
     """Base llm manager"""
 
-    envs = settings()
+    envs = settings
 
     def load_and_preprocess(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> list[Document]:
         """Load and preprocess the file content
@@ -63,10 +62,10 @@ class LLMContextManager(ABC):
         List[Document]
             splitted document content as documents
         """
-        extension = Path(filename).suffix.removeprefix(".")
-        with NamedTemporaryFile(mode="wb") as temp:
+        extension = Path(filename).suffix
+        with NamedTemporaryFile(mode="wb", suffix=f"<separator>{filename}") as temp:
             temp.write(file_.read())
-            loader = get_loader(extension)(temp.name)
+            loader: BaseLoader = get_loader(extension)(temp.name)
             documents = loader.load()
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=params.chunk_size, chunk_overlap=params.chunk_overlap, separators=["\n\n", "\n", "."]
@@ -139,31 +138,31 @@ class LLMContextManager(ABC):
         )
 
         result = qa_chain(question)
-
         return QAResult(response=result["answer"], sources=prepare_sources(result["source_documents"]))
 
 
 class LocalManager(LLMContextManager):
-    """Local manager implementation. It uses `SKLearnVectorStore` as its processor and the context is persisted as a
+    """Local manager implementation. It uses `Chroma` as its processor and the context is persisted as a
     parquet file"""
 
     def persist(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> LLMResult:
         documents = self.load_and_preprocess(filename, params, file_)
-        db_path = LOCAL_STORE_HOME / filename
-        db_path.parent.mkdir(exist_ok=True, parents=True)
         embeddings_util = OpenAIEmbeddings()
-        processor = SKLearnVectorStore.from_documents(
-            documents, embeddings_util, persist_path=str(db_path.with_suffix(".parquet")), serializer="parquet"
+        processor = Chroma.from_documents(
+            documents,
+            embeddings_util,
+            collection_name="contextqa-default",
+            persist_directory=str(settings.local_vectordb_home),
         )
         processor.persist()
         return LLMResult(response="success")
 
     def context_object(self, filename: Optional[str] = None) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
-        processor = SKLearnVectorStore(
-            embedding=embeddings_util,
-            persist_path=str((LOCAL_STORE_HOME / filename).with_suffix(".parquet")),
-            serializer="parquet",
+        processor = Chroma(
+            collection_name="contextqa-default",
+            embedding_function=embeddings_util,
+            persist_directory=str(settings.local_vectordb_home),
         )
         return processor
 

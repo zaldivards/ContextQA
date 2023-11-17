@@ -12,7 +12,6 @@ class SimilarityProcessor(str, Enum):
 
 
 class Source(BaseModel):
-    id_: str = Field(alias="id")
     name: str
     extras: dict[str, Any] = Field(default_factory=dict)
 
