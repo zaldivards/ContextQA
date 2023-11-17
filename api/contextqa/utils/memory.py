@@ -14,7 +14,7 @@ envs = settings()
 _PROMPT_KEYS = {
     "default": {"input_key": "input", "memory_key": "history"},
     "defaultv2": {"input_key": "input", "memory_key": "chat_history"},
-    "context": {"input_key": "question", "memory_key": "chat_history"},
+    "context": {"input_key": "question", "memory_key": "chat_history", "output_key": "answer"},
 }
 
 
