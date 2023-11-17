@@ -44,6 +44,8 @@ def prepare_sources(sources: list[Document]) -> list[Source]:
             extras.update(page=page)
         if row := source.metadata.get("row"):
             extras.update(row=row)
+        if idx := source.metadata.get("idx"):
+            extras.update(idx=idx)
         result.append(Source(name=name, extras=extras))
     return result
 
@@ -86,6 +88,10 @@ class LLMContextManager(ABC):
             chunk_size=params.chunk_size, chunk_overlap=params.chunk_overlap, separators=["\n\n", "\n", "."]
         )
         texts = splitter.split_documents(documents)
+        if extension != ".pdf":
+            for idx, chunk in enumerate(texts, start=1):
+                chunk: Document = chunk
+                chunk.metadata.update(idx=idx)
         return texts
 
     @abstractmethod
