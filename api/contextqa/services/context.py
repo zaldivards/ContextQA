@@ -4,6 +4,7 @@ from tempfile import NamedTemporaryFile
 from typing import BinaryIO, Optional
 
 import pinecone
+from chromadb import PersistentClient
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.docstore.document import Document
@@ -23,6 +24,8 @@ from contextqa.utils import memory, prompts
 LOGGER = get_logger()
 LOADERS = {".pdf": PyMuPDFLoader, ".txt": TextLoader}
 
+chroma_client = PersistentClient(path=str(settings.local_vectordb_home))
+
 
 class VectorStoreConnectionError(Exception):
     """This exception is raised when a connection could not be established or credentials are invalid"""
@@ -36,14 +39,17 @@ def prepare_sources(sources: list[Document]) -> list[Source]:
     result = []
     for source in sources:
         name = source.metadata.pop("source")
-        result.append(Source(name=name, extras=source.metadata))
+        extras = {}
+        if page := source.metadata.get("page"):
+            extras.update(page=page)
+        if row := source.metadata.get("row"):
+            extras.update(row=row)
+        result.append(Source(name=name, extras=extras))
     return result
 
 
 class LLMContextManager(ABC):
     """Base llm manager"""
-
-    envs = settings
 
     def load_and_preprocess(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> list[Document]:
         """Load and preprocess the file content
@@ -63,13 +69,12 @@ class LLMContextManager(ABC):
             splitted document content as documents
         """
         extension = Path(filename).suffix
-        final_name = f":::sep:::{filename}"
         try:
             if extension == ".pdf":
-                path = settings.media_home / final_name
+                path = settings.media_home / filename
                 file_writer = open(path, mode="wb")
             else:
-                file_writer = NamedTemporaryFile(mode="wb", suffix=final_name)
+                file_writer = NamedTemporaryFile(mode="wb", suffix=f":::sep:::{filename}")
                 path = file_writer.name
             file_writer.write(file_.read())
             loader: BaseLoader = get_loader(extension)(str(path))
@@ -143,7 +148,7 @@ class LLMContextManager(ABC):
             retriever=context_util.as_retriever(),
             memory=memory.Redis(session="context"),
             condense_question_prompt=prompts.CONTEXTQA_RETRIEVAL_PROMPT,
-            verbose=self.envs.debug,
+            verbose=settings.debug,
             return_source_documents=True,
         )
 
@@ -159,10 +164,7 @@ class LocalManager(LLMContextManager):
         documents = self.load_and_preprocess(filename, params, file_)
         embeddings_util = OpenAIEmbeddings()
         processor = Chroma.from_documents(
-            documents,
-            embeddings_util,
-            collection_name="contextqa-default",
-            persist_directory=str(settings.local_vectordb_home),
+            documents, embeddings_util, client=chroma_client, collection_name="contextqa-default"
         )
         processor.persist()
         return LLMResult(response="success")
@@ -170,6 +172,7 @@ class LocalManager(LLMContextManager):
     def context_object(self, filename: Optional[str] = None) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
         processor = Chroma(
+            client=chroma_client,
             collection_name="contextqa-default",
             embedding_function=embeddings_util,
             persist_directory=str(settings.local_vectordb_home),
@@ -183,14 +186,14 @@ class PineconeManager(LLMContextManager):
     def persist(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> LLMResult:
         try:
             LOGGER.info("Initializing Pinecone connection")
-            pinecone.init(api_key=self.envs.pinecone_token, environment=self.envs.pinecone_environment_region)
+            pinecone.init(api_key=settings.pinecone_token, environment=settings.pinecone_environment_region)
         except Exception as ex:
             raise VectorStoreConnectionError from ex
         documents = self.load_and_preprocess(filename, params, file_)
         embeddings_util = OpenAIEmbeddings()
         try:
             Pinecone.from_documents(
-                documents, embeddings_util, index_name=self.envs.pinecone_index, namespace=Path(filename).stem
+                documents, embeddings_util, index_name=settings.pinecone_index, namespace=Path(filename).stem
             )
         except Exception as ex:
             raise VectorStoreConnectionError from ex
@@ -199,7 +202,7 @@ class PineconeManager(LLMContextManager):
     def context_object(self, filename: Optional[str] = None) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
         processor = Pinecone.from_existing_index(
-            index_name=self.envs.pinecone_index, embedding=embeddings_util, namespace=Path(filename).stem
+            index_name=settings.pinecone_index, embedding=embeddings_util, namespace=Path(filename).stem
         )
         return processor
 
