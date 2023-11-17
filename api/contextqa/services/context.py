@@ -11,10 +11,11 @@ from langchain.document_loaders import PyPDFLoader, TextLoader
 from langchain.document_loaders.base import BaseLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Pinecone, Chroma
+from langchain.vectorstores import Pinecone, SKLearnVectorStore
 from langchain.vectorstores.base import VectorStore
 
-from contextqa import get_logger, models, settings
+from contextqa import get_logger, settings
+from contextqa.parsers.models import Source, LLMResult, LLMRequestBodyBase, QAResult, SimilarityProcessor
 from contextqa.utils import memory, prompts
 
 
@@ -31,19 +32,28 @@ def get_loader(extension: str) -> BaseLoader:
     return LOADERS[extension]
 
 
+def prepare_sources(sources: list[Document]) -> list[Source]:
+    result = []
+    for source in sources:
+        id_ = source.metadata.pop("id")
+        path = source.metadata.pop("source")
+        result.append(Source(id=id_, name=path, extras=source.metadata))
+    return result
+
+
 class LLMContextManager(ABC):
     """Base llm manager"""
 
     envs = settings()
 
-    def load_and_preprocess(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> list[Document]:
+    def load_and_preprocess(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> list[Document]:
         """Load and preprocess the file content
 
         Parameters
         ----------
         filename : str
             Name of the file to load
-        params : models.LLMRequestBodyBase
+        params : LLMRequestBodyBase
             api parameters
         file_ : BinaryIO
             file for which to save context
@@ -65,21 +75,21 @@ class LLMContextManager(ABC):
         return texts
 
     @abstractmethod
-    def persist(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> models.LLMResult:
+    def persist(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> LLMResult:
         """Persist the embedded documents
 
         Parameters
         ----------
         filename : str
             Name of the file to load
-        params : models.LLMRequestBodyBase
+        params : LLMRequestBodyBase
             api parameters
         file_ : BinaryIO
             file for which to save context
 
         Returns
         -------
-        models.VectorScanResult
+        VectorScanResult
             process status
         """
         raise NotImplementedError
@@ -101,7 +111,7 @@ class LLMContextManager(ABC):
         """
         raise NotImplementedError
 
-    def load_and_respond(self, question: str, filename: Optional[str] = None) -> models.LLMResult:
+    def load_and_respond(self, question: str, filename: Optional[str] = None) -> QAResult:
         """Load the context and answer the question
 
         Parameters
@@ -114,7 +124,7 @@ class LLMContextManager(ABC):
 
         Returns
         -------
-        models.VectorScanResult
+        QAResult
             The final response of the LLM
         """
         context_util = self.context_object(filename)
@@ -125,29 +135,32 @@ class LLMContextManager(ABC):
             memory=memory.Redis(session="context"),
             condense_question_prompt=prompts.CONTEXTQA_RETRIEVAL_PROMPT,
             verbose=self.envs.debug,
+            return_source_documents=True,
         )
-        result = qa_chain.run(question)
-        return models.LLMResult(response=result)
+
+        result = qa_chain(question)
+
+        return QAResult(response=result["answer"], sources=prepare_sources(result["source_documents"]))
 
 
 class LocalManager(LLMContextManager):
     """Local manager implementation. It uses `SKLearnVectorStore` as its processor and the context is persisted as a
     parquet file"""
 
-    def persist(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> models.LLMResult:
+    def persist(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> LLMResult:
         documents = self.load_and_preprocess(filename, params, file_)
         db_path = LOCAL_STORE_HOME / filename
         db_path.parent.mkdir(exist_ok=True, parents=True)
         embeddings_util = OpenAIEmbeddings()
-        processor = Chroma.from_documents(
+        processor = SKLearnVectorStore.from_documents(
             documents, embeddings_util, persist_path=str(db_path.with_suffix(".parquet")), serializer="parquet"
         )
         processor.persist()
-        return models.LLMResult(response="success")
+        return LLMResult(response="success")
 
     def context_object(self, filename: Optional[str] = None) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
-        processor = Chroma(
+        processor = SKLearnVectorStore(
             embedding=embeddings_util,
             persist_path=str((LOCAL_STORE_HOME / filename).with_suffix(".parquet")),
             serializer="parquet",
@@ -158,7 +171,7 @@ class LocalManager(LLMContextManager):
 class PineconeManager(LLMContextManager):
     """Pinecone manager implementation. It uses `Pinecone` as its processor and vector store"""
 
-    def persist(self, filename: str, params: models.LLMRequestBodyBase, file_: BinaryIO) -> models.LLMResult:
+    def persist(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> LLMResult:
         try:
             LOGGER.info("Initializing Pinecone connection")
             pinecone.init(api_key=self.envs.pinecone_token, environment=self.envs.pinecone_environment_region)
@@ -172,7 +185,7 @@ class PineconeManager(LLMContextManager):
             )
         except Exception as ex:
             raise VectorStoreConnectionError from ex
-        return models.LLMResult(response="success")
+        return LLMResult(response="success")
 
     def context_object(self, filename: Optional[str] = None) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
@@ -182,12 +195,12 @@ class PineconeManager(LLMContextManager):
         return processor
 
 
-def get_setter(processor: models.SimilarityProcessor) -> LLMContextManager:
+def get_setter(processor: SimilarityProcessor) -> LLMContextManager:
     """LLMContextManager factory function
 
     Parameters
     ----------
-    processor : models.SimilarityProcessor
+    processor : SimilarityProcessor
         Manager identifier
 
     Returns
@@ -196,7 +209,7 @@ def get_setter(processor: models.SimilarityProcessor) -> LLMContextManager:
         Specific LLMContextManager implementation
     """
     match processor:
-        case models.SimilarityProcessor.LOCAL:
+        case SimilarityProcessor.LOCAL:
             return LocalManager()
-        case models.SimilarityProcessor.PINECONE:
+        case SimilarityProcessor.PINECONE:
             return PineconeManager()
