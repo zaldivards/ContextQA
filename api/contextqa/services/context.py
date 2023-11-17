@@ -11,7 +11,7 @@ from langchain.document_loaders import PyPDFLoader, TextLoader
 from langchain.document_loaders.base import BaseLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Pinecone, SKLearnVectorStore
+from langchain.vectorstores import Pinecone, Chroma
 from langchain.vectorstores.base import VectorStore
 
 from contextqa import get_logger, models, settings
@@ -139,7 +139,7 @@ class LocalManager(LLMContextManager):
         db_path = LOCAL_STORE_HOME / filename
         db_path.parent.mkdir(exist_ok=True, parents=True)
         embeddings_util = OpenAIEmbeddings()
-        processor = SKLearnVectorStore.from_documents(
+        processor = Chroma.from_documents(
             documents, embeddings_util, persist_path=str(db_path.with_suffix(".parquet")), serializer="parquet"
         )
         processor.persist()
@@ -147,7 +147,7 @@ class LocalManager(LLMContextManager):
 
     def context_object(self, filename: Optional[str] = None) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
-        processor = SKLearnVectorStore(
+        processor = Chroma(
             embedding=embeddings_util,
             persist_path=str((LOCAL_STORE_HOME / filename).with_suffix(".parquet")),
             serializer="parquet",
