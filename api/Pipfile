@@ -19,6 +19,8 @@ redis = "*"
 async-timeout = "*"
 beautifulsoup4 = "*"
 googlesearch-python = "*"
+chromadb = "*"
+pydantic-settings = "*"
 
 [dev-packages]
 black = "*"
