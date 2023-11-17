@@ -10,7 +10,6 @@ from langchain.schema import BaseMemory
 
 from contextqa import settings
 
-envs = settings()
 _PROMPT_KEYS = {
     "default": {"input_key": "input", "memory_key": "history"},
     "defaultv2": {"input_key": "input", "memory_key": "chat_history"},
@@ -29,7 +28,7 @@ def _requires_raw(session: str, internet_access: bool) -> bool:
 
 
 def _redis(session: Literal["default", "context"] = "default", internet_access: bool = False) -> BaseMemory:
-    history_db = RedisChatMessageHistory(session_id=session, url=envs.redis_url)
+    history_db = RedisChatMessageHistory(session_id=session, url=settings.redis_url)
     return ConversationBufferWindowMemory(
         chat_memory=history_db,
         max_token_limit=1000,
@@ -40,7 +39,7 @@ def _redis(session: Literal["default", "context"] = "default", internet_access: 
 
 
 def _redis_with_summary(session: Literal["default", "context"] = "default") -> BaseMemory:
-    history_db = RedisChatMessageHistory(session_id=session, url=envs.redis_url)
+    history_db = RedisChatMessageHistory(session_id=session, url=settings.redis_url)
     memory = ConversationSummaryBufferMemory(
         llm=OpenAI(temperature=0),
         chat_memory=history_db,
