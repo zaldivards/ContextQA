@@ -11,14 +11,18 @@ class SimilarityProcessor(str, Enum):
     PINECONE = "pinecone"
 
 
-class Summary(BaseModel):
-    summary: str = Field(description="Summary of the person")
-    facts: list[str] = Field(description="Interesting facts about the person")
-    ice_breakers: list[str] = Field(description="Topics of interest of the person")
+class Source(BaseModel):
+    id_: str = Field(alias="id")
+    name: str
+    extras: dict[str, Any] = Field(default_factory=dict)
 
 
 class LLMResult(BaseModel):
     response: str
+
+
+class QAResult(LLMResult):
+    sources: list[Source]
 
 
 class LLMRequestBodyBase(BaseModel):
