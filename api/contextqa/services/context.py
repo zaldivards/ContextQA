@@ -63,10 +63,20 @@ class LLMContextManager(ABC):
             splitted document content as documents
         """
         extension = Path(filename).suffix
-        with NamedTemporaryFile(mode="wb", suffix=f"<separator>{filename}") as temp:
-            temp.write(file_.read())
-            loader: BaseLoader = get_loader(extension)(temp.name)
+        final_name = f":::sep:::{filename}"
+        try:
+            if extension == ".pdf":
+                path = settings.media_home / final_name
+                file_writer = open(path, mode="wb")
+            else:
+                file_writer = NamedTemporaryFile(mode="wb", suffix=final_name)
+                path = file_writer.name
+            file_writer.write(file_.read())
+            loader: BaseLoader = get_loader(extension)(str(path))
             documents = loader.load()
+        finally:
+            file_writer.close()
+
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=params.chunk_size, chunk_overlap=params.chunk_overlap, separators=["\n\n", "\n", "."]
         )
