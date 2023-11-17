@@ -1,5 +1,5 @@
 import logging
-from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings
 
@@ -7,6 +7,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 
 class AppSettings(BaseSettings):
+    media_home: Path = Path(".media/")
+    local_vectordb_home: Path = Path(".chromadb/")
     openai_api_key: str
     redis_url: str
     serpapi_api_key: str = "no token"
@@ -24,11 +26,6 @@ class AppSettings(BaseSettings):
         return self.deployment == "dev"
 
 
-@lru_cache()
-def settings() -> AppSettings:
-    return AppSettings()
-
-
 def get_logger() -> logging.Logger:
     return logging.getLogger("contextqa")
 
@@ -36,3 +33,5 @@ def get_logger() -> logging.Logger:
 # pylint: disable=C0413
 from contextqa.parsers import models
 from contextqa.services import chat, context
+
+settings = AppSettings()
