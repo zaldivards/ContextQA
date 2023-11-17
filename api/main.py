@@ -2,7 +2,15 @@
 from fastapi import APIRouter, FastAPI, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from contextqa import chat, context, get_logger, models
+from contextqa import chat, context, get_logger
+from contextqa.parsers.models import (
+    LLMResult,
+    QAResult,
+    LLMQueryRequest,
+    SimilarityProcessor,
+    LLMRequestBodyBase,
+    LLMContextQueryRequest,
+)
 
 LOGGER = get_logger()
 
@@ -26,8 +34,8 @@ def ping():
     return "Pong!"
 
 
-@app.post("/qa", response_model=models.LLMResult)
-def llm_qa(params: models.LLMQueryRequest):
+@app.post("/qa", response_model=LLMResult)
+def llm_qa(params: LLMQueryRequest):
     """
     Provide a message and receive a response from the LLM
     """
@@ -37,13 +45,13 @@ def llm_qa(params: models.LLMQueryRequest):
         raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
 
 
-@context_router.post("/set", response_model=models.LLMResult)
+@context_router.post("/set", response_model=LLMResult)
 def set_context(
     document: UploadFile,
     separator: str = Form(default="."),
     chunk_size: int = Form(default=100),
     chunk_overlap: int = Form(default=50),
-    similarity_processor: models.SimilarityProcessor = Form(default="local"),
+    similarity_processor: SimilarityProcessor = Form(default="local"),
 ):
     """
     Set the document context to query it using the LLM and the vector store/processor
@@ -58,7 +66,7 @@ def set_context(
         # pylint: disable=E1102
         return context_setter.persist(
             document.filename,
-            models.LLMRequestBodyBase(
+            LLMRequestBodyBase(
                 separator=separator,
                 chunk_size=chunk_size,
                 chunk_overlap=chunk_overlap,
@@ -84,8 +92,8 @@ def set_context(
         ) from ex
 
 
-@context_router.post("/query", response_model=models.LLMResult)
-def query_llm(params: models.LLMContextQueryRequest):
+@context_router.post("/query", response_model=QAResult)
+def query_llm(params: LLMContextQueryRequest):
     """
     Perform a query against the document context
 
