@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -25,13 +26,19 @@ class AppSettings(BaseSettings):
     def debug(self) -> bool:
         return self.deployment == "dev"
 
+    @field_validator("media_home")
+    @classmethod
+    def validate_media_path(cls, value: Path) -> Path:
+        value.mkdir(parents=True, exist_ok=True)
+        return value
+
 
 def get_logger() -> logging.Logger:
     return logging.getLogger("contextqa")
 
 
+settings = AppSettings()
+
 # pylint: disable=C0413
 from contextqa.parsers import models
 from contextqa.services import chat, context
-
-settings = AppSettings()
