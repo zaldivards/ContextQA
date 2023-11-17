@@ -164,7 +164,11 @@ class LocalManager(LLMContextManager):
         documents = self.load_and_preprocess(filename, params, file_)
         embeddings_util = OpenAIEmbeddings()
         processor = Chroma.from_documents(
-            documents, embeddings_util, client=chroma_client, collection_name="contextqa-default"
+            documents,
+            embeddings_util,
+            persist_directory=str(settings.local_vectordb_home),
+            client=chroma_client,
+            collection_name="contextqa-default",
         )
         processor.persist()
         return LLMResult(response="success")
