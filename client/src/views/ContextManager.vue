@@ -152,7 +152,7 @@ export default {
       this.loading = true;
       this.disabled = true;
 
-      setContext("/context/set", {
+      setContext("/qa/ingest/", {
         separator: this.separator,
         chunkSize: this.chunkSize,
         overlap: this.overlap,

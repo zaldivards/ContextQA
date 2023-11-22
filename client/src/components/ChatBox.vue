@@ -123,13 +123,13 @@ export default {
   methods: {
     promise(question) {
       if (this.requiresContext) {
-        return askLLM("/context/query", {
+        return askLLM("/qa", {
           question: question,
           processor: this.$store.state.vectorStore,
           identifier: this.$store.state.identifier,
         });
       }
-      return askLLM("/qa", {
+      return askLLM("/bot", {
         message: question,
         internet_access: this.internetEnabled,
       });

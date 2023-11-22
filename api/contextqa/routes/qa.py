@@ -15,7 +15,7 @@ LOGGER = get_logger()
 router = APIRouter()
 
 
-@router.post("/ingest", response_model=LLMResult)
+@router.post("/ingest/", response_model=LLMResult)
 def ingest_source(
     document: UploadFile,
     separator: str = Form(default="."),
