@@ -1,6 +1,6 @@
 # pylint: disable=E0611
 from enum import Enum
-from typing import Any, Type
+from typing import Any, Type, Annotated
 
 from langchain.vectorstores.base import VectorStore
 from pydantic import BaseModel, Field
@@ -11,9 +11,16 @@ class SimilarityProcessor(str, Enum):
     PINECONE = "pinecone"
 
 
+class SourceFormat(str, Enum):
+    PDF = "pdf"
+    TXT = "txt"
+    CSV = "csv"
+
+
 class Source(BaseModel):
-    name: str
-    extras: dict[str, Any] = Field(default_factory=dict)
+    title: str
+    format_: Annotated[SourceFormat, Field(alias="format")]
+    content: str | dict
 
 
 class LLMResult(BaseModel):
