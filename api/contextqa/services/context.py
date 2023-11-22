@@ -17,8 +17,9 @@ from langchain.vectorstores.chroma import Chroma
 from langchain.vectorstores.base import VectorStore
 
 from contextqa import get_logger, settings
-from contextqa.parsers.models import Source, LLMResult, LLMRequestBodyBase, QAResult, SimilarityProcessor
+from contextqa.parsers.models import LLMResult, LLMRequestBodyBase, QAResult, SimilarityProcessor
 from contextqa.utils import memory, prompts
+from contextqa.utils.sources import build_sources
 
 
 LOGGER = get_logger()
@@ -33,21 +34,6 @@ class VectorStoreConnectionError(Exception):
 
 def get_loader(extension: str) -> BaseLoader:
     return LOADERS[extension]
-
-
-def prepare_sources(sources: list[Document]) -> list[Source]:
-    result = []
-    for source in sources:
-        name = source.metadata.pop("source")
-        extras = {}
-        if page := source.metadata.get("page"):
-            extras.update(page=page)
-        if row := source.metadata.get("row"):
-            extras.update(row=row)
-        if idx := source.metadata.get("idx"):
-            extras.update(idx=idx)
-        result.append(Source(name=name, extras=extras))
-    return result
 
 
 class LLMContextManager(ABC):
@@ -76,7 +62,7 @@ class LLMContextManager(ABC):
                 path = settings.media_home / filename
                 file_writer = open(path, mode="wb")
             else:
-                file_writer = NamedTemporaryFile(mode="wb", suffix=f":::sep:::{filename}")
+                file_writer = NamedTemporaryFile(mode="wb", suffix=f"{settings.tmp_separator}{filename}")
                 path = file_writer.name
             file_writer.write(file_.read())
             loader: BaseLoader = get_loader(extension)(str(path))
@@ -159,7 +145,7 @@ class LLMContextManager(ABC):
         )
 
         result = qa_chain(question)
-        return QAResult(response=result["answer"], sources=prepare_sources(result["source_documents"]))
+        return QAResult(response=result["answer"], sources=build_sources(result["source_documents"]))
 
 
 class LocalManager(LLMContextManager):
