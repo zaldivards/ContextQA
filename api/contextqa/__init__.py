@@ -8,6 +8,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 
 class AppSettings(BaseSettings):
+    default_collection: str = "contextqa-default"
+    tmp_separator: str = ":::sep:::"
     media_home: Path = Path(".media/")
     local_vectordb_home: Path = Path(".chromadb/")
     openai_api_key: str
