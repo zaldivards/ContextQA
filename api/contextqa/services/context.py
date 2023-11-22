@@ -19,7 +19,7 @@ from langchain.vectorstores.base import VectorStore
 from contextqa import get_logger, settings
 from contextqa.parsers.models import LLMResult, LLMRequestBodyBase, QAResult, SimilarityProcessor
 from contextqa.utils import memory, prompts
-from contextqa.utils.sources import build_sources
+from contextqa.utils.sources import build_sources, get_not_seen_chunks
 
 
 LOGGER = get_logger()
@@ -39,7 +39,9 @@ def get_loader(extension: str) -> BaseLoader:
 class LLMContextManager(ABC):
     """Base llm manager"""
 
-    def load_and_preprocess(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> list[Document]:
+    def load_and_preprocess(
+        self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO
+    ) -> tuple[list[Document], list[str]]:
         """Load and preprocess the file content
 
         Parameters
@@ -53,8 +55,8 @@ class LLMContextManager(ABC):
 
         Returns
         -------
-        List[Document]
-            splitted document content as documents
+        tuple[list[Document], list[str]]
+            document chunks and their corresponding IDs
         """
         extension = Path(filename).suffix
         try:
@@ -73,12 +75,8 @@ class LLMContextManager(ABC):
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=params.chunk_size, chunk_overlap=params.chunk_overlap, separators=["\n\n", "\n", "."]
         )
-        texts = splitter.split_documents(documents)
-        if extension != ".pdf":
-            for idx, chunk in enumerate(texts, start=1):
-                chunk: Document = chunk
-                chunk.metadata.update(idx=idx)
-        return texts
+        chunks = splitter.split_documents(documents)
+        return get_not_seen_chunks(chunks, extension)
 
     @abstractmethod
     def persist(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> LLMResult:
@@ -153,11 +151,12 @@ class LocalManager(LLMContextManager):
     parquet file"""
 
     def persist(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> LLMResult:
-        documents = self.load_and_preprocess(filename, params, file_)
+        documents, ids = self.load_and_preprocess(filename, params, file_)
         embeddings_util = OpenAIEmbeddings()
         processor = Chroma.from_documents(
             documents,
             embeddings_util,
+            ids=ids,
             persist_directory=str(settings.local_vectordb_home),
             client=chroma_client,
             collection_name="contextqa-default",
