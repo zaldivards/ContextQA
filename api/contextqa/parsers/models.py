@@ -1,8 +1,7 @@
 # pylint: disable=E0611
 from enum import Enum
-from typing import Any, Type, Annotated
+from typing import Annotated
 
-from langchain.vectorstores.base import VectorStore
 from pydantic import BaseModel, Field
 
 
@@ -50,16 +49,3 @@ class LLMQueryRequest(BaseModel):
 
 class LLMQueryRequestBody(LLMRequestBodyBase):
     query: str = Field(description="The query we want the llm to respond", min_length=10)
-
-
-class LLMQueryDocumentRequestBody(LLMQueryRequestBody):
-    similarity_processor: SimilarityProcessor = SimilarityProcessor.LOCAL
-
-
-class LLMQueryTextRequestBody(LLMQueryRequestBody):
-    content: str = Field(description="The whole content of the 'context'", min_length=500)
-
-
-class VectorStoreParams(BaseModel):
-    clazz: Type[VectorStore]
-    kwargs: dict[str, Any] = Field(default_factory=lambda: {})

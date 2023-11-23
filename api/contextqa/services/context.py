@@ -17,7 +17,7 @@ from langchain.vectorstores.chroma import Chroma
 from langchain.vectorstores.base import VectorStore
 
 from contextqa import get_logger, settings
-from contextqa.parsers.models import LLMResult, LLMRequestBodyBase, QAResult, SimilarityProcessor, SourceFormat
+from contextqa.parsers.models import LLMResult, QAResult, SimilarityProcessor, SourceFormat
 from contextqa.utils import memory, prompts
 from contextqa.utils.sources import build_sources, get_not_seen_chunks
 
@@ -35,17 +35,13 @@ class VectorStoreConnectionError(Exception):
 class LLMContextManager(ABC):
     """Base llm manager"""
 
-    def load_and_preprocess(
-        self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO
-    ) -> tuple[list[Document], list[str]]:
+    def load_and_preprocess(self, filename: str, file_: BinaryIO) -> tuple[list[Document], list[str]]:
         """Load and preprocess the file content
 
         Parameters
         ----------
         filename : str
             Name of the file to load
-        params : LLMRequestBodyBase
-            api parameters
         file_ : BinaryIO
             file for which to save context
 
@@ -72,22 +68,18 @@ class LLMContextManager(ABC):
         if extension == "." + SourceFormat.CSV:
             return get_not_seen_chunks(documents, extension)
 
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size=params.chunk_size, chunk_overlap=params.chunk_overlap, separators=["\n\n", "\n", "."]
-        )
+        splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100, separators=["\n\n", "\n", "."])
         chunks = splitter.split_documents(documents)
         return get_not_seen_chunks(chunks, extension)
 
     @abstractmethod
-    def persist(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> LLMResult:
+    def persist(self, filename: str, file_: BinaryIO) -> LLMResult:
         """Persist the embedded documents
 
         Parameters
         ----------
         filename : str
             Name of the file to load
-        params : LLMRequestBodyBase
-            api parameters
         file_ : BinaryIO
             file for which to save context
 
@@ -150,8 +142,8 @@ class LocalManager(LLMContextManager):
     """Local manager implementation. It uses `Chroma` as its processor and the context is persisted as a
     parquet file"""
 
-    def persist(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> LLMResult:
-        documents, ids = self.load_and_preprocess(filename, params, file_)
+    def persist(self, filename: str, file_: BinaryIO) -> LLMResult:
+        documents, ids = self.load_and_preprocess(filename, file_)
         embeddings_util = OpenAIEmbeddings()
         processor = Chroma.from_documents(
             documents,
@@ -178,13 +170,13 @@ class LocalManager(LLMContextManager):
 class PineconeManager(LLMContextManager):
     """Pinecone manager implementation. It uses `Pinecone` as its processor and vector store"""
 
-    def persist(self, filename: str, params: LLMRequestBodyBase, file_: BinaryIO) -> LLMResult:
+    def persist(self, filename: str, file_: BinaryIO) -> LLMResult:
         try:
             LOGGER.info("Initializing Pinecone connection")
             pinecone.init(api_key=settings.pinecone_token, environment=settings.pinecone_environment_region)
         except Exception as ex:
             raise VectorStoreConnectionError from ex
-        documents = self.load_and_preprocess(filename, params, file_)
+        documents = self.load_and_preprocess(filename, file_)
         embeddings_util = OpenAIEmbeddings()
         try:
             Pinecone.from_documents(

@@ -1,11 +1,10 @@
-from fastapi import APIRouter, Form, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, UploadFile
 
 from contextqa import context, get_logger
 from contextqa.parsers.models import (
     LLMResult,
     QAResult,
     SimilarityProcessor,
-    LLMRequestBodyBase,
     LLMContextQueryRequest,
 )
 
@@ -18,10 +17,6 @@ router = APIRouter()
 @router.post("/ingest/", response_model=LLMResult)
 def ingest_source(
     document: UploadFile,
-    separator: str = Form(default="."),
-    chunk_size: int = Form(default=100),
-    chunk_overlap: int = Form(default=50),
-    similarity_processor: SimilarityProcessor = Form(default="local"),
 ):
     """
     Set the document context to query it using the LLM and the vector store/processor
@@ -32,17 +27,9 @@ def ingest_source(
     3. `PINECONE_ENVIRONMENT_REGION`
     """
     try:
-        context_setter = context.get_setter(similarity_processor)
+        context_setter = context.get_setter(SimilarityProcessor.LOCAL)
         # pylint: disable=E1102
-        return context_setter.persist(
-            document.filename,
-            LLMRequestBodyBase(
-                separator=separator,
-                chunk_size=chunk_size,
-                chunk_overlap=chunk_overlap,
-            ),
-            document.file,
-        )
+        return context_setter.persist(document.filename, document.file)
     except context.VectorStoreConnectionError as ex:
         raise HTTPException(
             status_code=424,
