@@ -9,18 +9,23 @@
       <div :class="disabled ? ['opacity-50', 'disabled'] : ''" class="grid">
         <FileUpload
           @remove="() => (this.uploadedFile = null)"
-          accept=".pdf,.txt"
+          accept=".pdf,.txt,.csv"
           fileLimit="1"
           :maxFileSize="100000000"
           @select="handleFileSelect"
           :showUploadButton="false"
           :multiple="false"
           :pt="{
+            thumbnail: { class: 'hidden' },
             badge: { class: 'hidden' },
             details: { class: 'ml-6' },
             root: { class: 'col-12' },
           }"
-        />
+        >
+          <template #empty>
+            <p>Drag and drop files to here to upload.</p>
+          </template>
+        </FileUpload>
         <div class="col-12 lg:col-6 input-bg">
           <label for="separator">Separator</label>
           <InputText
