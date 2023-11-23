@@ -1,14 +1,14 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import BinaryIO, Optional
+from typing import BinaryIO, Optional, Type
 
 import pinecone
 from chromadb import PersistentClient
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.docstore.document import Document
-from langchain.document_loaders import PyMuPDFLoader, TextLoader
+from langchain.document_loaders import PyMuPDFLoader, TextLoader, CSVLoader
 from langchain.document_loaders.base import BaseLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -17,23 +17,19 @@ from langchain.vectorstores.chroma import Chroma
 from langchain.vectorstores.base import VectorStore
 
 from contextqa import get_logger, settings
-from contextqa.parsers.models import LLMResult, LLMRequestBodyBase, QAResult, SimilarityProcessor
+from contextqa.parsers.models import LLMResult, LLMRequestBodyBase, QAResult, SimilarityProcessor, SourceFormat
 from contextqa.utils import memory, prompts
 from contextqa.utils.sources import build_sources, get_not_seen_chunks
 
 
 LOGGER = get_logger()
-LOADERS = {".pdf": PyMuPDFLoader, ".txt": TextLoader}
+LOADERS: dict[str, Type[BaseLoader]] = {".pdf": PyMuPDFLoader, ".txt": TextLoader, ".csv": CSVLoader}
 
 chroma_client = PersistentClient(path=str(settings.local_vectordb_home))
 
 
 class VectorStoreConnectionError(Exception):
     """This exception is raised when a connection could not be established or credentials are invalid"""
-
-
-def get_loader(extension: str) -> BaseLoader:
-    return LOADERS[extension]
 
 
 class LLMContextManager(ABC):
@@ -60,17 +56,21 @@ class LLMContextManager(ABC):
         """
         extension = Path(filename).suffix
         try:
-            if extension == ".pdf":
+            if extension == "." + SourceFormat.PDF:
                 path = settings.media_home / filename
                 file_writer = open(path, mode="wb")
             else:
                 file_writer = NamedTemporaryFile(mode="wb", suffix=f"{settings.tmp_separator}{filename}")
                 path = file_writer.name
             file_writer.write(file_.read())
-            loader: BaseLoader = get_loader(extension)(str(path))
+            loader: BaseLoader = LOADERS[extension](str(path))
             documents = loader.load()
         finally:
             file_writer.close()
+
+        # we do not want to split csv files as they are splitted by rows
+        if extension == "." + SourceFormat.CSV:
+            return get_not_seen_chunks(documents, extension)
 
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=params.chunk_size, chunk_overlap=params.chunk_overlap, separators=["\n\n", "\n", "."]
