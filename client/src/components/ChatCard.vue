@@ -1,50 +1,39 @@
 <template>
-  <div class="formgrid grid mx-7">
-    <div class="field col" v-if="!isUser"></div>
-    <div class="field col">
-      <ProgressBar
-        mode="indeterminate"
-        style="height: 1px"
-        v-if="activate"
-      ></ProgressBar>
-      <div class="formgrid grid" :class="isUser ? 'max-w-max' : ''" v-else>
-        <Avatar
-          image="/images/user.png"
-          :class="isUser ? 'mr-3' : 'ml-3'"
-          size="large"
-          shape="circle"
-          v-if="isUser"
-        />
+  <ProgressBar
+    mode="indeterminate"
+    style="height: 1px"
+    v-if="activate"
+  ></ProgressBar>
+  <div class="formgrid grid" :class="isUser ? 'max-w-max' : ''" v-else>
+    <Avatar
+      image="/images/user.png"
+      size="small"
+      shape="circle"
+      v-if="isUser"
+    />
+    <Avatar image="/images/logo.png" size="small" v-if="!isUser" />
 
-        <Card
-          class="field col shadow-none animation-duration-300 breakline-ok"
-          :class="
-            isUser
-              ? ['bg-teal-600', 'fadeinleft', 'text-white']
-              : ['bg-bluegray-500', 'fadeinright', 'text-white']
-          "
-        >
-          <template #content>
-            <div v-html="contentStored"></div>
-          </template>
-          <template #footer>
-            <div
-              class="date w-max justify-content-end text-xs text-white-alpha-70"
-            >
-              {{ sentDate }}
-            </div>
-          </template>
-        </Card>
-
-        <Avatar
-          image="/images/logo.png"
-          :class="!isUser ? 'ml-3' : 'mr-3'"
-          size="large"
-          v-if="!isUser"
-        />
-      </div>
-    </div>
-    <div class="field col" v-if="isUser"></div>
+    <Card
+      class="field col mx-2 shadow-none animation-duration-300 breakline-ok"
+      :class="
+        isUser
+          ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
+          : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
+      "
+      :pt="{
+        content: { class: 'py-1' },
+        body: { class: isUser ? 'pt-0' : '' },
+      }"
+    >
+      <template #content>
+        <div v-html="contentStored"></div>
+      </template>
+      <template #footer>
+        <div class="date w-max justify-content-end text-xs text-white-alpha-70">
+          {{ sentDate }}
+        </div>
+      </template>
+    </Card>
   </div>
 </template>
 
@@ -103,7 +92,7 @@ export default {
               ><img
                 alt="contextqa text"
                 src="/images/title.png"
-                class="w-2 top-img relative"
+                class="w-1 top-img relative"
             /></span>`
       );
     },
