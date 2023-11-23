@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import BinaryIO, Optional, Type
+from typing import BinaryIO, Type
 
 import pinecone
 from chromadb import PersistentClient
@@ -91,14 +91,9 @@ class LLMContextManager(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def context_object(self, filename: Optional[str]) -> VectorStore:
+    def context_object(self) -> VectorStore:
         """Prepare the processor object. This method needs specific implementations because most of the VectorStores
         are initialized with different parameters
-
-        Parameters
-        ----------
-        filename : Optional[str]
-            Name of the file. If provided, it will be used as the identifier to load the existing context(embeddings).
 
         Returns
         -------
@@ -107,23 +102,20 @@ class LLMContextManager(ABC):
         """
         raise NotImplementedError
 
-    def load_and_respond(self, question: str, filename: Optional[str] = None) -> QAResult:
+    def load_and_respond(self, question: str) -> QAResult:
         """Load the context and answer the question
 
         Parameters
         ----------
         question : str
             The question to answer
-        filename : Optional[str], optional
-            Name of the file. If provided, it will be used as the identifier to load the existing context(embeddings),
-            by default None
 
         Returns
         -------
         QAResult
             The final response of the LLM
         """
-        context_util = self.context_object(filename)
+        context_util = self.context_object()
         llm = ChatOpenAI(verbose=True, temperature=0)
         qa_chain = ConversationalRetrievalChain.from_llm(
             llm=llm,
@@ -151,16 +143,16 @@ class LocalManager(LLMContextManager):
             ids=ids,
             persist_directory=str(settings.local_vectordb_home),
             client=chroma_client,
-            collection_name="contextqa-default",
+            collection_name=settings.default_collection,
         )
         processor.persist()
         return LLMResult(response="success")
 
-    def context_object(self, filename: Optional[str] = None) -> VectorStore:
+    def context_object(self) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
         processor = Chroma(
             client=chroma_client,
-            collection_name="contextqa-default",
+            collection_name=settings.default_collection,
             embedding_function=embeddings_util,
             persist_directory=str(settings.local_vectordb_home),
         )
@@ -179,18 +171,14 @@ class PineconeManager(LLMContextManager):
         documents = self.load_and_preprocess(filename, file_)
         embeddings_util = OpenAIEmbeddings()
         try:
-            Pinecone.from_documents(
-                documents, embeddings_util, index_name=settings.pinecone_index, namespace=Path(filename).stem
-            )
+            Pinecone.from_documents(documents, embeddings_util, index_name=settings.pinecone_index)
         except Exception as ex:
             raise VectorStoreConnectionError from ex
         return LLMResult(response="success")
 
-    def context_object(self, filename: Optional[str] = None) -> VectorStore:
+    def context_object(self) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
-        processor = Pinecone.from_existing_index(
-            index_name=settings.pinecone_index, embedding=embeddings_util, namespace=Path(filename).stem
-        )
+        processor = Pinecone.from_existing_index(index_name=settings.pinecone_index, embedding=embeddings_util)
         return processor
 
 

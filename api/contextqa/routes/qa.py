@@ -52,15 +52,12 @@ def ingest_source(
 @router.post("/", response_model=QAResult)
 def qa(params: LLMContextQueryRequest):
     """
-    Perform a query against the document context
-
-    **Note**: The `processor` and `identifier` parameters must be the same you set with the `/context/set` endpoint.
-    The `identifier` parameter was set using the provided document's name
+    Perform a QA process against the documents you have ingested
     """
     try:
         context_setter = context.get_setter(params.processor)
         # pylint: disable=E1102
-        return context_setter.load_and_respond(params.question, params.identifier)
+        return context_setter.load_and_respond(params.question)
     except Exception as ex:
         raise HTTPException(
             status_code=424,

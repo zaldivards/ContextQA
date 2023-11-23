@@ -38,8 +38,6 @@ class LLMRequestBodyBase(BaseModel):
 
 class LLMContextQueryRequest(BaseModel):
     question: str
-    processor: SimilarityProcessor
-    identifier: str
 
 
 class LLMQueryRequest(BaseModel):
