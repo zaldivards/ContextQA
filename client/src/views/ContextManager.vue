@@ -85,13 +85,7 @@ export default {
   },
   computed: {
     nullData() {
-      return (
-        this.uploadedFile === null ||
-        !this.separator ||
-        this.chunkSize === null ||
-        this.overlap === null ||
-        !this.selectedStore
-      );
+      return this.uploadedFile === null;
     },
   },
   methods: {
@@ -100,17 +94,10 @@ export default {
       this.disabled = true;
 
       setContext("/qa/ingest/", {
-        separator: this.separator,
-        chunkSize: this.chunkSize,
-        overlap: this.overlap,
         file: this.uploadedFile,
-        processor: this.selectedStore.toLowerCase(),
       })
-        .then((result) => {
-          this.$store.dispatch("setApiParams", {
-            identifier: this.uploadedFile.name,
-            vectorStore: this.selectedStore.toLowerCase(),
-          });
+        .then(() => {
+          this.$store.dispatch("setApiParams", this.uploadedFile.name);
           showSuccess(
             "Context set successfully, redirecting to the chat session"
           );
