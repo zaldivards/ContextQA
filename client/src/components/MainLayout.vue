@@ -119,9 +119,6 @@ export default {
 #main {
   grid-area: main;
 }
-#sidebar > * :not(button, span) {
-  background-color: #1d2d39 !important;
-}
 
 .negative-padding {
   left: -200px !important;

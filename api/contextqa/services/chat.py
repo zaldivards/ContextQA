@@ -49,7 +49,7 @@ def get_llm_assistant(internet_access: bool) -> ConversationChain | Agent:
             llm=llm,
             agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
             memory=memory.Redis("default", internet_access=True),
-            verbose=settings().debug,
+            verbose=settings.debug,
             agent_kwargs={
                 # "output_parser": CustomOP(),
                 # "format_instructions": prompts.CONTEXTQA_AGENT_TEMPLATE,
@@ -58,7 +58,7 @@ def get_llm_assistant(internet_access: bool) -> ConversationChain | Agent:
             handle_parsing_errors=True,
         )
     prompt = ChatPromptTemplate.from_messages(_MESSAGES)
-    return ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings().debug)
+    return ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings.debug)
 
 
 def qa_service(params: models.LLMQueryRequest) -> models.LLMResult:

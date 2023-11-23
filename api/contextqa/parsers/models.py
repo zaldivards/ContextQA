@@ -1,8 +1,7 @@
 # pylint: disable=E0611
 from enum import Enum
-from typing import Any, Type
+from typing import Annotated
 
-from langchain.vectorstores.base import VectorStore
 from pydantic import BaseModel, Field
 
 
@@ -11,14 +10,24 @@ class SimilarityProcessor(str, Enum):
     PINECONE = "pinecone"
 
 
-class Summary(BaseModel):
-    summary: str = Field(description="Summary of the person")
-    facts: list[str] = Field(description="Interesting facts about the person")
-    ice_breakers: list[str] = Field(description="Topics of interest of the person")
+class SourceFormat(str, Enum):
+    PDF = "pdf"
+    TXT = "txt"
+    CSV = "csv"
+
+
+class Source(BaseModel):
+    title: str
+    format_: Annotated[SourceFormat, Field(alias="format")]
+    content: str | dict
 
 
 class LLMResult(BaseModel):
     response: str
+
+
+class QAResult(LLMResult):
+    sources: list[Source]
 
 
 class LLMRequestBodyBase(BaseModel):
@@ -29,8 +38,6 @@ class LLMRequestBodyBase(BaseModel):
 
 class LLMContextQueryRequest(BaseModel):
     question: str
-    processor: SimilarityProcessor
-    identifier: str
 
 
 class LLMQueryRequest(BaseModel):
@@ -40,16 +47,3 @@ class LLMQueryRequest(BaseModel):
 
 class LLMQueryRequestBody(LLMRequestBodyBase):
     query: str = Field(description="The query we want the llm to respond", min_length=10)
-
-
-class LLMQueryDocumentRequestBody(LLMQueryRequestBody):
-    similarity_processor: SimilarityProcessor = SimilarityProcessor.LOCAL
-
-
-class LLMQueryTextRequestBody(LLMQueryRequestBody):
-    content: str = Field(description="The whole content of the 'context'", min_length=500)
-
-
-class VectorStoreParams(BaseModel):
-    clazz: Type[VectorStore]
-    kwargs: dict[str, Any] = Field(default_factory=lambda: {})

@@ -1,12 +1,17 @@
 import logging
-from functools import lru_cache
+from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 class AppSettings(BaseSettings):
+    default_collection: str = "contextqa-default"
+    tmp_separator: str = ":::sep:::"
+    media_home: Path = Path(".media/")
+    local_vectordb_home: Path = Path(".chromadb/")
     openai_api_key: str
     redis_url: str
     serpapi_api_key: str = "no token"
@@ -23,15 +28,18 @@ class AppSettings(BaseSettings):
     def debug(self) -> bool:
         return self.deployment == "dev"
 
-
-@lru_cache()
-def settings() -> AppSettings:
-    return AppSettings()
+    @field_validator("media_home")
+    @classmethod
+    def validate_media_path(cls, value: Path) -> Path:
+        value.mkdir(parents=True, exist_ok=True)
+        return value
 
 
 def get_logger() -> logging.Logger:
     return logging.getLogger("contextqa")
 
+
+settings = AppSettings()
 
 # pylint: disable=C0413
 from contextqa.parsers import models
