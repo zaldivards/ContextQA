@@ -182,7 +182,7 @@ class PineconeManager(LLMContextManager):
         return processor
 
 
-def get_setter(processor: SimilarityProcessor) -> LLMContextManager:
+def get_setter(processor: SimilarityProcessor | None = None) -> LLMContextManager:
     """LLMContextManager factory function
 
     Parameters
@@ -195,6 +195,7 @@ def get_setter(processor: SimilarityProcessor) -> LLMContextManager:
     LLMContextManager
         Specific LLMContextManager implementation
     """
+    processor = processor or SimilarityProcessor.LOCAL
     match processor:
         case SimilarityProcessor.LOCAL:
             return LocalManager()

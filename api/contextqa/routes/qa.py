@@ -19,12 +19,7 @@ def ingest_source(
     document: UploadFile,
 ):
     """
-    Set the document context to query it using the LLM and the vector store/processor
-
-    **NOTE**: You need to set the following to use the pinecone vector store/processor:
-    1. `PINECONE_TOKEN`
-    2. `PINECONE_INDEX`
-    3. `PINECONE_ENVIRONMENT_REGION`
+    Ingest a data source into the vector database
     """
     try:
         context_setter = context.get_setter(SimilarityProcessor.LOCAL)
@@ -55,7 +50,7 @@ def qa(params: LLMContextQueryRequest):
     Perform a QA process against the documents you have ingested
     """
     try:
-        context_setter = context.get_setter(params.processor)
+        context_setter = context.get_setter()
         # pylint: disable=E1102
         return context_setter.load_and_respond(params.question)
     except Exception as ex:
