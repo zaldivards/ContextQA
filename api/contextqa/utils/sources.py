@@ -30,7 +30,6 @@ def get_not_seen_chunks(chunks: list[Document], extension: str) -> tuple[list[Do
     # generate UUIDs based on the chunk content. Note that if the same chunk(same file content) is ingested again,
     # it won't be added by chromadb thanks to the unique UUID
     ids = [str(uuid.uuid5(uuid.NAMESPACE_DNS, chunk.page_content)) for chunk in chunks]
-
     seen_ids = set()
     for idx, (chunk, id_) in enumerate(zip(chunks, ids), start=1):
         chunk: Document = chunk
@@ -59,6 +58,7 @@ def build_sources(sources: list[Document]) -> list[Source]:
     result = []
     for source in sources:
         name = source.metadata.pop("source")
+        source_name = name.split(settings.tmp_separator)[-1]
         extension = name.split(".")[-1]
         match extension:
             case SourceFormat.PDF:
@@ -69,12 +69,17 @@ def build_sources(sources: list[Document]) -> list[Source]:
                 img_bytes = page.get_pixmap().tobytes()
                 base64_img = base64.b64encode(img_bytes)
                 source = Source(title=f"{path.name} - Page {page_number}", format=SourceFormat.PDF, content=base64_img)
-                result.append(source)
             case SourceFormat.TXT:
                 idx = source.metadata.get("idx")
-                source_name = name.split(settings.tmp_separator)[-1]
                 source = Source(
                     title=f"{source_name} - Segment {idx}", format=SourceFormat.TXT, content=source.page_content
                 )
-                result.append(source)
+            case SourceFormat.CSV:
+                row = source.metadata.get("row")
+                data = {}
+                for cell in source.page_content.split("\n"):
+                    key, value = cell.split(":", 1)
+                    data[key] = value.strip()
+                    source = Source(title=f"{source_name} - Row {row}", format=SourceFormat.CSV, content=data)
+        result.append(source)
     return result
