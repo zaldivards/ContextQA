@@ -1,4 +1,9 @@
+import asyncio
+import time
+from typing import AsyncGenerator
+
 from langchain.agents import initialize_agent, AgentType, Agent
+from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationChain
 from langchain.chains.conversation.prompt import DEFAULT_TEMPLATE
@@ -11,7 +16,7 @@ from langchain.prompts.chat import (
 
 from contextqa import settings
 from contextqa.agents.tools import searcher
-from contextqa.models.schemas import LLMResult, LLMQueryRequest
+from contextqa.models.schemas import LLMQueryRequest
 from contextqa.utils import memory, prompts
 
 
@@ -30,7 +35,7 @@ _MESSAGES = [
 ]
 
 
-def get_llm_assistant(internet_access: bool) -> ConversationChain | Agent:
+def get_llm_assistant(internet_access: bool) -> tuple[ConversationChain | Agent, AsyncIteratorCallbackHandler]:
     """Return certain LLM assistant based on the system configuration
 
     Parameters
@@ -42,38 +47,45 @@ def get_llm_assistant(internet_access: bool) -> ConversationChain | Agent:
     -------
     ConversationChain | Agent
     """
-    llm = ChatOpenAI(temperature=0)
+    callback = AsyncIteratorCallbackHandler()
+    llm = ChatOpenAI(temperature=0, streaming=True, callbacks=[callback])
 
     if internet_access:
-        return initialize_agent(
-            [searcher],
-            llm=llm,
-            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
-            memory=memory.Redis("default", internet_access=True),
-            verbose=settings.debug,
-            agent_kwargs={
-                # "output_parser": CustomOP(),
-                # "format_instructions": prompts.CONTEXTQA_AGENT_TEMPLATE,
-                "prefix": prompts.PREFIX,
-            },
-            handle_parsing_errors=True,
+        return (
+            initialize_agent(
+                [searcher],
+                llm=llm,
+                agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+                memory=memory.Redis("default", internet_access=True),
+                verbose=settings.debug,
+                agent_kwargs={"prefix": prompts.PREFIX},
+                handle_parsing_errors=True,
+            ),
+            callback,
         )
     prompt = ChatPromptTemplate.from_messages(_MESSAGES)
-    return ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings.debug)
+    return ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings.debug), callback
 
 
-def qa_service(params: LLMQueryRequest) -> LLMResult:
+async def qa_service(params: LLMQueryRequest) -> AsyncGenerator:
     """Chat with the llm
 
     Parameters
     ----------
-    params : models.LLMQueryRequest
+    params : LLMQueryRequest
         request body parameters
 
     Returns
     -------
-    models.LLMResult
-        LLM response
+    AsyncGenerator
     """
-    assistant = get_llm_assistant(params.internet_access)
-    return LLMResult(response=assistant.run(input=params.message))
+
+    assistant, callback = get_llm_assistant(params.internet_access)
+    task = asyncio.create_task(assistant.arun(input=params.message))
+    try:
+        async for token in callback.aiter():
+            yield token
+            time.sleep(0.1)
+    finally:
+        callback.done.set()
+    await task

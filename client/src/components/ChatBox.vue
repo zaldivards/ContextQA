@@ -61,15 +61,49 @@
         },
       }"
     >
-      <ChatCard
+      <div
         :key="i"
         v-for="(message, i) in messages"
-        :role="message.role"
-        :idx="i"
-        :content="message.content"
-        :documentQA="requiresContext"
-        :sentDate="message.date"
-      ></ChatCard>
+        class="formgrid grid"
+        :class="message.role == 'user' ? 'max-w-max' : ''"
+      >
+        <Avatar
+          image="/images/user.png"
+          size="small"
+          shape="circle"
+          v-if="message.role == 'user'"
+        />
+        <Avatar
+          image="/images/logo.png"
+          size="small"
+          v-if="message.role != 'user'"
+        />
+
+        <Card
+          class="field col mx-2 shadow-none animation-duration-300 breakline-ok"
+          :class="
+            message.role == 'user'
+              ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
+              : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
+          "
+          :pt="{
+            content: { class: 'py-1' },
+            body: { class: message.role == 'user' ? 'pt-0' : '' },
+          }"
+        >
+          <template #content>
+            <div v-if="message.isLatest" v-html="answer"></div>
+            <div v-else v-html="message.content"></div>
+          </template>
+          <template #footer>
+            <div
+              class="date w-max justify-content-end text-xs text-white-alpha-70"
+            >
+              {{ message.date }}
+            </div>
+          </template>
+        </Card>
+      </div>
       <div class="fixed bottom-0 w-11 lg:w-7 mb-5 align-items-center">
         <div class="m-auto">
           <div class="flex align-items-center mb-2" v-if="!requiresContext">
@@ -88,14 +122,24 @@ import Panel from "primevue/panel";
 import InputSwitch from "primevue/inputswitch";
 import Dialog from "primevue/dialog";
 import Toast from "primevue/toast";
-import ChatCard from "@/components/ChatCard.vue";
+import Card from "primevue/card";
+import Avatar from "primevue/avatar";
 import MessageAdder from "@/components/MessageAdder.vue";
 
 import { askLLM, showError, showWarning, getDateTimeStr } from "@/utils/client";
+import { formatCode } from "@/utils/text";
 
 export default {
   name: "ChatContainer",
-  components: { Panel, ChatCard, MessageAdder, Toast, InputSwitch, Dialog },
+  components: {
+    Panel,
+    MessageAdder,
+    Toast,
+    InputSwitch,
+    Dialog,
+    Card,
+    Avatar,
+  },
   props: { requiresContext: Boolean },
   mounted() {
     if (!this.identifier && this.requiresContext) {
@@ -118,55 +162,72 @@ export default {
     this.autoScroll();
   },
   data() {
-    return { messages: [], internetEnabled: false, showDialog: false };
+    return {
+      messages: [],
+      internetEnabled: false,
+      showDialog: false,
+      lastMessageLocal: "",
+      answer: "",
+    };
   },
   methods: {
-    promise(question) {
+    getGenerator(question) {
       if (this.requiresContext) {
-        return askLLM("/qa", {
+        return askLLM("/qa/", {
           question: question,
           processor: this.$store.state.vectorStore,
           identifier: this.$store.state.identifier,
         });
       }
-      return askLLM("/bot", {
+      return askLLM("/bot/", {
         message: question,
         internet_access: this.internetEnabled,
       });
     },
-    ask(question) {
+    async ask(question) {
       let sentDate = "";
       this.$store.dispatch("activateSpinner", true);
-      this.addMessage({ content: "", role: "bot", date: sentDate });
+      this.addMessage({
+        content: "",
+        role: "bot",
+        date: sentDate,
+        isLatest: true,
+      });
       const action = this.requiresContext
         ? "setLastDocumentMessage"
         : "setLastChatMessage";
 
-      this.promise(question)
-        .then((result) => {
-          sentDate = getDateTimeStr();
-          this.$store.dispatch(action, {
-            isInit: false,
-            content: result,
-            date: sentDate,
-          });
-        })
-        .catch((error) => {
-          sentDate = getDateTimeStr();
-          this.$store.dispatch(action, {
-            content: "I am having issues, my apologies. Try again later.",
-            role: "bot",
-            date: sentDate,
-          });
-
-          showError(error.message);
-          this.$store.dispatch("activateSpinner", false);
-        })
-        .finally(() => {
-          this.messages.at(-1).date = sentDate;
+      try {
+        for await (const text of this.getGenerator(question)) {
+          this.answer += text;
           this.autoScroll();
-          this.$refs.adder.$refs.textarea.$el.focus();
+        }
+
+        this.answer = formatCode(this.answer);
+        sentDate = getDateTimeStr();
+        this.$store.dispatch(action, {
+          isInit: false,
+          content: this.answer,
+          date: sentDate,
         });
+      } catch (error) {
+        console.log("Error: " + error);
+        sentDate = getDateTimeStr();
+        this.$store.dispatch(action, {
+          content: "I am having issues, my apologies. Try again later.",
+          role: "bot",
+          date: sentDate,
+        });
+
+        showError(error.message);
+        this.$store.dispatch("activateSpinner", false);
+      } finally {
+        this.messages.at(-1).date = sentDate;
+        this.messages.at(-1).isLatest = false;
+        this.messages.at(-1).content = this.answer;
+        this.answer = "";
+        this.$refs.adder.$refs.textarea.$el.focus();
+      }
     },
     pushMessages(message) {
       this.addMessage({
@@ -174,7 +235,7 @@ export default {
         role: "user",
         date: getDateTimeStr(),
       });
-      this.ask(message);
+      this.ask(message).then(() => console.log("OK"));
     },
     autoScroll() {
       this.$nextTick(() => {
