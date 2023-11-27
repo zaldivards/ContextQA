@@ -21,10 +21,10 @@ from sqlalchemy.orm import Session
 from contextqa import get_logger, settings
 from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceFormat
 from contextqa.utils import memory, prompts
-from contextqa.utils.general import stream, CustomQAChain
 from contextqa.utils.exceptions import VectorDBConnectionError
 from contextqa.utils.sources import get_not_seen_chunks, check_digest
 
+from contextqa.utils.streaming import stream, CustomQAChain
 
 
 LOGGER = get_logger()

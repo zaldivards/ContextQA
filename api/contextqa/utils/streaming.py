@@ -65,6 +65,6 @@ async def stream(
     await task
     if entrypoint_obj:
         try:
-            yield json.dumps({"sources": build_sources(entrypoint_obj.sources)})
+            yield "<sources>" + json.dumps(build_sources(entrypoint_obj.sources))
         finally:
             pass
