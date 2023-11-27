@@ -227,7 +227,11 @@ export default {
             if (temp.length == 3) {
               temp = "";
             }
-          } else this.answer += text;
+          } else {
+            if (text.includes("<sources>")) {
+              const sources = JSON.parse(text.split("<sources>")[1]);
+            } else this.answer += text;
+          }
           this.autoScroll();
         }
 
@@ -263,7 +267,7 @@ export default {
         role: "user",
         date: getDateTimeStr(),
       });
-      this.ask(message).then(() => console.log("OK"));
+      this.ask(message).then(() => {});
     },
     autoScroll() {
       this.$nextTick(() => {
