@@ -1,5 +1,3 @@
-import asyncio
-import time
 from typing import AsyncGenerator
 
 from langchain.agents import initialize_agent, AgentType, Agent
@@ -20,6 +18,8 @@ from contextqa import settings
 from contextqa.agents.tools import searcher
 from contextqa.models.schemas import LLMQueryRequest
 from contextqa.utils import memory, prompts
+from contextqa.utils.general import stream
+from contextqa.agents.tools import searcher
 
 
 _MESSAGES = [
@@ -73,7 +73,7 @@ def get_llm_assistant(internet_access: bool) -> tuple[ConversationChain | Agent,
     return ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings.debug), callback
 
 
-async def qa_service(params: LLMQueryRequest) -> AsyncGenerator:
+def qa_service(params: LLMQueryRequest) -> AsyncGenerator:
     """Chat with the llm
 
     Parameters
@@ -87,12 +87,4 @@ async def qa_service(params: LLMQueryRequest) -> AsyncGenerator:
     """
 
     assistant, callback = get_llm_assistant(params.internet_access)
-    task = asyncio.create_task(assistant.arun(input=params.message))
-
-    try:
-        async for token in callback.aiter():
-            yield token
-            time.sleep(0.05)
-    finally:
-        callback.done.set()
-    await task
+    return stream(assistant.arun(input=params.message), callback)

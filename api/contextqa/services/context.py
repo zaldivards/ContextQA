@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import BinaryIO, Type
+from typing import BinaryIO, Type, AsyncGenerator
 
 import pinecone
 from chromadb import PersistentClient
-from langchain.chains import ConversationalRetrievalChain
+from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain.chat_models import ChatOpenAI
 from langchain.docstore.document import Document
 from langchain.document_loaders import PyMuPDFLoader, TextLoader, CSVLoader
@@ -19,10 +19,11 @@ from sqlalchemy.orm import Session
 
 
 from contextqa import get_logger, settings
-from contextqa.models.schemas import LLMResult, QAResult, SimilarityProcessor, SourceFormat
+from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceFormat
 from contextqa.utils import memory, prompts
+from contextqa.utils.general import stream, CustomQAChain
 from contextqa.utils.exceptions import VectorDBConnectionError
-from contextqa.utils.sources import build_sources, get_not_seen_chunks, check_digest
+from contextqa.utils.sources import get_not_seen_chunks, check_digest
 
 
 
@@ -112,7 +113,7 @@ class LLMContextManager(ABC):
         """
         raise NotImplementedError
 
-    def load_and_respond(self, question: str) -> QAResult:
+    def load_and_respond(self, question: str) -> AsyncGenerator:
         """Load the context and answer the question
 
         Parameters
@@ -122,13 +123,17 @@ class LLMContextManager(ABC):
 
         Returns
         -------
-        QAResult
-            The final response of the LLM
+        AsyncGenerator
+            stream of the final response
         """
+        callback = AsyncIteratorCallbackHandler()
         context_util = self.context_object()
-        llm = ChatOpenAI(verbose=True, temperature=0)
-        qa_chain = ConversationalRetrievalChain.from_llm(
+        llm = ChatOpenAI(verbose=True, temperature=0, callbacks=[callback], streaming=True)
+        qa_chain = CustomQAChain.from_llm(
             llm=llm,
+            # this separate LLM instance is needed to avoid streaming the result of the
+            # standalone question
+            condense_question_llm=ChatOpenAI(temperature=0),
             retriever=context_util.as_retriever(),
             memory=memory.Redis(session="context"),
             condense_question_prompt=prompts.CONTEXTQA_RETRIEVAL_PROMPT,
@@ -136,8 +141,7 @@ class LLMContextManager(ABC):
             return_source_documents=True,
         )
 
-        result = qa_chain(question)
-        return QAResult(response=result["answer"], sources=build_sources(result["source_documents"]))
+        return stream(qa_chain.arun(question), callback, entrypoint_obj=qa_chain)
 
 
 class LocalManager(LLMContextManager):

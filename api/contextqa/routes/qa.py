@@ -1,12 +1,12 @@
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, UploadFile, Depends, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from contextqa import context, get_logger
 from contextqa.models.schemas import (
     LLMResult,
-    QAResult,
     SimilarityProcessor,
     LLMContextQueryRequest,
 )
@@ -55,15 +55,15 @@ def ingest_source(document: UploadFile, session: Annotated[Session, Depends(get_
         ) from ex
 
 
-@router.post("/", response_model=QAResult)
-def qa(params: LLMContextQueryRequest):
+@router.post("/")
+async def qa(params: LLMContextQueryRequest):
     """
     Perform a QA process against the documents you have ingested
     """
     try:
         context_setter = context.get_setter()
-        # pylint: disable=E1102
-        return context_setter.load_and_respond(params.question)
+        generator = context_setter.load_and_respond(params.question)
+        return StreamingResponse(generator, media_type="text/event-stream")
     except Exception as ex:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
