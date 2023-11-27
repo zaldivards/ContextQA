@@ -61,49 +61,56 @@
         },
       }"
     >
-      <div
-        :key="i"
-        v-for="(message, i) in messages"
-        class="formgrid grid"
-        :class="message.role == 'user' ? 'max-w-max' : ''"
-      >
-        <Avatar
-          image="/images/user.png"
-          size="small"
-          shape="circle"
-          v-if="message.role == 'user'"
-        />
-        <Avatar
-          image="/images/logo.png"
-          size="small"
-          v-if="message.role != 'user'"
-        />
-
-        <Card
-          class="field col mx-2 shadow-none animation-duration-300 breakline-ok"
-          :class="
-            message.role == 'user'
-              ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
-              : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
-          "
-          :pt="{
-            content: { class: 'py-1' },
-            body: { class: message.role == 'user' ? 'pt-0' : '' },
-          }"
+      <div :key="i" v-for="(message, i) in messages">
+        <ProgressBar
+          mode="indeterminate"
+          style="height: 1px"
+          v-if="activate && message.role == 'bot' && message.isLatest"
+        ></ProgressBar>
+        <div
+          v-else
+          class="formgrid grid"
+          :class="message.role == 'user' ? 'max-w-max' : ''"
         >
-          <template #content>
-            <div v-if="message.isLatest" v-html="answer"></div>
-            <div v-else v-html="message.content"></div>
-          </template>
-          <template #footer>
-            <div
-              class="date w-max justify-content-end text-xs text-white-alpha-70"
-            >
-              {{ message.date }}
-            </div>
-          </template>
-        </Card>
+          <Avatar
+            image="/images/user.png"
+            size="small"
+            shape="circle"
+            v-if="message.role == 'user'"
+          />
+          <Avatar
+            image="/images/logo.png"
+            size="small"
+            v-if="message.role != 'user'"
+          />
+
+          <Card
+            class="field col mx-2 shadow-none animation-duration-300 breakline-ok"
+            :class="
+              message.role == 'user'
+                ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
+                : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
+            "
+            :pt="{
+              content: { class: 'py-1' },
+              body: { class: message.role == 'user' ? 'pt-0' : '' },
+            }"
+          >
+            <template #content>
+              <div v-if="message.isLatest" v-html="answer"></div>
+              <div v-else v-html="message.content"></div>
+            </template>
+            <template #footer>
+              <div
+                class="date w-max justify-content-end text-xs text-white-alpha-70"
+              >
+                {{ message.date }}
+              </div>
+            </template>
+          </Card>
+        </div>
       </div>
+
       <div class="fixed bottom-0 w-11 lg:w-7 mb-5 align-items-center">
         <div class="m-auto">
           <div class="flex align-items-center mb-2" v-if="!requiresContext">
@@ -119,6 +126,7 @@
 
 <script>
 import Panel from "primevue/panel";
+import ProgressBar from "primevue/progressbar";
 import InputSwitch from "primevue/inputswitch";
 import Dialog from "primevue/dialog";
 import Toast from "primevue/toast";
@@ -139,6 +147,7 @@ export default {
     Dialog,
     Card,
     Avatar,
+    ProgressBar,
   },
   props: { requiresContext: Boolean },
   mounted() {
@@ -186,6 +195,8 @@ export default {
     },
     async ask(question) {
       let sentDate = "";
+      let activated = false;
+      let temp = "";
       this.$store.dispatch("activateSpinner", true);
       this.addMessage({
         content: "",
@@ -196,10 +207,29 @@ export default {
       const action = this.requiresContext
         ? "setLastDocumentMessage"
         : "setLastChatMessage";
-
       try {
         for await (const text of this.getGenerator(question)) {
-          this.answer += text;
+          if (!activated) {
+            this.$store.dispatch("activateSpinner", false);
+            activated = true;
+          }
+          if (this.internetEnabled) {
+            if (text.trim().endsWith('"') || text.trim().endsWith("}")) {
+              temp += text.trim().slice(-1);
+              this.answer += text.trim().slice(0, -1);
+            } else if (text.trim().endsWith('" }')) {
+              temp += text.trim().slice(-3);
+              this.answer += text.trim().slice(0, -3);
+            } else {
+              this.answer += text;
+            }
+            if (temp && temp.length <= 3) {
+              temp += text;
+            }
+            if (temp.length == 3) {
+              temp = "";
+            }
+          } else this.answer += text;
           this.autoScroll();
         }
 
@@ -263,6 +293,10 @@ export default {
     },
   },
   computed: {
+    activate() {
+      const flag = this.$store.state.showSpinner && !this.answer;
+      return flag;
+    },
     identifier() {
       return this.$store.state.identifier;
     },
