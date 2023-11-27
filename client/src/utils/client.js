@@ -59,11 +59,8 @@ export async function* askLLM(endpoint, params) {
         try {
             while (true) {
                 const { value, done } = await reader.read();
-
                 if (done) { break }
-
                 const data = decoder.decode(value);
-                console.log("NEW TOKEN", data);
                 yield data;
             }
         } finally {
