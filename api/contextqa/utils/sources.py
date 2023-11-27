@@ -142,5 +142,5 @@ def build_sources(sources: list[Document]) -> list[Source]:
                     key, value = cell.split(":", 1)
                     data[key] = value.strip()
                     source = Source(title=f"{source_name} - Row {row}", format=SourceFormat.CSV, content=data)
-        result.append(source)
+        result.append(source.model_dump())
     return result
