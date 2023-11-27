@@ -184,8 +184,6 @@ export default {
       if (this.requiresContext) {
         return askLLM("/qa/", {
           question: question,
-          processor: this.$store.state.vectorStore,
-          identifier: this.$store.state.identifier,
         });
       }
       return askLLM("/bot/", {
