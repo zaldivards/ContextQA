@@ -4,6 +4,8 @@ from typing import AsyncGenerator
 
 from langchain.agents import initialize_agent, AgentType, Agent
 from langchain.callbacks import AsyncIteratorCallbackHandler
+from langchain.callbacks.base import AsyncCallbackHandler
+from langchain.callbacks.streaming_aiter_final_only import AsyncFinalIteratorCallbackHandler
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationChain
 from langchain.chains.conversation.prompt import DEFAULT_TEMPLATE
@@ -35,7 +37,7 @@ _MESSAGES = [
 ]
 
 
-def get_llm_assistant(internet_access: bool) -> tuple[ConversationChain | Agent, AsyncIteratorCallbackHandler]:
+def get_llm_assistant(internet_access: bool) -> tuple[ConversationChain | Agent, AsyncCallbackHandler]:
     """Return certain LLM assistant based on the system configuration
 
     Parameters
@@ -45,12 +47,14 @@ def get_llm_assistant(internet_access: bool) -> tuple[ConversationChain | Agent,
 
     Returns
     -------
-    ConversationChain | Agent
+    ConversationChain | Agent, AsyncCallbackHandler
     """
-    callback = AsyncIteratorCallbackHandler()
-    llm = ChatOpenAI(temperature=0, streaming=True, callbacks=[callback])
 
     if internet_access:
+        callback = AsyncFinalIteratorCallbackHandler(
+            answer_prefix_tokens=["Final", "Answer", '",', "", '"', "action", "_input", '":', '"']
+        )
+        llm = ChatOpenAI(temperature=0, streaming=True, callbacks=[callback])
         return (
             initialize_agent(
                 [searcher],
@@ -63,6 +67,8 @@ def get_llm_assistant(internet_access: bool) -> tuple[ConversationChain | Agent,
             ),
             callback,
         )
+    callback = AsyncIteratorCallbackHandler()
+    llm = ChatOpenAI(temperature=0, streaming=True, callbacks=[callback])
     prompt = ChatPromptTemplate.from_messages(_MESSAGES)
     return ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings.debug), callback
 
@@ -82,10 +88,11 @@ async def qa_service(params: LLMQueryRequest) -> AsyncGenerator:
 
     assistant, callback = get_llm_assistant(params.internet_access)
     task = asyncio.create_task(assistant.arun(input=params.message))
+
     try:
         async for token in callback.aiter():
             yield token
-            time.sleep(0.1)
+            time.sleep(0.05)
     finally:
         callback.done.set()
     await task
