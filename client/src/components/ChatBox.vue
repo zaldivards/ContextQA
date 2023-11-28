@@ -135,7 +135,7 @@ import Avatar from "primevue/avatar";
 import MessageAdder from "@/components/MessageAdder.vue";
 
 import { askLLM, showError, showWarning, getDateTimeStr } from "@/utils/client";
-import { formatCode, clean } from "@/utils/text";
+import { formatCode } from "@/utils/text";
 
 export default {
   name: "ChatContainer",
@@ -208,7 +208,7 @@ export default {
         ? "setLastDocumentMessage"
         : "setLastChatMessage";
       try {
-        for await (const token of this.getGenerator(question)) {
+        for await (let token of this.getGenerator(question)) {
           if (!activated) {
             this.$store.dispatch("activateSpinner", false);
             activated = true;
@@ -228,14 +228,15 @@ export default {
           }
 
           if (this.internetEnabled) {
+            token = token.replace("\\n", "\n");
             if (token.trim().endsWith('"') || token.trim().endsWith("}")) {
               temp += token.trim().slice(-1);
-              this.answer += clean(token.trim().slice(0, -1));
+              this.answer += token.trim().slice(0, -1);
             } else if (token.trim().endsWith('" }')) {
               temp += token.trim().slice(-3);
-              this.answer += clean(token.trim().slice(0, -3));
+              this.answer += token.trim().slice(0, -3);
             } else {
-              this.answer += clean(token);
+              this.answer += token;
             }
             if (temp && temp.length <= 3) {
               temp += token;
@@ -247,7 +248,7 @@ export default {
             if (token.includes("<sources>")) {
               const sources = JSON.parse(token.split("<sources>")[1]);
             }
-            this.answer += clean(token);
+            this.answer += token;
           }
 
           if (block == "finished" || single == "finished") {
@@ -352,5 +353,9 @@ export default {
 
 .scrollbar::-webkit-scrollbar-thumb {
   background-color: #aaa;
+}
+
+.breakline-ok {
+  white-space: pre-wrap;
 }
 </style>
