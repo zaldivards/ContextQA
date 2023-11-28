@@ -135,7 +135,7 @@ import Avatar from "primevue/avatar";
 import MessageAdder from "@/components/MessageAdder.vue";
 
 import { askLLM, showError, showWarning, getDateTimeStr } from "@/utils/client";
-import { formatCode } from "@/utils/text";
+import { formatCode, clean } from "@/utils/text";
 
 export default {
   name: "ChatContainer",
@@ -195,6 +195,8 @@ export default {
       let sentDate = "";
       let activated = false;
       let temp = "";
+      let block = "init";
+      let single = "init";
       this.$store.dispatch("activateSpinner", true);
       this.addMessage({
         content: "",
@@ -206,36 +208,55 @@ export default {
         ? "setLastDocumentMessage"
         : "setLastChatMessage";
       try {
-        for await (const text of this.getGenerator(question)) {
+        for await (const token of this.getGenerator(question)) {
           if (!activated) {
             this.$store.dispatch("activateSpinner", false);
             activated = true;
           }
+          if (token.includes("```")) {
+            if (block == "init") {
+              block = "waiting";
+            } else if (block == "waiting") {
+              block = "finished";
+            }
+          } else if (token.includes("`")) {
+            if (single == "init") {
+              single = "waiting";
+            } else if (single == "waiting") {
+              single = "finished";
+            }
+          }
+
           if (this.internetEnabled) {
-            if (text.trim().endsWith('"') || text.trim().endsWith("}")) {
-              temp += text.trim().slice(-1);
-              this.answer += text.trim().slice(0, -1);
-            } else if (text.trim().endsWith('" }')) {
-              temp += text.trim().slice(-3);
-              this.answer += text.trim().slice(0, -3);
+            if (token.trim().endsWith('"') || token.trim().endsWith("}")) {
+              temp += token.trim().slice(-1);
+              this.answer += clean(token.trim().slice(0, -1));
+            } else if (token.trim().endsWith('" }')) {
+              temp += token.trim().slice(-3);
+              this.answer += clean(token.trim().slice(0, -3));
             } else {
-              this.answer += text;
+              this.answer += clean(token);
             }
             if (temp && temp.length <= 3) {
-              temp += text;
+              temp += token;
             }
             if (temp.length == 3) {
               temp = "";
             }
           } else {
-            if (text.includes("<sources>")) {
-              const sources = JSON.parse(text.split("<sources>")[1]);
-            } else this.answer += text;
+            if (token.includes("<sources>")) {
+              const sources = JSON.parse(token.split("<sources>")[1]);
+            }
+            this.answer += clean(token);
+          }
+
+          if (block == "finished" || single == "finished") {
+            this.answer = formatCode(this.answer);
+            block = single = "init";
           }
           this.autoScroll();
         }
 
-        this.answer = formatCode(this.answer);
         sentDate = getDateTimeStr();
         this.$store.dispatch(action, {
           isInit: false,
