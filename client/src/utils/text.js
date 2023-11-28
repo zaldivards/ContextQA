@@ -1,11 +1,11 @@
 export function formatCode(message) {
     const formattedText = message
         .replaceAll(
-            /(?<=```)(?!\n{2}|\s+\-)[^`]+(?:`[^`]+)?(?=```)/g,
+            /(?<=```)(?!<br>{2}|\s+\-)([\s\S]+?)?(?=```)/g,
             (match, offset, text) => {
-                const lines = match.split("\n");
+                const lines = match.split("<br>");
                 if (lines.length > 1 && /[\w\s]/.test(lines[0].at(-1))) {
-                    match = lines.slice(1).join("\n");
+                    match = lines.slice(1).join("<br>");
                 }
                 return `<code class='text-yellow-600 bg-black-alpha-70 p-3 w-auto block'>${match.trim()}</code>`;
             }
@@ -27,4 +27,8 @@ export function formatCode(message) {
               class="w-1 top-img relative"
           /></span>`
     );
+}
+
+export function clean(token, escaped) {
+    return token.replaceAll(/\\n|\n/g, "<br>").replaceAll(/ {3}/g, "&nbsp;&nbsp;&nbsp;");
 }
