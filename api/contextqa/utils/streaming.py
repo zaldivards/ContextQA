@@ -56,8 +56,18 @@ async def stream(
     task = asyncio.create_task(llm_entrypoint)
 
     try:
+        temp = ""
         async for token in callback.aiter():
-            yield token
+            # the logic below is to ensure some regex entities are streamed with all their characters in one token
+            # this to properly render them
+            if not temp:
+                if token.endswith("\\"):
+                    temp = token
+                else:
+                    yield token
+            else:
+                yield temp + token
+                temp = ""
             time.sleep(0.05)
     finally:
         callback.done.set()
