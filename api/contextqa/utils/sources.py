@@ -34,7 +34,7 @@ def _get_digest(content: bytes) -> str:
     # Process the file bytes in chunks
     for idx in range(0, len(content), chunk_size):
         # Get the current chunk
-        chunk = content[idx:idx+chunk_size]
+        chunk = content[idx : idx + chunk_size]
         # Update the hash object with the current chunk
         hasher.update(chunk)
     # Get the hexadecimal representation of the digest
@@ -70,7 +70,6 @@ def check_digest(name: str, content: bytes, session: Session):
         new_source = SourceORM(name=name, digest=digest)
         session.add(new_source)
     session.commit()
-
 
 
 def get_not_seen_chunks(chunks: list[Document], extension: str) -> tuple[list[Document], list[str]]:

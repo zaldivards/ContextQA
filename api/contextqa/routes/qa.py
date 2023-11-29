@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, UploadFile, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, Depends, status
 from sqlalchemy.orm import Session
 
 from contextqa import context, get_logger
@@ -30,15 +30,15 @@ def ingest_source(document: UploadFile, session: Annotated[Session, Depends(get_
         return context_setter.persist(document.filename, document.file, session)
     except DuplicatedSourceError as ex:
         raise HTTPException(
-            status_code=424,
+            status_code=status.HTTP_409_CONFLICT,
             detail={
-                "message": "The source you provided already exists",
+                "message": "The source already exists and it doesn't have updated content",
                 "cause": str(ex),
             },
         ) from ex
     except VectorDBConnectionError as ex:
         raise HTTPException(
-            status_code=424,
+            status_code=status.HTTP_424_FAILED_DEPENDENCY,
             detail={
                 "message": (
                     "Connection error trying to set the context using the selected vector store. Please double check"
@@ -50,7 +50,7 @@ def ingest_source(document: UploadFile, session: Annotated[Session, Depends(get_
     except Exception as ex:
         LOGGER.exception("Error while setting context. Cause: %s", ex)
         raise HTTPException(
-            status_code=424,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"message": "ContextQA server did not process the request successfully", "cause": str(ex)},
         ) from ex
 
@@ -66,6 +66,6 @@ def qa(params: LLMContextQueryRequest):
         return context_setter.load_and_respond(params.question)
     except Exception as ex:
         raise HTTPException(
-            status_code=424,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"message": "ContextQA server did not process the request successfully", "cause": str(ex)},
         ) from ex
