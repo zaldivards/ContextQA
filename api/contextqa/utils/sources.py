@@ -62,9 +62,13 @@ def check_digest(name: str, content: bytes, session: Session):
     """
     digest = _get_digest(content)
     source = session.query(SourceORM).filter_by(name=name).first()
-    if source.digest == digest:
-        raise DuplicatedSourceError(f"Digest of {name} has not changed")
-    source.digest = digest
+    if source:
+        if source.digest == digest:
+            raise DuplicatedSourceError(f"Digest of {name} has not changed")
+        source.digest = digest
+    else:
+        new_source = SourceORM(name=name, digest=digest)
+        session.add(new_source)
     session.commit()
 
 
