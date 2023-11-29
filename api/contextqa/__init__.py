@@ -16,8 +16,8 @@ class AppSettings(BaseSettings):
     media_home: Path = Path(".media/")
     local_vectordb_home: Path = Path(".chromadb/")
     sqlite_url: str = "sqlite:///contextqa.sqlite"
-    openai_api_key: str
-    redis_url: str
+    openai_api_key: str | None = None
+    redis_url: str | None = None
     serpapi_api_key: str | None = None
     twitter_api_key: str | None = None
     twitter_api_secret:str | None = None
@@ -26,7 +26,7 @@ class AppSettings(BaseSettings):
     pinecone_token: str | None = None
     pinecone_index: str | None = None
     pinecone_environment_region: str | None = None
-    deployment: str
+    deployment: str = "dev"
     mysql_user: str | None = None
     mysql_password: str | None = None
     mysql_host: str | None = None
@@ -44,7 +44,7 @@ class AppSettings(BaseSettings):
         return value
     
     @property
-    def sql_alchemy_url(self) -> str:
+    def sqlalchemy_url(self) -> str:
         mysql_requirements = [self.mysql_user, self.mysql_password, self.mysql_host, self.mysql_dbname]
         if not all(mysql_requirements):
             get_logger().info("Using sqlite")

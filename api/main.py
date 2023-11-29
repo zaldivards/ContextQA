@@ -3,9 +3,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from contextqa.routes import api_router
+from api.contextqa.utils.migrations import check_migrations
 
 
-app = FastAPI(title="ContextQA API", openapi_url="/openapi.json", docs_url="/docs", redoc_url="/redoc")
+app = FastAPI(
+    title="ContextQA API", openapi_url="/openapi.json", docs_url="/docs", redoc_url="/redoc", lifespan=check_migrations
+)
 
 origins = [
     "http://localhost:3000",
