@@ -23,7 +23,7 @@
           }"
         >
           <template #empty>
-            <p>Drag and drop files to here to upload</p>
+            <p>Drag and drop files here to upload</p>
           </template>
         </FileUpload>
       </div>
