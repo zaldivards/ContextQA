@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException
 
 from contextqa import chat
-from contextqa.parsers.models import (
+from contextqa.models.schemas import (
     LLMResult,
     LLMQueryRequest,
 )

@@ -9,7 +9,7 @@ from langchain.docstore.document import Document
 
 
 from contextqa import settings
-from contextqa.parsers.models import Source, SourceFormat
+from contextqa.models.schemas import Source, SourceFormat
 
 
 def get_digest(content: bytes) -> str:

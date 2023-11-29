@@ -1,6 +1,6 @@
 from langchain.agents import initialize_agent, AgentType, Agent
 from langchain.chat_models import ChatOpenAI
-from langchain import ConversationChain
+from langchain.chains import ConversationChain
 from langchain.chains.conversation.prompt import DEFAULT_TEMPLATE
 from langchain.prompts.chat import (
     AIMessagePromptTemplate,
@@ -9,9 +9,10 @@ from langchain.prompts.chat import (
     SystemMessagePromptTemplate,
 )
 
-from contextqa import models, settings
-from contextqa.utils import memory, prompts
+from contextqa import settings
 from contextqa.agents.tools import searcher
+from contextqa.models.schemas import LLMResult, LLMQueryRequest
+from contextqa.utils import memory, prompts
 
 
 _MESSAGES = [
@@ -61,7 +62,7 @@ def get_llm_assistant(internet_access: bool) -> ConversationChain | Agent:
     return ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings.debug)
 
 
-def qa_service(params: models.LLMQueryRequest) -> models.LLMResult:
+def qa_service(params: LLMQueryRequest) -> LLMResult:
     """Chat with the llm
 
     Parameters
@@ -75,4 +76,4 @@ def qa_service(params: models.LLMQueryRequest) -> models.LLMResult:
         LLM response
     """
     assistant = get_llm_assistant(params.internet_access)
-    return models.LLMResult(response=assistant.run(input=params.message))
+    return LLMResult(response=assistant.run(input=params.message))

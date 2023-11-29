@@ -17,7 +17,7 @@ from langchain.vectorstores.chroma import Chroma
 from langchain.vectorstores.base import VectorStore
 
 from contextqa import get_logger, settings
-from contextqa.parsers.models import LLMResult, QAResult, SimilarityProcessor, SourceFormat
+from contextqa.models.schemas import LLMResult, QAResult, SimilarityProcessor, SourceFormat
 from contextqa.utils import memory, prompts
 from contextqa.utils.sources import build_sources, get_not_seen_chunks
 

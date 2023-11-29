@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile
 
 from contextqa import context, get_logger
-from contextqa.parsers.models import (
+from contextqa.models.schemas import (
     LLMResult,
     QAResult,
     SimilarityProcessor,
