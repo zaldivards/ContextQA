@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from contextqa.routes import api_router
-from api.contextqa.utils.migrations import check_migrations
+from contextqa.utils.migrations import check_migrations
 
 
 app = FastAPI(
