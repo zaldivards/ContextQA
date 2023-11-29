@@ -6,13 +6,16 @@ import uuid
 
 import fitz
 from langchain.docstore.document import Document
+from sqlalchemy.orm import Session
 
 
 from contextqa import settings
 from contextqa.models.schemas import Source, SourceFormat
+from contextqa.models.orm import Source as SourceORM
+from contextqa.utils.exceptions import DuplicatedSourceError
 
 
-def get_digest(content: bytes) -> str:
+def _get_digest(content: bytes) -> str:
     """Get the digest of the given data source
 
     Parameters
@@ -37,6 +40,32 @@ def get_digest(content: bytes) -> str:
     # Get the hexadecimal representation of the digest
     digest = hasher.hexdigest()
     return digest
+
+
+def check_digest(name: str, content: bytes, session: Session):
+    """Check if the data source already exists, if so it checks the digest and compares
+    it against the existing one.
+
+    Parameters
+    ----------
+    name : str
+        data source name
+    content : bytes
+        data source content
+    session : Session
+        connection to the db
+
+    Raises
+    ------
+    DuplicatedSourceError
+        If the data source already exists and its content has not changed
+    """
+    digest = _get_digest(content)
+    source = session.query(SourceORM).filter_by(name=name).first()
+    if source.digest == digest:
+        raise DuplicatedSourceError(f"Digest of {name} has not changed")
+    source.digest = digest
+    session.commit()
 
 
 

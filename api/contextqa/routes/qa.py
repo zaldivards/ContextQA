@@ -7,6 +7,7 @@ from contextqa.models.schemas import (
     SimilarityProcessor,
     LLMContextQueryRequest,
 )
+from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
 
 LOGGER = get_logger()
 
@@ -25,7 +26,15 @@ def ingest_source(
         context_setter = context.get_setter(SimilarityProcessor.LOCAL)
         # pylint: disable=E1102
         return context_setter.persist(document.filename, document.file)
-    except context.VectorStoreConnectionError as ex:
+    except DuplicatedSourceError as ex:
+        raise HTTPException(
+            status_code=424,
+            detail={
+                "message": "The source you provided already exists",
+                "cause": str(ex),
+            },
+        ) from ex
+    except VectorDBConnectionError as ex:
         raise HTTPException(
             status_code=424,
             detail={
