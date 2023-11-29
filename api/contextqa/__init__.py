@@ -11,11 +11,12 @@ def get_logger() -> logging.Logger:
     return logging.getLogger("contextqa")
 
 class AppSettings(BaseSettings):
+    """Project settings"""
     default_collection: str = "contextqa-default"
     tmp_separator: str = ":::sep:::"
     media_home: Path = Path(".media/")
     local_vectordb_home: Path = Path(".chromadb/")
-    sqlite_url: str = "sqlite:///contextqa.sqlite"
+    sqlite_url: str = "sqlite:///contextqa.sqlite3"
     openai_api_key: str | None = None
     redis_url: str | None = None
     serpapi_api_key: str | None = None
@@ -35,16 +36,19 @@ class AppSettings(BaseSettings):
 
     @property
     def debug(self) -> bool:
+        """lazy attr based on the deployment attr"""
         return self.deployment == "dev"
 
     @field_validator("media_home")
     @classmethod
     def validate_media_path(cls, value: Path) -> Path:
+        """validator for media path"""
         value.mkdir(parents=True, exist_ok=True)
         return value
     
     @property
     def sqlalchemy_url(self) -> str:
+        """sqlalchemy url built either from the sqlite url or the credential of a specific mysql server"""
         mysql_requirements = [self.mysql_user, self.mysql_password, self.mysql_host, self.mysql_dbname]
         if not all(mysql_requirements):
             get_logger().info("Using sqlite")
