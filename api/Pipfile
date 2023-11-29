@@ -21,6 +21,8 @@ googlesearch-python = "*"
 chromadb = "*"
 pydantic-settings = "*"
 pymupdf = "*"
+sqlalchemy = "*"
+alembic = "*"
 
 [dev-packages]
 black = "*"
