@@ -30,16 +30,16 @@ def get_not_seen_chunks(chunks: list[Document], extension: str) -> tuple[list[Do
     # generate UUIDs based on the chunk content. Note that if the same chunk(same file content) is ingested again,
     # it won't be added by chromadb thanks to the unique UUID
     ids = [str(uuid.uuid5(uuid.NAMESPACE_DNS, chunk.page_content)) for chunk in chunks]
-    seen_ids = set()
+    unique_ids = set()
     for idx, (chunk, id_) in enumerate(zip(chunks, ids), start=1):
         chunk: Document = chunk
-        if id_ not in seen_ids and len(chunk.page_content) > 2:
-            if extension != SourceFormat.PDF:
-                chunk.metadata.update(idx=idx)
-            unique_chunks.append(chunk)
-        else:
-            ids.pop(idx)
-    return unique_chunks, ids
+        if id_ not in unique_ids:
+            if len(chunk.page_content) > 2:
+                if extension != SourceFormat.PDF:
+                    chunk.metadata.update(idx=idx)
+                unique_chunks.append(chunk)
+                unique_ids.add(id_)
+    return unique_chunks, list(unique_ids)
 
 
 def build_sources(sources: list[Document]) -> list[Source]:
