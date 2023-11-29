@@ -1,4 +1,5 @@
 import base64
+import hashlib
 from pathlib import Path
 
 import uuid
@@ -9,6 +10,34 @@ from langchain.docstore.document import Document
 
 from contextqa import settings
 from contextqa.parsers.models import Source, SourceFormat
+
+
+def get_digest(content: bytes) -> str:
+    """Get the digest of the given data source
+
+    Parameters
+    ----------
+    content : bytes
+        the data source content
+
+    Returns
+    -------
+    str
+        hexadecimal representation of the digest
+    """
+    hasher = hashlib.sha256()
+    # Define the chunk size
+    chunk_size = 4096
+    # Process the file bytes in chunks
+    for idx in range(0, len(content), chunk_size):
+        # Get the current chunk
+        chunk = content[idx:idx+chunk_size]
+        # Update the hash object with the current chunk
+        hasher.update(chunk)
+    # Get the hexadecimal representation of the digest
+    digest = hasher.hexdigest()
+    return digest
+
 
 
 def get_not_seen_chunks(chunks: list[Document], extension: str) -> tuple[list[Document], list[str]]:
