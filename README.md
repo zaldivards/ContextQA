@@ -5,7 +5,7 @@
    <img src="static/title.png" width="200px" alt="SuperAGI logo" />
 </p>
 
-<p align="center" style="font-size: 20px">Chat with you documents by leveraging the power of LLMs and vector databases</p>
+<p align="center" style="font-size: 20px">Chat with your documents by leveraging the power of LLMs and vector databases</p>
 
 ## 📽 Demo Video
 
