@@ -25,12 +25,20 @@ git clone https://github.com/zaldivards/contextqa.git && cd contextqa
 
 #### 3. Set the following envs in the `contextqa.env` file
 
-- OPENAI_API_KEY  **(required)**
-- PINECONE_TOKEN
-- PINECONE_INDEX
-- PINECONE_ENVIRONMENT_REGION
+##### Required
+- `OPENAI_API_KEY`: OpenAI api key
+##### Optional
+- `SQLITE_URL`: The SQLite URL to connect, it has a default value
+- `LOCAL_VECTORDB_HOME`: ChromaDB home directory, it has a default value
+- `DEPLOYMENT`: Environment name, default: dev
+##### Additional configuration for supporting Pinecone
+- `PINECONE_TOKEN`
+- `PINECONE_INDEX`
+- `PINECONE_ENVIRONMENT_REGION`
 
+**Note**: elational databases are used to control the digests of sources
 
+### How to get the tokens?
 
 | Keys           | Accesing the keys                                                                                                                                                                                                                                                                                                                                                                 |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
