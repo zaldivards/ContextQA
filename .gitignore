@@ -61,6 +61,7 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
+*.sqlite3
 db.sqlite3
 db.sqlite3-journal
 
@@ -166,3 +167,5 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+.chromadb
+.media

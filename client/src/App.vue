@@ -1,59 +1,66 @@
 <template>
   <div>
-    <Menubar :model="items" class="m-auto sticky z-4">
-      <template #start>
-        <img
-          alt="logo"
-          src="/images/title.png"
-          height="30"
-          class="mr-2"
-          title="ContextQA"
-        />
+    <MainLayout>
+      <template #menu>
+        <Menu
+          :model="items"
+          class="my-4 sticky z-4 border-none w-full bg-inherit"
+          :pt="{
+            label: { class: 'text-gl text-white-alpha-80 shadow-6' },
+            icon: { class: 'text-gl text-white-alpha-80 shadow-6' },
+            separator: { class: 'border-black-alpha-10' },
+            action: ({ props, state, context }) => ({
+              class: context.focused ? 'bg-menu-focus' : undefined,
+            }),
+          }"
+        >
+          <template #start>
+            <div class="w-full">
+              <img
+                alt="logo"
+                src="/images/title.png"
+                height="30"
+                class="m-auto mb-3 block"
+                title="ContextQA"
+              />
+            </div>
+          </template>
+        </Menu>
       </template>
-      <template #end>
-        <div>
-          <span class="text-xl">Context: </span
-          ><span class="font-semibold text-xl">{{ context }}</span>
-          <span class="text-xl ml-2" v-if="store"
-            ><span class="text-400">|</span> Vector store: </span
-          ><span class="font-semibold text-xl">{{ store }}</span>
-        </div>
+      <template #main>
+        <router-view />
       </template>
-    </Menubar>
-    <router-view />
+    </MainLayout>
   </div>
 </template>
 
 <script>
-import Menubar from "primevue/menubar";
+import MainLayout from "@/components/MainLayout.vue";
+import Menu from "primevue/menu";
 export default {
   name: "App",
   components: {
-    Menubar,
+    Menu,
+    MainLayout,
   },
   data() {
     return {
       items: [
+        { separator: true },
         {
           label: "Home",
           icon: "pi pi-fw pi-home",
           command: () => this.$router.push({ path: "/" }),
         },
         {
-          label: "Features",
-          icon: "pi pi-comment",
-          items: [
-            {
-              label: "Chat",
-              icon: "pi pi-comments",
-              command: () => this.$router.push({ path: "/chat/talk" }),
-            },
-            {
-              label: "Query document",
-              icon: "pi pi-file-o",
-              command: () => this.$router.push({ path: "/chat/document" }),
-            },
-          ],
+          label: "Chat",
+          icon: "pi pi-fw pi-comments",
+          command: () => this.$router.push({ path: "/chat/talk" }),
+        },
+        {
+          label: "QA",
+          icon: "pi pi-fw pi-file-o",
+          command: () => this.$router.push({ path: "/chat/document" }),
         },
         {
           label: "Settings",
@@ -80,12 +87,42 @@ export default {
 
 body {
   font-family: "Poppins", sans-serif;
+  margin: 0;
+  background-color: #0e1b30;
 }
 .disabled {
   pointer-events: none;
   outline: none;
 }
 .top-img {
-  top: 3px;
+  top: 4px;
+}
+
+.bg-menu-focus {
+  background-color: #183462 !important;
+}
+
+.bg-inherit {
+  background-color: inherit !important;
+}
+
+.p-menuitem:hover * {
+  background-color: #183462 !important;
+}
+
+.input-bg input,
+.input-bg span,
+.input-bg p-inputtext,
+.input-bg .p-fileupload-content,
+.input-bg .p-dropdown-trigger {
+  background-color: #394d6d !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.bg-contextqa-primary {
+  background-color: #0e1624 !important;
+}
+.bg-contextqa-primary-main {
+  background-color: #0e1b30 !important;
 }
 </style>

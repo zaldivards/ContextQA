@@ -13,9 +13,7 @@ export default createStore({
     },
     mutations: {
         updateApiParams(state, payload) {
-            state.identifier = payload.identifier;
-            state.vectorStore = payload.vectorStore;
-
+            state.identifier = payload
         },
         updateChatMessages(state, payload) {
             state.chatMessages.push(payload)

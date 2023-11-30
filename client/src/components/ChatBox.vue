@@ -1,6 +1,6 @@
 <template>
   <div
-    class="justify-content-center m-auto"
+    class="justify-content-center mx-auto"
     :class="identifier || !requiresContext ? '' : ['opacity-50', 'disabled']"
   >
     <div>
@@ -12,7 +12,7 @@
         :draggable="false"
         modal
         header="Internet access enabled"
-        class="w-6"
+        class="w-full lg:w-6"
       >
         <template #closeicon>
           <button @click="closeDialog" class="no-background">
@@ -42,20 +42,22 @@
         </ul>
       </Dialog>
     </div>
-    <Toast class="z-5" />
+    <Toast class="z-5 w-9 lg:w-3" />
 
     <Panel
       ref="panel"
-      class="w-9 m-auto my-5 scroll-panel chat-height overflow-y-scroll"
+      class="w-12 lg:w-8 m-auto lg:my-5 scroll-panel chat-height overflow-y-scroll scrollbar bg-inherit relative"
       :header="header"
       :pt="{
         header: {
-          class: 'bg-primary',
-          style: 'position: sticky !important; top: 0 !important;z-index: 3',
+          class: 'border-none bg-contextqa-primary-main sticky top-0',
         },
         footer: {
           style: 'border-top: 1px solid #eee;',
-          class: 'grid mr-0 ml-0 sticky bottom-0',
+          class: 'grid fixed bottom-0 w-screen',
+        },
+        content: {
+          class: 'border-none bg-inherit',
         },
       }"
     >
@@ -68,14 +70,15 @@
         :documentQA="requiresContext"
         :sentDate="message.date"
       ></ChatCard>
-
-      <template #footer>
-        <MessageAdder @send="pushMessages" ref="adder" class="col-9" />
-        <div class="col-3 flex align-items-center" v-if="!requiresContext">
-          <span class="mr-2">Enable internet access</span>
-          <InputSwitch v-model="internetEnabled" @input="switchHandler" />
+      <div class="fixed bottom-0 w-11 lg:w-7 mb-5 align-items-center">
+        <div class="m-auto">
+          <div class="flex align-items-center mb-2" v-if="!requiresContext">
+            <span class="mr-2">Enable internet access</span>
+            <InputSwitch v-model="internetEnabled" @input="switchHandler" />
+          </div>
+          <MessageAdder @send="pushMessages" ref="adder" />
         </div>
-      </template>
+      </div>
     </Panel>
   </div>
 </template>
@@ -120,13 +123,13 @@ export default {
   methods: {
     promise(question) {
       if (this.requiresContext) {
-        return askLLM("/context/query", {
+        return askLLM("/qa", {
           question: question,
           processor: this.$store.state.vectorStore,
           identifier: this.$store.state.identifier,
         });
       }
-      return askLLM("/qa", {
+      return askLLM("/bot", {
         message: question,
         internet_access: this.internetEnabled,
       });
@@ -222,5 +225,14 @@ export default {
 }
 .no-background:hover {
   cursor: pointer;
+}
+
+.scrollbar::-webkit-scrollbar {
+  width: 1px;
+  background-color: #0e1b30 !important;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background-color: #aaa;
 }
 </style>
