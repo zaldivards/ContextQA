@@ -9,8 +9,7 @@
 
 ## 📽 Demo Video
 
-https://github.com/zaldivards/ContextQA/assets/32210667/aabcbf38-0176-46ba-bceb-9f1300452b64
-
+https://github.com/zaldivards/ContextQA/assets/32210667/8e9a888a-504b-4470-bafe-8bbdc0a14dd2
 
 ## ⚙️ Setting up
 
