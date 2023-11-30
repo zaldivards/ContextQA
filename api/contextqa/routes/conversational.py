@@ -1,8 +1,8 @@
 # pylint: disable=C0413
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 
 from contextqa import chat
-from contextqa.parsers.models import (
+from contextqa.models.schemas import (
     LLMResult,
     LLMQueryRequest,
 )
@@ -18,4 +18,6 @@ def get_answer(params: LLMQueryRequest):
     try:
         return chat.qa_service(params)
     except Exception as ex:
-        raise HTTPException(status_code=424, detail={"message": "Something went wrong", "cause": str(ex)}) from ex
+        raise HTTPException(
+            status_code=status.HTTP_424_FAILED_DEPENDENCY, detail={"message": "Something went wrong", "cause": str(ex)}
+        ) from ex

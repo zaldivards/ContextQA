@@ -15,11 +15,15 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.pinecone import Pinecone
 from langchain.vectorstores.chroma import Chroma
 from langchain.vectorstores.base import VectorStore
+from sqlalchemy.orm import Session
+
 
 from contextqa import get_logger, settings
-from contextqa.parsers.models import LLMResult, QAResult, SimilarityProcessor, SourceFormat
+from contextqa.models.schemas import LLMResult, QAResult, SimilarityProcessor, SourceFormat
 from contextqa.utils import memory, prompts
-from contextqa.utils.sources import build_sources, get_not_seen_chunks
+from contextqa.utils.exceptions import VectorDBConnectionError
+from contextqa.utils.sources import build_sources, get_not_seen_chunks, check_digest
+
 
 
 LOGGER = get_logger()
@@ -28,14 +32,10 @@ LOADERS: dict[str, Type[BaseLoader]] = {".pdf": PyMuPDFLoader, ".txt": TextLoade
 chroma_client = PersistentClient(path=str(settings.local_vectordb_home))
 
 
-class VectorStoreConnectionError(Exception):
-    """This exception is raised when a connection could not be established or credentials are invalid"""
-
-
 class LLMContextManager(ABC):
     """Base llm manager"""
 
-    def load_and_preprocess(self, filename: str, file_: BinaryIO) -> tuple[list[Document], list[str]]:
+    def load_and_preprocess(self, filename: str, file_: BinaryIO, session: Session) -> tuple[list[Document], list[str]]:
         """Load and preprocess the file content
 
         Parameters
@@ -44,13 +44,22 @@ class LLMContextManager(ABC):
             Name of the file to load
         file_ : BinaryIO
             file for which to save context
+        session : Session
+            connection to the db
 
         Returns
         -------
         tuple[list[Document], list[str]]
             document chunks and their corresponding IDs
+        
+        Raises
+        ------
+        DuplicatedSourceError
+            If the data source already exists and its content has not changed
         """
         extension = Path(filename).suffix
+        source_content = file_.read()
+        check_digest(filename.strip(), source_content, session)
         try:
             if extension == "." + SourceFormat.PDF:
                 path = settings.media_home / filename
@@ -58,7 +67,7 @@ class LLMContextManager(ABC):
             else:
                 file_writer = NamedTemporaryFile(mode="wb", suffix=f"{settings.tmp_separator}{filename}")
                 path = file_writer.name
-            file_writer.write(file_.read())
+            file_writer.write(source_content)
             loader: BaseLoader = LOADERS[extension](str(path))
             documents = loader.load()
         finally:
@@ -73,7 +82,7 @@ class LLMContextManager(ABC):
         return get_not_seen_chunks(chunks, extension)
 
     @abstractmethod
-    def persist(self, filename: str, file_: BinaryIO) -> LLMResult:
+    def persist(self, filename: str, file_: BinaryIO, session: Session) -> LLMResult:
         """Persist the embedded documents
 
         Parameters
@@ -82,11 +91,12 @@ class LLMContextManager(ABC):
             Name of the file to load
         file_ : BinaryIO
             file for which to save context
+        session : Session
+            connection to the db
 
         Returns
         -------
-        VectorScanResult
-            process status
+        LLMResult
         """
         raise NotImplementedError
 
@@ -134,8 +144,8 @@ class LocalManager(LLMContextManager):
     """Local manager implementation. It uses `Chroma` as its processor and the context is persisted as a
     parquet file"""
 
-    def persist(self, filename: str, file_: BinaryIO) -> LLMResult:
-        documents, ids = self.load_and_preprocess(filename, file_)
+    def persist(self, filename: str, file_: BinaryIO, session: Session) -> LLMResult:
+        documents, ids = self.load_and_preprocess(filename, file_, session)
         embeddings_util = OpenAIEmbeddings()
         processor = Chroma.from_documents(
             documents,
@@ -162,18 +172,18 @@ class LocalManager(LLMContextManager):
 class PineconeManager(LLMContextManager):
     """Pinecone manager implementation. It uses `Pinecone` as its processor and vector store"""
 
-    def persist(self, filename: str, file_: BinaryIO) -> LLMResult:
+    def persist(self, filename: str, file_: BinaryIO, session: Session) -> LLMResult:
         try:
             LOGGER.info("Initializing Pinecone connection")
             pinecone.init(api_key=settings.pinecone_token, environment=settings.pinecone_environment_region)
         except Exception as ex:
-            raise VectorStoreConnectionError from ex
-        documents = self.load_and_preprocess(filename, file_)
+            raise VectorDBConnectionError from ex
+        documents = self.load_and_preprocess(filename, file_, session)
         embeddings_util = OpenAIEmbeddings()
         try:
             Pinecone.from_documents(documents, embeddings_util, index_name=settings.pinecone_index)
         except Exception as ex:
-            raise VectorStoreConnectionError from ex
+            raise VectorDBConnectionError from ex
         return LLMResult(response="success")
 
     def context_object(self) -> VectorStore:

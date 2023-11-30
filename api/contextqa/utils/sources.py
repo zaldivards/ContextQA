@@ -1,14 +1,75 @@
 import base64
+import hashlib
 from pathlib import Path
 
 import uuid
 
 import fitz
 from langchain.docstore.document import Document
+from sqlalchemy.orm import Session
 
 
 from contextqa import settings
-from contextqa.parsers.models import Source, SourceFormat
+from contextqa.models.schemas import Source, SourceFormat
+from contextqa.models.orm import Source as SourceORM
+from contextqa.utils.exceptions import DuplicatedSourceError
+
+
+def _get_digest(content: bytes) -> str:
+    """Get the digest of the given data source
+
+    Parameters
+    ----------
+    content : bytes
+        the data source content
+
+    Returns
+    -------
+    str
+        hexadecimal representation of the digest
+    """
+    hasher = hashlib.sha256()
+    # Define the chunk size
+    chunk_size = 4096
+    # Process the file bytes in chunks
+    for idx in range(0, len(content), chunk_size):
+        # Get the current chunk
+        chunk = content[idx : idx + chunk_size]
+        # Update the hash object with the current chunk
+        hasher.update(chunk)
+    # Get the hexadecimal representation of the digest
+    digest = hasher.hexdigest()
+    return digest
+
+
+def check_digest(name: str, content: bytes, session: Session):
+    """Check if the data source already exists, if so it checks the digest and compares
+    it against the existing one.
+
+    Parameters
+    ----------
+    name : str
+        data source name
+    content : bytes
+        data source content
+    session : Session
+        connection to the db
+
+    Raises
+    ------
+    DuplicatedSourceError
+        If the data source already exists and its content has not changed
+    """
+    digest = _get_digest(content)
+    source = session.query(SourceORM).filter_by(name=name).first()
+    if source:
+        if source.digest == digest:
+            raise DuplicatedSourceError(f"Digest of {name} has not changed")
+        source.digest = digest
+    else:
+        new_source = SourceORM(name=name, digest=digest)
+        session.add(new_source)
+    session.commit()
 
 
 def get_not_seen_chunks(chunks: list[Document], extension: str) -> tuple[list[Document], list[str]]:
@@ -30,16 +91,16 @@ def get_not_seen_chunks(chunks: list[Document], extension: str) -> tuple[list[Do
     # generate UUIDs based on the chunk content. Note that if the same chunk(same file content) is ingested again,
     # it won't be added by chromadb thanks to the unique UUID
     ids = [str(uuid.uuid5(uuid.NAMESPACE_DNS, chunk.page_content)) for chunk in chunks]
-    seen_ids = set()
+    unique_ids = set()
     for idx, (chunk, id_) in enumerate(zip(chunks, ids), start=1):
         chunk: Document = chunk
-        if id_ not in seen_ids and len(chunk.page_content) > 2:
-            if extension != SourceFormat.PDF:
-                chunk.metadata.update(idx=idx)
-            unique_chunks.append(chunk)
-        else:
-            ids.pop(idx)
-    return unique_chunks, ids
+        if id_ not in unique_ids:
+            if len(chunk.page_content) > 2:
+                if extension != SourceFormat.PDF:
+                    chunk.metadata.update(idx=idx)
+                unique_chunks.append(chunk)
+                unique_ids.add(id_)
+    return unique_chunks, list(unique_ids)
 
 
 def build_sources(sources: list[Document]) -> list[Source]:
