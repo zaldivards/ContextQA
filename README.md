@@ -36,7 +36,7 @@ git clone https://github.com/zaldivards/contextqa.git && cd contextqa
 - `PINECONE_INDEX`
 - `PINECONE_ENVIRONMENT_REGION`
 
-**Note**: elational databases are used to control the digests of sources
+**Note**: Relational databases are used to control the digests of sources
 
 ### How to get the tokens?
 
