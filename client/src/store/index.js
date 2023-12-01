@@ -32,7 +32,6 @@ export default createStore({
                 state.chatMessages.pop()
                 state.chatMessages.push(message)
             }
-            state.showSpinner = false
         },
         updateLastDocumentMessage(state, payload) {
 
@@ -42,7 +41,6 @@ export default createStore({
                 state.documentMessages.pop()
                 state.documentMessages.push(message)
             }
-            state.showSpinner = false
         },
         updateInternetAccess(state, payload) {
             state.internetEnabled = payload

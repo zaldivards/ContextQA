@@ -43,7 +43,7 @@ export async function setContext(endpoint, data) {
     }
 }
 
-export async function askLLM(endpoint, params) {
+export async function* askLLM(endpoint, params) {
     const response = await fetch(
         API_BASE_URL + endpoint, {
         method: 'POST',
@@ -54,8 +54,18 @@ export async function askLLM(endpoint, params) {
     }
     );
     if (response.ok) {
-        const json_ = await response.json();
-        return json_.response
+        let decoder = new TextDecoder("utf-8")
+        const reader = response.body.getReader();
+        try {
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) { break }
+                const data = decoder.decode(value);
+                yield data;
+            }
+        } finally {
+            reader.releaseLock();
+        }
     }
     else
         await handleResponse(response)

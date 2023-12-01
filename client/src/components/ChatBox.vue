@@ -61,15 +61,56 @@
         },
       }"
     >
-      <ChatCard
-        :key="i"
-        v-for="(message, i) in messages"
-        :role="message.role"
-        :idx="i"
-        :content="message.content"
-        :documentQA="requiresContext"
-        :sentDate="message.date"
-      ></ChatCard>
+      <div :key="i" v-for="(message, i) in messages">
+        <ProgressBar
+          mode="indeterminate"
+          style="height: 1px"
+          v-if="activate && message.role == 'bot' && message.isLatest"
+        ></ProgressBar>
+        <div
+          v-else
+          class="formgrid grid"
+          :class="message.role == 'user' ? 'max-w-max' : ''"
+        >
+          <Avatar
+            image="/images/user.png"
+            size="small"
+            shape="circle"
+            v-if="message.role == 'user'"
+          />
+          <Avatar
+            image="/images/logo.png"
+            size="small"
+            v-if="message.role != 'user'"
+          />
+
+          <Card
+            class="field col mx-2 shadow-none animation-duration-300 breakline-ok"
+            :class="
+              message.role == 'user'
+                ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
+                : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
+            "
+            :pt="{
+              content: { class: 'py-1' },
+              body: { class: message.role == 'user' ? 'pt-0' : '' },
+            }"
+          >
+            <template #content>
+              <div v-if="message.isLatest" v-html="answer"></div>
+              <div v-else v-html="message.content"></div>
+            </template>
+            <template #footer>
+              <div
+                class="date w-max justify-content-end text-xs text-white-alpha-70"
+              >
+                {{ message.date }}
+              </div>
+            </template>
+          </Card>
+        </div>
+      </div>
+
       <div class="fixed bottom-0 w-11 lg:w-7 mb-5 align-items-center">
         <div class="m-auto">
           <div class="flex align-items-center mb-2" v-if="!requiresContext">
@@ -85,17 +126,29 @@
 
 <script>
 import Panel from "primevue/panel";
+import ProgressBar from "primevue/progressbar";
 import InputSwitch from "primevue/inputswitch";
 import Dialog from "primevue/dialog";
 import Toast from "primevue/toast";
-import ChatCard from "@/components/ChatCard.vue";
+import Card from "primevue/card";
+import Avatar from "primevue/avatar";
 import MessageAdder from "@/components/MessageAdder.vue";
 
 import { askLLM, showError, showWarning, getDateTimeStr } from "@/utils/client";
+import { formatCode } from "@/utils/text";
 
 export default {
   name: "ChatContainer",
-  components: { Panel, ChatCard, MessageAdder, Toast, InputSwitch, Dialog },
+  components: {
+    Panel,
+    MessageAdder,
+    Toast,
+    InputSwitch,
+    Dialog,
+    Card,
+    Avatar,
+    ProgressBar,
+  },
   props: { requiresContext: Boolean },
   mounted() {
     if (!this.identifier && this.requiresContext) {
@@ -118,55 +171,117 @@ export default {
     this.autoScroll();
   },
   data() {
-    return { messages: [], internetEnabled: false, showDialog: false };
+    return {
+      messages: [],
+      internetEnabled: false,
+      showDialog: false,
+      lastMessageLocal: "",
+      answer: "",
+    };
   },
   methods: {
-    promise(question) {
+    getGenerator(question) {
       if (this.requiresContext) {
-        return askLLM("/qa", {
+        return askLLM("/qa/", {
           question: question,
-          processor: this.$store.state.vectorStore,
-          identifier: this.$store.state.identifier,
         });
       }
-      return askLLM("/bot", {
+      return askLLM("/bot/", {
         message: question,
         internet_access: this.internetEnabled,
       });
     },
-    ask(question) {
+    async ask(question) {
       let sentDate = "";
+      let activated = false;
+      let temp = "";
+      let block = "init";
+      let single = "init";
       this.$store.dispatch("activateSpinner", true);
-      this.addMessage({ content: "", role: "bot", date: sentDate });
+      this.addMessage({
+        content: "",
+        role: "bot",
+        date: sentDate,
+        isLatest: true,
+      });
       const action = this.requiresContext
         ? "setLastDocumentMessage"
         : "setLastChatMessage";
+      try {
+        for await (let token of this.getGenerator(question)) {
+          if (!activated) {
+            this.$store.dispatch("activateSpinner", false);
+            activated = true;
+          }
+          if (token.includes("```")) {
+            if (block == "init") {
+              block = "waiting";
+            } else if (block == "waiting") {
+              block = "finished";
+            }
+          } else if (token.includes("`")) {
+            if (single == "init") {
+              single = "waiting";
+            } else if (single == "waiting") {
+              single = "finished";
+            }
+          }
 
-      this.promise(question)
-        .then((result) => {
-          sentDate = getDateTimeStr();
-          this.$store.dispatch(action, {
-            isInit: false,
-            content: result,
-            date: sentDate,
-          });
-        })
-        .catch((error) => {
-          sentDate = getDateTimeStr();
-          this.$store.dispatch(action, {
-            content: "I am having issues, my apologies. Try again later.",
-            role: "bot",
-            date: sentDate,
-          });
+          if (this.internetEnabled) {
+            token = token.replace("\\n", "\n");
+            if (token.trim().endsWith('"') || token.trim().endsWith("}")) {
+              temp += token.trim().slice(-1);
+              this.answer += token.trim().slice(0, -1);
+            } else if (token.trim().endsWith('" }')) {
+              temp += token.trim().slice(-3);
+              this.answer += token.trim().slice(0, -3);
+            } else {
+              this.answer += token;
+            }
+            if (temp && temp.length <= 3) {
+              temp += token;
+            }
+            if (temp.length == 3) {
+              temp = "";
+            }
+          } else {
+            if (token.includes("<sources>")) {
+              const sources = JSON.parse(token.split("<sources>")[1]);
+            }
+            this.answer += token;
+          }
 
-          showError(error.message);
-          this.$store.dispatch("activateSpinner", false);
-        })
-        .finally(() => {
-          this.messages.at(-1).date = sentDate;
+          if (block == "finished" || single == "finished") {
+            this.answer = formatCode(this.answer);
+            block = single = "init";
+          }
           this.autoScroll();
-          this.$refs.adder.$refs.textarea.$el.focus();
+        }
+
+        sentDate = getDateTimeStr();
+        this.$store.dispatch(action, {
+          isInit: false,
+          content: this.answer,
+          date: sentDate,
         });
+      } catch (error) {
+        console.log("Error: " + error);
+        sentDate = getDateTimeStr();
+        this.$store.dispatch(action, {
+          content: "I am having issues, my apologies. Try again later.",
+          role: "bot",
+          date: sentDate,
+        });
+
+        showError(error.message);
+        this.$store.dispatch("activateSpinner", false);
+      } finally {
+        this.messages.at(-1).date = sentDate;
+        this.messages.at(-1).isLatest = false;
+        this.messages.at(-1).content = this.answer;
+        this.answer = "";
+        this.$refs.adder.$refs.textarea.$el.focus();
+      }
     },
     pushMessages(message) {
       this.addMessage({
@@ -174,7 +289,7 @@ export default {
         role: "user",
         date: getDateTimeStr(),
       });
-      this.ask(message);
+      this.ask(message).then(() => {});
     },
     autoScroll() {
       this.$nextTick(() => {
@@ -202,6 +317,10 @@ export default {
     },
   },
   computed: {
+    activate() {
+      const flag = this.$store.state.showSpinner && !this.answer;
+      return flag;
+    },
     identifier() {
       return this.$store.state.identifier;
     },
@@ -234,5 +353,9 @@ export default {
 
 .scrollbar::-webkit-scrollbar-thumb {
   background-color: #aaa;
+}
+
+.breakline-ok {
+  white-space: pre-wrap;
 }
 </style>
