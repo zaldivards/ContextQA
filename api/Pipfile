@@ -23,6 +23,7 @@ pydantic-settings = "*"
 pymupdf = "*"
 sqlalchemy = "*"
 alembic = "*"
+pymysql = "*"
 
 [dev-packages]
 black = "*"
