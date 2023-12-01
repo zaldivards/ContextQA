@@ -19,11 +19,6 @@ class AppSettings(BaseSettings):
     sqlite_url: str = "sqlite:///contextqa.sqlite3"
     openai_api_key: str | None = None
     redis_url: str | None = None
-    serpapi_api_key: str | None = None
-    twitter_api_key: str | None = None
-    twitter_api_secret:str | None = None
-    twitter_access_token: str | None = None
-    twitter_api_secret: str | None = None
     pinecone_token: str | None = None
     pinecone_index: str | None = None
     pinecone_environment_region: str | None = None
