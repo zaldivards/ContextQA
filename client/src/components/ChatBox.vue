@@ -3,6 +3,7 @@
     class="justify-content-center mx-auto"
     :class="identifier || !requiresContext ? '' : ['opacity-50', 'disabled']"
   >
+    <DynamicDialog :pt="{ content: { class: 'h-full' } }" />
     <div>
       <Dialog
         :dismissableMask="true"
@@ -117,6 +118,12 @@
             <span class="mr-2">Enable internet access</span>
             <InputSwitch v-model="internetEnabled" @input="switchHandler" />
           </div>
+          <Button
+            v-else
+            label="Check response sources"
+            icon="pi pi-search"
+            @click="showSources"
+          />
           <MessageAdder @send="pushMessages" ref="adder" />
         </div>
       </div>
@@ -125,6 +132,9 @@
 </template>
 
 <script>
+import { markRaw, defineAsyncComponent } from "vue";
+import Button from "primevue/button";
+import DynamicDialog from "primevue/dynamicdialog";
 import Panel from "primevue/panel";
 import ProgressBar from "primevue/progressbar";
 import InputSwitch from "primevue/inputswitch";
@@ -133,6 +143,10 @@ import Toast from "primevue/toast";
 import Card from "primevue/card";
 import Avatar from "primevue/avatar";
 import MessageAdder from "@/components/MessageAdder.vue";
+
+const SourcesBox = defineAsyncComponent(() =>
+  import("@/components/SourcesBox.vue")
+);
 
 import { askLLM, showError, showWarning, getDateTimeStr } from "@/utils/client";
 import { formatCode } from "@/utils/text";
@@ -148,6 +162,8 @@ export default {
     Card,
     Avatar,
     ProgressBar,
+    Button,
+    DynamicDialog,
   },
   props: { requiresContext: Boolean },
   mounted() {
@@ -177,9 +193,25 @@ export default {
       showDialog: false,
       lastMessageLocal: "",
       answer: "",
+      latestSources: "",
     };
   },
   methods: {
+    showSources() {
+      const dialogRef = this.$dialog.open(SourcesBox, {
+        props: {
+          header: "Sources",
+          style: {
+            width: "50vw",
+          },
+          class: ["h-full", "w-9"],
+          modal: true,
+        },
+        data: {
+          sources: this.latestSources,
+        },
+      });
+    },
     getGenerator(question) {
       if (this.requiresContext) {
         return askLLM("/qa/", {
@@ -197,6 +229,7 @@ export default {
       let temp = "";
       let block = "init";
       let single = "init";
+      let finished = false;
       this.$store.dispatch("activateSpinner", true);
       this.addMessage({
         content: "",
@@ -204,6 +237,7 @@ export default {
         date: sentDate,
         isLatest: true,
       });
+      if (this.requiresContext) this.latestSources = "";
       const action = this.requiresContext
         ? "setLastDocumentMessage"
         : "setLastChatMessage";
@@ -246,9 +280,10 @@ export default {
             }
           } else {
             if (token.includes("<sources>")) {
-              const sources = JSON.parse(token.split("<sources>")[1]);
+              finished = true;
+              this.latestSources = token.split("<sources>")[1];
             }
-            this.answer += token;
+            if (!finished) this.answer += token;
           }
 
           if (block == "finished" || single == "finished") {
@@ -281,6 +316,7 @@ export default {
         this.messages.at(-1).content = this.answer;
         this.answer = "";
         this.$refs.adder.$refs.textarea.$el.focus();
+        finished = false;
       }
     },
     pushMessages(message) {
