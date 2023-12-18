@@ -117,30 +117,45 @@ def build_sources(sources: list[Document]) -> list[Source]:
         sources transformed into a proper format depending the file type
     """
     result = []
+    processed_sources = set()
+
     for source in sources:
         name = source.metadata.pop("source")
         source_name = name.split(settings.tmp_separator)[-1]
         extension = name.split(".")[-1]
+
         match extension:
             case SourceFormat.PDF:
                 page_number = source.metadata.get("page")
                 path = Path(name)
-                pdf = fitz.open(str(path))
-                page = pdf[page_number]
-                img_bytes = page.get_pixmap().tobytes()
-                base64_img = base64.b64encode(img_bytes)
-                source = Source(title=f"{path.name} - Page {page_number}", format=SourceFormat.PDF, content=base64_img)
+                title = f"{path.name} - Page {page_number}"
+                if title not in processed_sources:
+                    pdf = fitz.open(str(path))
+                    page = pdf[page_number]
+                    img_bytes = page.get_pixmap().tobytes()
+                    base64_img = base64.b64encode(img_bytes).decode().replace('"', '\\"')
+                    format_ = SourceFormat.PDF
+                    content = base64_img
             case SourceFormat.TXT:
                 idx = source.metadata.get("idx")
-                source = Source(
-                    title=f"{source_name} - Segment {idx}", format=SourceFormat.TXT, content=source.page_content
-                )
+                title = f"{source_name} - Segment {idx}"
+                if title not in processed_sources:
+                    format_ = SourceFormat.TXT
+                    content = source.page_content
             case SourceFormat.CSV:
                 row = source.metadata.get("row")
-                data = {}
-                for cell in source.page_content.split("\n"):
-                    key, value = cell.split(":", 1)
-                    data[key] = value.strip()
-                    source = Source(title=f"{source_name} - Row {row}", format=SourceFormat.CSV, content=data)
-        result.append(source.model_dump())
+                title = f"{source_name} - Row {row}"
+                format_ = SourceFormat.CSV
+                if title not in processed_sources:
+                    data = {}
+                    for cell in source.page_content.split("\n"):
+                        key, value = cell.split(":", 1)
+                        data[key] = value.strip()
+                    content = [data]
+
+        if title not in processed_sources:
+            source_data = Source(title=title, format=format_, content=content)
+            result.append(source_data.model_dump())
+            processed_sources.add(title)
+
     return result
