@@ -23,12 +23,13 @@
             :header="name"
           ></Column>
         </DataTable>
-        <Image
-          class="m-0"
-          :src="`data:image/jpg;base64,${source.content}`"
-          v-else
-          preview
-        />
+        <div v-else class="text-center">
+          <Image
+            class="m-0"
+            :src="`data:image/jpg;base64,${source.content}`"
+            preview
+          />
+        </div>
       </template>
     </Card>
   </div>
