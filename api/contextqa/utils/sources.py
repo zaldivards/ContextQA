@@ -1,18 +1,15 @@
 import base64
 import hashlib
+import uuid
 from pathlib import Path
 
-import uuid
-
 import fitz
+from contextqa import settings
+from contextqa.models.orm import Source as SourceORM
+from contextqa.models.schemas import Source, SourceFormat
+from contextqa.utils.exceptions import DuplicatedSourceError
 from langchain.docstore.document import Document
 from sqlalchemy.orm import Session
-
-
-from contextqa import settings
-from contextqa.models.schemas import Source, SourceFormat
-from contextqa.models.orm import Source as SourceORM
-from contextqa.utils.exceptions import DuplicatedSourceError
 
 
 def _get_digest(content: bytes) -> str:
@@ -103,6 +100,22 @@ def get_not_seen_chunks(chunks: list[Document], extension: str) -> tuple[list[Do
     return unique_chunks, list(unique_ids)
 
 
+def _get_base64_image(path_: Path, page_number: int) -> str:
+    pdf = fitz.open(str(path_))
+    page = pdf[page_number]
+    img_bytes = page.get_pixmap().tobytes()
+    base64_img = base64.b64encode(img_bytes).decode().replace('"', '\\"')
+    return base64_img
+
+
+def _csv_repr(cell_content: str) -> list[dict]:
+    data = {}
+    for cell in cell_content.split("\n"):
+        key, value = cell.split(":", 1)
+        data[key] = value.strip()
+    return [data]
+
+
 def build_sources(sources: list[Document]) -> list[Source]:
     """Analyze each source and transform them into a format the client can render
 
@@ -130,12 +143,8 @@ def build_sources(sources: list[Document]) -> list[Source]:
                 path = Path(name)
                 title = f"{path.name} - Page {page_number}"
                 if title not in processed_sources:
-                    pdf = fitz.open(str(path))
-                    page = pdf[page_number]
-                    img_bytes = page.get_pixmap().tobytes()
-                    base64_img = base64.b64encode(img_bytes).decode().replace('"', '\\"')
                     format_ = SourceFormat.PDF
-                    content = base64_img
+                    content = _get_base64_image(path, page_number)
             case SourceFormat.TXT:
                 idx = source.metadata.get("idx")
                 title = f"{source_name} - Segment {idx}"
@@ -143,15 +152,10 @@ def build_sources(sources: list[Document]) -> list[Source]:
                     format_ = SourceFormat.TXT
                     content = source.page_content
             case SourceFormat.CSV:
-                row = source.metadata.get("row")
-                title = f"{source_name} - Row {row}"
+                title = f"{source_name} - Row {source.metadata.get('row')}"
                 format_ = SourceFormat.CSV
                 if title not in processed_sources:
-                    data = {}
-                    for cell in source.page_content.split("\n"):
-                        key, value = cell.split(":", 1)
-                        data[key] = value.strip()
-                    content = [data]
+                    content = _csv_repr(source.page_content)
 
         if title not in processed_sources:
             source_data = Source(title=title, format=format_, content=content)
