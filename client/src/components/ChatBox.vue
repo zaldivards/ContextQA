@@ -282,6 +282,7 @@ export default {
             if (token.includes("<sources>")) {
               finished = true;
               this.latestSources = token.split("<sources>")[1];
+              this.$store.dispatch("setLatestSources", this.latestSources);
             }
             if (!finished) this.answer += token;
           }

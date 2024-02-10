@@ -50,8 +50,10 @@ export default {
     };
   },
   mounted() {
+    const sources =
+      this.dialogRef.data.sources || this.$store.state.latestSources;
     try {
-      this.data = JSON.parse(this.dialogRef.data.sources);
+      this.data = JSON.parse(sources);
     } catch (e) {
       console.log(e);
     }
