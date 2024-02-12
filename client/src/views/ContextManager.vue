@@ -4,7 +4,7 @@
 
     <Toast class="z-5" />
     <form @submit.prevent="postData" class="px-3 lg:px-0 w-full lg:w-7 m-auto">
-      <h2 class="mb-5">⚙️ Set the context document</h2>
+      <h2 class="mb-5">⚙️ Choose and ingest sources</h2>
 
       <div :class="disabled ? ['opacity-50', 'disabled'] : ''" class="grid">
         <FileUpload
