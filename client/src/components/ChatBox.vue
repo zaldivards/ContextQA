@@ -1,7 +1,7 @@
 <template>
   <div
     class="justify-content-center mx-auto"
-    :class="identifier || !requiresContext ? '' : ['opacity-50', 'disabled']"
+    :class="sourcesReady || !requiresContext ? '' : ['opacity-50', 'disabled']"
   >
     <DynamicDialog :pt="{ content: { class: 'h-full' } }" />
     <div>
@@ -148,7 +148,13 @@ const SourcesBox = defineAsyncComponent(() =>
   import("@/components/SourcesBox.vue")
 );
 
-import { askLLM, showError, showWarning, getDateTimeStr } from "@/utils/client";
+import {
+  askLLM,
+  showError,
+  showWarning,
+  getDateTimeStr,
+  getSourcesAvailability,
+} from "@/utils/client";
 import { formatCode } from "@/utils/text";
 
 export default {
@@ -167,10 +173,17 @@ export default {
   },
   props: { requiresContext: Boolean },
   mounted() {
-    if (!this.identifier && this.requiresContext) {
-      showWarning(
-        "You need to set the document context in the settings section to initialize a chat"
-      );
+    if (!this.sourcesReady) {
+      getSourcesAvailability()
+        .then((status) => {
+          this.$store.dispatch("setSourcesFlag", status == "ready");
+          if (!this.sourcesReady && this.requiresContext) {
+            showWarning(
+              "You need to ingest at least one source to initialize a QA session"
+            );
+          }
+        })
+        .catch((error) => showError(error));
     }
   },
   created() {
@@ -358,13 +371,11 @@ export default {
       const flag = this.$store.state.showSpinner && !this.answer;
       return flag;
     },
-    identifier() {
-      return this.$store.state.identifier;
+    sourcesReady() {
+      return this.$store.state.sourcesReady;
     },
     header() {
-      return this.requiresContext
-        ? `Context: ${this.identifier ?? "None"}`
-        : "ContextQA Chat";
+      return this.requiresContext ? "QA Session" : "ContextQA Chat";
     },
   },
 };

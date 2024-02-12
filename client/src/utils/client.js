@@ -44,6 +44,22 @@ export async function setContext(endpoint, data) {
     }
 }
 
+export async function getSourcesAvailability() {
+    const response = await fetch(
+        API_BASE_URL + "/qa/check-sources", {
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    if (response.ok) {
+        const json_ = await response.json();
+        return json_.status
+    }
+    else {
+        await handleResponse(response)
+    }
+}
+
 export async function* askLLM(endpoint, params) {
     let sources = []
     const response = await fetch(
