@@ -49,6 +49,13 @@ class LLMResult(BaseModel):
     response: str
 
 
+class IngestionResult(BaseModel):
+    """Result of the ingestion process"""
+
+    completed: int
+    skipped_files: list[str]
+
+
 class LLMContextQueryRequest(BaseModel):
     """QA session request object"""
 

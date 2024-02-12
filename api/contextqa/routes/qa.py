@@ -5,7 +5,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from contextqa import context, get_logger
-from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceStatus, LLMContextQueryRequest
+from contextqa.models.schemas import SimilarityProcessor, SourceStatus, LLMContextQueryRequest, IngestionResult
 from contextqa.routes.dependencies import get_db
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
 
@@ -15,7 +15,7 @@ LOGGER = get_logger()
 router = APIRouter()
 
 
-@router.post("/ingest/", response_model=LLMResult)
+@router.post("/ingest/", response_model=IngestionResult)
 def ingest_source(documents: list[UploadFile], session: Annotated[Session, Depends(get_db)]):
     """
     Ingest a data source into the vector database

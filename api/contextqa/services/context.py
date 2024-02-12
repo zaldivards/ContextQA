@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import AsyncGenerator, BinaryIO, Type
@@ -21,10 +21,10 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from contextqa import get_logger, settings
-from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceFormat
+from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceFormat, IngestionResult
 from contextqa.models.orm import Source
 from contextqa.utils import memory, prompts
-from contextqa.utils.exceptions import VectorDBConnectionError
+from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
 from contextqa.utils.sources import check_digest, get_not_seen_chunks
 from contextqa.utils.streaming import CustomQAChain, stream
 
@@ -203,7 +203,13 @@ class BatchProcessor(BaseModel):
 
     manager: LLMContextManager
 
-    def persist(self, sources: list[UploadFile], session: Session) -> LLMResult:
+    def _wrapper(self, *args) -> None | str:
+        try:
+            self.manager.persist(*args)
+        except DuplicatedSourceError:
+            return args[0]  # filename
+
+    def persist(self, sources: list[UploadFile], session: Session) -> IngestionResult:
         """Ingest the uploaded sources
 
         Parameters
@@ -215,13 +221,22 @@ class BatchProcessor(BaseModel):
 
         Returns
         -------
-        LLMResult
+        IngestionResult
         """
-        func = self.manager.persist
+        func = self._wrapper
+        skipped_files = []
+        completed = 0
         with ThreadPoolExecutor(max_workers=5) as executor:
-            for source in sources:
-                executor.submit(func, source.filename, source.file, session)
-        return LLMResult(response="success")
+            tasks = [executor.submit(func, source.filename, source.file, session) for source in sources]
+            for future in as_completed(tasks):
+                result = future.result()
+                if result:
+                    # skipped because the content had not changed
+                    skipped_files.append(result)
+                else:
+                    # successfully ingested
+                    completed += 1
+        return IngestionResult(completed=completed, skipped_files=skipped_files)
 
 
 def get_setter(processor: SimilarityProcessor | None = None) -> LLMContextManager:
