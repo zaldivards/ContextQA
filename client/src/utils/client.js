@@ -44,6 +44,7 @@ export async function setContext(endpoint, data) {
 }
 
 export async function* askLLM(endpoint, params) {
+    let sources = []
     const response = await fetch(
         API_BASE_URL + endpoint, {
         method: 'POST',
@@ -54,23 +55,31 @@ export async function* askLLM(endpoint, params) {
     }
     );
     if (response.ok) {
-        let decoder = new TextDecoder("utf-8")
+        const decoder = new TextDecoder()
         const reader = response.body.getReader();
         try {
             while (true) {
                 const { value, done } = await reader.read();
-                if (done) { break }
+                if (done)
+                    break
                 const data = decoder.decode(value);
-                yield data;
+                if (data.includes("<source>")) {
+                    sources.push(...value)
+                }
+                else
+                    yield data;
             }
+
         } finally {
             reader.releaseLock();
         }
+        const resultarray = new Uint8Array(sources)
+        const result = decoder.decode(resultarray).replaceAll("<source>", "")
+        yield "<sources>" + result
     }
     else
         await handleResponse(response)
 }
-
 
 export const showSuccess = (message) => {
     app.config.globalProperties.$toast.add({ severity: ToastSeverity.SUCCESS, summary: 'Success', detail: message, life: 3000 });

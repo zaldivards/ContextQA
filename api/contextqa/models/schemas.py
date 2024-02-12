@@ -19,7 +19,7 @@ class SourceFormat(str, Enum):
 class Source(BaseModel):
     title: str
     format_: Annotated[SourceFormat, Field(alias="format")]
-    content: str | dict
+    content: str | list
 
 
 class LLMResult(BaseModel):

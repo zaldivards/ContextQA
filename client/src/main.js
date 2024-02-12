@@ -5,6 +5,7 @@ import store from './store'
 
 
 import PrimeVue from 'primevue/config';
+import DialogService from 'primevue/dialogservice';
 import ToastService from 'primevue/toastservice';
 import ConfirmationService from 'primevue/confirmationservice';
 
@@ -16,4 +17,4 @@ import '/node_modules/primeflex/primeflex.css'
 
 export const app = createApp(App);
 
-app.use(PrimeVue).use(ToastService).use(ConfirmationService).use(store).use(router).mount('#app');
+app.use(PrimeVue).use(ToastService).use(ConfirmationService).use(store).use(DialogService).use(router).mount('#app');

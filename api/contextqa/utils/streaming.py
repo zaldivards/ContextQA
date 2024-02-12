@@ -1,6 +1,5 @@
 import asyncio
 import json
-import time
 from typing import Coroutine, AsyncGenerator, Any
 
 from langchain.callbacks import AsyncIteratorCallbackHandler
@@ -68,13 +67,18 @@ async def stream(
             else:
                 yield temp + token
                 temp = ""
-            time.sleep(0.05)
     finally:
         callback.done.set()
 
     await task
     if entrypoint_obj:
         try:
-            yield "<sources>" + json.dumps(build_sources(entrypoint_obj.sources))
+            # sources are streamed in chunks because when a source contains a base64 image, some of the
+            # content get lost somehow. Hence we need to divide it into chunks
+            data = json.dumps(build_sources(entrypoint_obj.sources))
+            size = 10_000
+            for chunk_start in range(0, len(data), size):
+                chunk = data[chunk_start : chunk_start + size]
+                yield "<source>" + chunk
         finally:
             pass

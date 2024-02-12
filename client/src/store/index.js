@@ -9,7 +9,8 @@ export default createStore({
         lastDocumentMessageText: '',
         lastChatMessageText: '',
         vectorStore: '',
-        internetEnabled: false
+        internetEnabled: false,
+        latestSources: ''
     },
     mutations: {
         updateApiParams(state, payload) {
@@ -44,6 +45,9 @@ export default createStore({
         },
         updateInternetAccess(state, payload) {
             state.internetEnabled = payload
+        },
+        updateSources(state, payload) {
+            state.latestSources = payload
         }
     },
     actions: {
@@ -67,6 +71,9 @@ export default createStore({
         },
         setInternetAccess({ commit }, payload) {
             commit('updateInternetAccess', payload);
+        },
+        setLatestSources({ commit }, payload) {
+            commit('updateSources', payload);
         }
     }
 });
