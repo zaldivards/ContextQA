@@ -20,14 +20,15 @@ router = APIRouter()
 
 
 @router.post("/ingest/", response_model=LLMResult)
-def ingest_source(document: UploadFile, session: Annotated[Session, Depends(get_db)]):
+def ingest_source(documents: list[UploadFile], session: Annotated[Session, Depends(get_db)]):
     """
     Ingest a data source into the vector database
     """
     try:
-        context_setter = context.get_setter(SimilarityProcessor.LOCAL)
+        context_manager = context.get_setter(SimilarityProcessor.LOCAL)
+        processor = context.BatchProcessor(manager=context_manager)
         # pylint: disable=E1102
-        return context_setter.persist(document.filename, document.file, session)
+        return processor.persist(documents, session)
     except DuplicatedSourceError as ex:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
