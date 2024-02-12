@@ -23,7 +23,7 @@
           }"
         >
           <template #empty>
-            <p>Drag and drop files here to upload</p>
+            <p>Drag and drop files here to upload. <b>You can upload up to 10 sources</b></p>
           </template>
         </FileUpload>
       </div>
@@ -102,9 +102,8 @@ export default {
         files: this.selectedFiles,
       })
         .then(() => {
-          // this.$store.dispatch("setApiParams", this.uploadedFile.name);
           showSuccess(
-            "Context set successfully, redirecting to the chat session"
+            "Sources ingested successfully, redirecting to the QA session"
           );
           this.loading = false;
           setTimeout(() => this.$router.push("/chat/document"), 2000);
