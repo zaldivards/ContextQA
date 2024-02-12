@@ -1,49 +1,62 @@
 # pylint: disable=E0611
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
 
 class SimilarityProcessor(str, Enum):
+    """Enum representing the supported vector stores
+
+    Note that the LOCAL identifier refers to ChromaDB
+    """
+
     LOCAL = "local"
     PINECONE = "pinecone"
 
 
 class SourceFormat(str, Enum):
+    """Enum representing the supported file formats"""
+
     PDF = "pdf"
     TXT = "txt"
     CSV = "csv"
 
 
 class Source(BaseModel):
+    """Source returned as metadata in QA sessions"""
+
     title: str
     format_: Annotated[SourceFormat, Field(alias="format")]
     content: str | list
 
 
+class SourceStatus(BaseModel):
+    """Response model returning the status of data sources"""
+
+    status: Literal["ready", "empty"]
+
+    @classmethod
+    def from_count_status(cls, status_flag: bool) -> "SourceStatus":
+        """Get instance given the status flag"""
+        status = "ready" if status_flag else "empty"
+        return cls(status=status)
+
+
 class LLMResult(BaseModel):
+    """LLM chat response object"""
+
     response: str
 
 
-class QAResult(LLMResult):
-    sources: list[Source]
-
-
-class LLMRequestBodyBase(BaseModel):
-    separator: str = Field(description="Separator to use for the text splitting", default=".")
-    chunk_size: int = Field(description="size of each splitted chunk", default=100)
-    chunk_overlap: int = 50
-
-
 class LLMContextQueryRequest(BaseModel):
+    """QA session request object"""
+
     question: str
 
 
 class LLMQueryRequest(BaseModel):
+    """Chat request object"""
+
     message: str
     internet_access: bool = False
-
-
-class LLMQueryRequestBody(LLMRequestBodyBase):
-    query: str = Field(description="The query we want the llm to respond", min_length=10)
