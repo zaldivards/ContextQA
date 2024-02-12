@@ -292,7 +292,7 @@ export default {
               temp = "";
             }
           } else {
-            if (token.includes("<sources>")) {
+            if (token.includes("<sources>") && this.requiresContext) {
               finished = true;
               this.latestSources = token.split("<sources>")[1];
               this.$store.dispatch("setLatestSources", this.latestSources);
