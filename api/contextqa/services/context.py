@@ -1,30 +1,31 @@
 from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import BinaryIO, Type, AsyncGenerator
+from typing import AsyncGenerator, BinaryIO, Type
 
 import pinecone
 from chromadb import PersistentClient
+from fastapi import UploadFile
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain.chat_models import ChatOpenAI
 from langchain.docstore.document import Document
-from langchain.document_loaders import PyMuPDFLoader, TextLoader, CSVLoader
+from langchain.document_loaders import CSVLoader, PyMuPDFLoader, TextLoader
 from langchain.document_loaders.base import BaseLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores.pinecone import Pinecone
-from langchain.vectorstores.chroma import Chroma
 from langchain.vectorstores.base import VectorStore
+from langchain.vectorstores.chroma import Chroma
+from langchain.vectorstores.pinecone import Pinecone
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
 
 from contextqa import get_logger, settings
 from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceFormat
 from contextqa.utils import memory, prompts
 from contextqa.utils.exceptions import VectorDBConnectionError
-from contextqa.utils.sources import get_not_seen_chunks, check_digest
-
-from contextqa.utils.streaming import stream, CustomQAChain
+from contextqa.utils.sources import check_digest, get_not_seen_chunks
+from contextqa.utils.streaming import CustomQAChain, stream
 
 
 LOGGER = get_logger()
@@ -33,7 +34,7 @@ LOADERS: dict[str, Type[BaseLoader]] = {".pdf": PyMuPDFLoader, ".txt": TextLoade
 chroma_client = PersistentClient(path=str(settings.local_vectordb_home))
 
 
-class LLMContextManager(ABC):
+class LLMContextManager(BaseModel, ABC):
     """Base llm manager"""
 
     def load_and_preprocess(self, filename: str, file_: BinaryIO, session: Session) -> tuple[list[Document], list[str]]:
@@ -52,7 +53,7 @@ class LLMContextManager(ABC):
         -------
         tuple[list[Document], list[str]]
             document chunks and their corresponding IDs
-        
+
         Raises
         ------
         DuplicatedSourceError
@@ -194,6 +195,32 @@ class PineconeManager(LLMContextManager):
         embeddings_util = OpenAIEmbeddings()
         processor = Pinecone.from_existing_index(index_name=settings.pinecone_index, embedding=embeddings_util)
         return processor
+
+
+class BatchProcessor(BaseModel):
+    """QA processor for batch ingestions"""
+
+    manager: LLMContextManager
+
+    def persist(self, sources: list[UploadFile], session: Session) -> LLMResult:
+        """Ingest the uploaded sources
+
+        Parameters
+        ----------
+        sources : list[UploadFile]
+            uploaded sources
+        session : Session
+            db session
+
+        Returns
+        -------
+        LLMResult
+        """
+        func = self.manager.persist
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            for source in sources:
+                executor.submit(func, source.filename, source.file, session)
+        return LLMResult(response="success")
 
 
 def get_setter(processor: SimilarityProcessor | None = None) -> LLMContextManager:
