@@ -23,7 +23,10 @@
           }"
         >
           <template #empty>
-            <p>Drag and drop files here to upload. <b>You can upload up to 10 sources</b></p>
+            <p>
+              Drag and drop files here to upload.
+              <b>You can upload up to 10 sources</b>
+            </p>
           </template>
         </FileUpload>
       </div>
@@ -66,7 +69,12 @@ import FileUpload from "primevue/fileupload";
 import Button from "primevue/button";
 import Toast from "primevue/toast";
 
-import { setContext, showSuccess, showError } from "@/utils/client";
+import {
+  setContext,
+  showSuccess,
+  showError,
+  showWarning,
+} from "@/utils/client";
 
 const MAX_NUMBER_OF_FILES = 10;
 
@@ -101,12 +109,33 @@ export default {
       setContext("/qa/ingest/", {
         files: this.selectedFiles,
       })
-        .then(() => {
-          showSuccess(
-            "Sources ingested successfully, redirecting to the QA session"
-          );
+        .then((ingestionResult) => {
+          if (!ingestionResult.completed) {
+            showWarning(
+              "All sources were skipped because their content has not changed since the last ingestion",
+              10000
+            );
+            this.disabled = false;
+          } else {
+            if (ingestionResult.skipped_files.length > 0) {
+              showWarning(
+                "The folowing sources were skipped because their content has not changed since the last ingestion:",
+                10000
+              );
+              ingestionResult.skipped_files.forEach((filename) =>
+                showWarning(filename, 10000)
+              );
+            }
+            showSuccess(
+              `${ingestionResult.completed} sources were successfully ingested, redirecting to the QA session`
+            );
+
+            setTimeout(
+              () => this.$router.push("/chat/document"),
+              ingestionResult.skipped_files.length > 0 ? 10000 : 2000
+            );
+          }
           this.loading = false;
-          setTimeout(() => this.$router.push("/chat/document"), 2000);
         })
         .catch((error) => {
           showError(error.message);

@@ -36,8 +36,7 @@ export async function setContext(endpoint, data) {
     }
     );
     if (response.ok) {
-        const json_ = await response.json();
-        return json_.response
+        return await response.json();
     }
     else {
         await handleResponse(response)
