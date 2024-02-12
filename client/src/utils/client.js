@@ -26,8 +26,9 @@ async function handleResponse(res) {
 
 export async function setContext(endpoint, data) {
     const formData = new FormData()
-    formData.append('document', data.file)
-
+    data.files.forEach(file => {
+        formData.append("documents", file)
+    })
     const response = await fetch(
         API_BASE_URL + endpoint, {
         method: 'POST',

@@ -8,13 +8,13 @@
 
       <div :class="disabled ? ['opacity-50', 'disabled'] : ''" class="grid">
         <FileUpload
-          @remove="() => (this.uploadedFile = null)"
+          @remove="handleFileSelectRemove"
           accept=".pdf,.txt,.csv"
-          fileLimit="1"
+          fileLimit="10"
           :maxFileSize="100000000"
-          @select="handleFileSelect"
+          @select="handleFileSelectRemove"
           :showUploadButton="false"
-          :multiple="false"
+          :multiple="true"
           :pt="{
             thumbnail: { class: 'hidden' },
             badge: { class: 'hidden' },
@@ -68,6 +68,8 @@ import Toast from "primevue/toast";
 
 import { setContext, showSuccess, showError } from "@/utils/client";
 
+const MAX_NUMBER_OF_FILES = 10;
+
 export default {
   name: "ContextManager",
   components: {
@@ -78,14 +80,17 @@ export default {
   },
   data() {
     return {
-      uploadedFile: null,
+      selectedFiles: [],
       loading: false,
       disabled: false,
     };
   },
   computed: {
     nullData() {
-      return this.uploadedFile === null;
+      return (
+        this.selectedFiles.length == 0 ||
+        this.selectedFiles.length > MAX_NUMBER_OF_FILES
+      );
     },
   },
   methods: {
@@ -94,10 +99,10 @@ export default {
       this.disabled = true;
 
       setContext("/qa/ingest/", {
-        file: this.uploadedFile,
+        files: this.selectedFiles,
       })
         .then(() => {
-          this.$store.dispatch("setApiParams", this.uploadedFile.name);
+          // this.$store.dispatch("setApiParams", this.uploadedFile.name);
           showSuccess(
             "Context set successfully, redirecting to the chat session"
           );
@@ -110,8 +115,8 @@ export default {
           this.disabled = false;
         });
     },
-    handleFileSelect(evt) {
-      this.uploadedFile = evt.files[0];
+    handleFileSelectRemove(evt) {
+      this.selectedFiles = evt.files;
     },
   },
 };
