@@ -1,6 +1,7 @@
 from typing import Generator
 
 from contextqa.services.db import SessionLocal
+from sqlalchemy.orm import scoped_session
 
 
 def get_db() -> Generator:
@@ -12,7 +13,7 @@ def get_db() -> Generator:
         db session
     """
     try:
-        session = SessionLocal()
+        session = scoped_session(SessionLocal)
         yield session
         session.commit()
     except:
