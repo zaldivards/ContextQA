@@ -2,19 +2,17 @@ import { createStore } from 'vuex'
 
 export default createStore({
     state: {
-        identifier: null,
+        sourcesReady: false,
         chatMessages: [],
         documentMessages: [],
         showSpinner: false,
         lastDocumentMessageText: '',
         lastChatMessageText: '',
         vectorStore: '',
-        internetEnabled: false
+        internetEnabled: false,
+        latestSources: ''
     },
     mutations: {
-        updateApiParams(state, payload) {
-            state.identifier = payload
-        },
         updateChatMessages(state, payload) {
             state.chatMessages.push(payload)
         },
@@ -32,7 +30,6 @@ export default createStore({
                 state.chatMessages.pop()
                 state.chatMessages.push(message)
             }
-            state.showSpinner = false
         },
         updateLastDocumentMessage(state, payload) {
 
@@ -42,16 +39,18 @@ export default createStore({
                 state.documentMessages.pop()
                 state.documentMessages.push(message)
             }
-            state.showSpinner = false
         },
         updateInternetAccess(state, payload) {
             state.internetEnabled = payload
+        },
+        updateSources(state, payload) {
+            state.latestSources = payload
+        },
+        updateSourcesFlag(state, payload) {
+            state.sourcesReady = payload
         }
     },
     actions: {
-        setApiParams({ commit }, payload) {
-            commit('updateApiParams', payload);
-        },
         setDocumentMessage({ commit }, payload) {
             commit('updateDocumentMessages', payload);
         },
@@ -69,6 +68,12 @@ export default createStore({
         },
         setInternetAccess({ commit }, payload) {
             commit('updateInternetAccess', payload);
+        },
+        setLatestSources({ commit }, payload) {
+            commit('updateSources', payload);
+        },
+        setSourcesFlag({ commit }, payload) {
+            commit('updateSourcesFlag', payload);
         }
     }
 });
