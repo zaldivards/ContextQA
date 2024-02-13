@@ -106,7 +106,7 @@ export default {
       this.loading = true;
       this.disabled = true;
 
-      setContext("/qa/ingest/", {
+      setContext("/sources/ingest/", {
         files: this.selectedFiles,
       })
         .then((ingestionResult) => {

@@ -45,7 +45,7 @@ export async function setContext(endpoint, data) {
 
 export async function getSourcesAvailability() {
     const response = await fetch(
-        API_BASE_URL + "/qa/check-sources", {
+        API_BASE_URL + "/sources/check-availability", {
         headers: {
             'Content-Type': 'application/json',
         }
