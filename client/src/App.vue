@@ -7,6 +7,7 @@
           class="my-4 sticky z-4 border-none w-full bg-inherit"
           :pt="{
             label: { class: 'text-gl text-white-alpha-80 shadow-6' },
+            submenuHeader: { class: 'text-gl text-white-alpha-80 bg-inherit' },
             icon: { class: 'text-gl text-white-alpha-80 shadow-6' },
             separator: { class: 'border-black-alpha-10' },
             action: ({ props, state, context }) => ({
@@ -53,19 +54,50 @@ export default {
           command: () => this.$router.push({ path: "/" }),
         },
         {
-          label: "Chat",
-          icon: "pi pi-fw pi-comments",
-          command: () => this.$router.push({ path: "/chat/talk" }),
+          label: "Assistants",
+          items: [
+            {
+              label: "Chat",
+              icon: "pi pi-fw pi-comments",
+              command: () => this.$router.push({ path: "/chat/talk" }),
+            },
+            {
+              label: "QA",
+              icon: "pi pi-fw pi-file-o",
+              command: () => this.$router.push({ path: "/chat/document" }),
+            },
+          ],
         },
         {
-          label: "QA",
-          icon: "pi pi-fw pi-file-o",
-          command: () => this.$router.push({ path: "/chat/document" }),
+          label: "Sources",
+          items: [
+            {
+              label: "Ingestion",
+              icon: "pi pi-fw pi-upload",
+              command: () => this.$router.push({ path: "/context" }),
+            },
+            {
+              label: "Manage",
+              icon: "pi pi-fw pi-th-large",
+            },
+          ],
         },
         {
-          label: "Source ingestion",
-          icon: "pi pi-fw pi-cog",
-          command: () => this.$router.push({ path: "/context" }),
+          label: "Settings",
+          items: [
+            {
+              label: "Models",
+              icon: "pi pi-fw pi-box",
+            },
+            {
+              label: "Status",
+              icon: "pi pi-fw pi-info-circle",
+            },
+            {
+              label: "Other configurations",
+              icon: "pi pi-fw pi-cog",
+            },
+          ],
         },
       ],
     };
