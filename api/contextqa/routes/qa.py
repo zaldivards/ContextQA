@@ -5,11 +5,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from contextqa import context, get_logger
-from contextqa.models.schemas import (
-    LLMResult,
-    SimilarityProcessor,
-    LLMContextQueryRequest,
-)
+from contextqa.models.schemas import SimilarityProcessor, SourceStatus, LLMContextQueryRequest, IngestionResult
 from contextqa.routes.dependencies import get_db
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
 
@@ -19,15 +15,16 @@ LOGGER = get_logger()
 router = APIRouter()
 
 
-@router.post("/ingest/", response_model=LLMResult)
-def ingest_source(document: UploadFile, session: Annotated[Session, Depends(get_db)]):
+@router.post("/ingest/", response_model=IngestionResult)
+def ingest_source(documents: list[UploadFile], session: Annotated[Session, Depends(get_db)]):
     """
     Ingest a data source into the vector database
     """
     try:
-        context_setter = context.get_setter(SimilarityProcessor.LOCAL)
+        context_manager = context.get_setter(SimilarityProcessor.LOCAL)
+        processor = context.BatchProcessor(manager=context_manager)
         # pylint: disable=E1102
-        return context_setter.persist(document.filename, document.file, session)
+        return processor.persist(documents, session)
     except DuplicatedSourceError as ex:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -68,4 +65,16 @@ async def qa(params: LLMContextQueryRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"message": "ContextQA server did not process the request successfully", "cause": str(ex)},
+        ) from ex
+
+
+@router.get("/check-sources")
+async def check_sources(session: Annotated[Session, Depends(get_db)]):
+    try:
+        status_flag = context.sources_exists(session)
+        return SourceStatus.from_count_status(status_flag)
+    except Exception as ex:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"message": "ContextQA could not get the results from the DB", "cause": str(ex)},
         ) from ex

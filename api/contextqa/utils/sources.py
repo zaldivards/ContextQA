@@ -66,7 +66,6 @@ def check_digest(name: str, content: bytes, session: Session):
     else:
         new_source = SourceORM(name=name, digest=digest)
         session.add(new_source)
-    session.commit()
 
 
 def get_not_seen_chunks(chunks: list[Document], extension: str) -> tuple[list[Document], list[str]]:

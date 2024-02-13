@@ -26,8 +26,9 @@ async function handleResponse(res) {
 
 export async function setContext(endpoint, data) {
     const formData = new FormData()
-    formData.append('document', data.file)
-
+    data.files.forEach(file => {
+        formData.append("documents", file)
+    })
     const response = await fetch(
         API_BASE_URL + endpoint, {
         method: 'POST',
@@ -35,8 +36,23 @@ export async function setContext(endpoint, data) {
     }
     );
     if (response.ok) {
+        return await response.json();
+    }
+    else {
+        await handleResponse(response)
+    }
+}
+
+export async function getSourcesAvailability() {
+    const response = await fetch(
+        API_BASE_URL + "/qa/check-sources", {
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    if (response.ok) {
         const json_ = await response.json();
-        return json_.response
+        return json_.status
     }
     else {
         await handleResponse(response)

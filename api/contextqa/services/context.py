@@ -1,30 +1,32 @@
 from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import BinaryIO, Type, AsyncGenerator
+from typing import AsyncGenerator, BinaryIO, Type
 
 import pinecone
 from chromadb import PersistentClient
+from fastapi import UploadFile
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain.chat_models import ChatOpenAI
 from langchain.docstore.document import Document
-from langchain.document_loaders import PyMuPDFLoader, TextLoader, CSVLoader
+from langchain.document_loaders import CSVLoader, PyMuPDFLoader, TextLoader
 from langchain.document_loaders.base import BaseLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores.pinecone import Pinecone
-from langchain.vectorstores.chroma import Chroma
 from langchain.vectorstores.base import VectorStore
+from langchain.vectorstores.chroma import Chroma
+from langchain.vectorstores.pinecone import Pinecone
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-
 from contextqa import get_logger, settings
-from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceFormat
+from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceFormat, IngestionResult
+from contextqa.models.orm import Source
 from contextqa.utils import memory, prompts
-from contextqa.utils.exceptions import VectorDBConnectionError
-from contextqa.utils.sources import get_not_seen_chunks, check_digest
-
-from contextqa.utils.streaming import stream, CustomQAChain
+from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
+from contextqa.utils.sources import check_digest, get_not_seen_chunks
+from contextqa.utils.streaming import CustomQAChain, stream
 
 
 LOGGER = get_logger()
@@ -33,7 +35,7 @@ LOADERS: dict[str, Type[BaseLoader]] = {".pdf": PyMuPDFLoader, ".txt": TextLoade
 chroma_client = PersistentClient(path=str(settings.local_vectordb_home))
 
 
-class LLMContextManager(ABC):
+class LLMContextManager(BaseModel, ABC):
     """Base llm manager"""
 
     def load_and_preprocess(self, filename: str, file_: BinaryIO, session: Session) -> tuple[list[Document], list[str]]:
@@ -52,7 +54,7 @@ class LLMContextManager(ABC):
         -------
         tuple[list[Document], list[str]]
             document chunks and their corresponding IDs
-        
+
         Raises
         ------
         DuplicatedSourceError
@@ -196,6 +198,47 @@ class PineconeManager(LLMContextManager):
         return processor
 
 
+class BatchProcessor(BaseModel):
+    """QA processor for batch ingestions"""
+
+    manager: LLMContextManager
+
+    def _wrapper(self, *args) -> None | str:
+        try:
+            self.manager.persist(*args)
+        except DuplicatedSourceError:
+            return args[0]  # filename
+
+    def persist(self, sources: list[UploadFile], session: Session) -> IngestionResult:
+        """Ingest the uploaded sources
+
+        Parameters
+        ----------
+        sources : list[UploadFile]
+            uploaded sources
+        session : Session
+            db session
+
+        Returns
+        -------
+        IngestionResult
+        """
+        func = self._wrapper
+        skipped_files = []
+        completed = 0
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            tasks = [executor.submit(func, source.filename, source.file, session) for source in sources]
+            for future in as_completed(tasks):
+                result = future.result()
+                if result:
+                    # skipped because the content had not changed
+                    skipped_files.append(result)
+                else:
+                    # successfully ingested
+                    completed += 1
+        return IngestionResult(completed=completed, skipped_files=skipped_files)
+
+
 def get_setter(processor: SimilarityProcessor | None = None) -> LLMContextManager:
     """LLMContextManager factory function
 
@@ -215,3 +258,18 @@ def get_setter(processor: SimilarityProcessor | None = None) -> LLMContextManage
             return LocalManager()
         case SimilarityProcessor.PINECONE:
             return PineconeManager()
+
+
+def sources_exists(session: Session) -> bool:
+    """Check if there is at least one source available
+
+    Parameters
+    ----------
+    session : Session
+        sqlalchemy session
+
+    Returns
+    -------
+    bool
+    """
+    return session.query(Source.id).limit(1).count() > 0

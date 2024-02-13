@@ -2,7 +2,7 @@ import { createStore } from 'vuex'
 
 export default createStore({
     state: {
-        identifier: null,
+        sourcesReady: false,
         chatMessages: [],
         documentMessages: [],
         showSpinner: false,
@@ -13,9 +13,6 @@ export default createStore({
         latestSources: ''
     },
     mutations: {
-        updateApiParams(state, payload) {
-            state.identifier = payload
-        },
         updateChatMessages(state, payload) {
             state.chatMessages.push(payload)
         },
@@ -48,12 +45,12 @@ export default createStore({
         },
         updateSources(state, payload) {
             state.latestSources = payload
+        },
+        updateSourcesFlag(state, payload) {
+            state.sourcesReady = payload
         }
     },
     actions: {
-        setApiParams({ commit }, payload) {
-            commit('updateApiParams', payload);
-        },
         setDocumentMessage({ commit }, payload) {
             commit('updateDocumentMessages', payload);
         },
@@ -74,6 +71,9 @@ export default createStore({
         },
         setLatestSources({ commit }, payload) {
             commit('updateSources', payload);
+        },
+        setSourcesFlag({ commit }, payload) {
+            commit('updateSourcesFlag', payload);
         }
     }
 });

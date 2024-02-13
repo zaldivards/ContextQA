@@ -63,7 +63,7 @@ export default {
           command: () => this.$router.push({ path: "/chat/document" }),
         },
         {
-          label: "Settings",
+          label: "Source ingestion",
           icon: "pi pi-fw pi-cog",
           command: () => this.$router.push({ path: "/context" }),
         },

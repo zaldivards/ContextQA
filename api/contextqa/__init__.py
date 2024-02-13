@@ -10,8 +10,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 def get_logger() -> logging.Logger:
     return logging.getLogger("contextqa")
 
+
 class AppSettings(BaseSettings):
     """Project settings"""
+
     default_collection: str = "contextqa-default"
     tmp_separator: str = ":::sep:::"
     media_home: Path = Path(".media/")
@@ -40,7 +42,7 @@ class AppSettings(BaseSettings):
         """validator for media path"""
         value.mkdir(parents=True, exist_ok=True)
         return value
-    
+
     @property
     def sqlalchemy_url(self) -> str:
         """sqlalchemy url built either from the sqlite url or the credential of a specific mysql server"""
@@ -52,9 +54,6 @@ class AppSettings(BaseSettings):
         if extras := self.mysql_extra_args:
             uri += extras
         return uri
-    
-
-
 
 
 settings = AppSettings()

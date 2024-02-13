@@ -4,17 +4,17 @@
 
     <Toast class="z-5" />
     <form @submit.prevent="postData" class="px-3 lg:px-0 w-full lg:w-7 m-auto">
-      <h2 class="mb-5">⚙️ Set the context document</h2>
+      <h2 class="mb-5">⚙️ Choose and ingest sources</h2>
 
       <div :class="disabled ? ['opacity-50', 'disabled'] : ''" class="grid">
         <FileUpload
-          @remove="() => (this.uploadedFile = null)"
+          @remove="handleFileSelectRemove"
           accept=".pdf,.txt,.csv"
-          fileLimit="1"
+          fileLimit="10"
           :maxFileSize="100000000"
-          @select="handleFileSelect"
+          @select="handleFileSelectRemove"
           :showUploadButton="false"
-          :multiple="false"
+          :multiple="true"
           :pt="{
             thumbnail: { class: 'hidden' },
             badge: { class: 'hidden' },
@@ -23,7 +23,10 @@
           }"
         >
           <template #empty>
-            <p>Drag and drop files here to upload</p>
+            <p>
+              Drag and drop files here to upload.
+              <b>You can upload up to 10 sources</b>
+            </p>
           </template>
         </FileUpload>
       </div>
@@ -66,7 +69,14 @@ import FileUpload from "primevue/fileupload";
 import Button from "primevue/button";
 import Toast from "primevue/toast";
 
-import { setContext, showSuccess, showError } from "@/utils/client";
+import {
+  setContext,
+  showSuccess,
+  showError,
+  showWarning,
+} from "@/utils/client";
+
+const MAX_NUMBER_OF_FILES = 10;
 
 export default {
   name: "ContextManager",
@@ -78,14 +88,17 @@ export default {
   },
   data() {
     return {
-      uploadedFile: null,
+      selectedFiles: [],
       loading: false,
       disabled: false,
     };
   },
   computed: {
     nullData() {
-      return this.uploadedFile === null;
+      return (
+        this.selectedFiles.length == 0 ||
+        this.selectedFiles.length > MAX_NUMBER_OF_FILES
+      );
     },
   },
   methods: {
@@ -94,15 +107,35 @@ export default {
       this.disabled = true;
 
       setContext("/qa/ingest/", {
-        file: this.uploadedFile,
+        files: this.selectedFiles,
       })
-        .then(() => {
-          this.$store.dispatch("setApiParams", this.uploadedFile.name);
-          showSuccess(
-            "Context set successfully, redirecting to the chat session"
-          );
+        .then((ingestionResult) => {
+          if (!ingestionResult.completed) {
+            showWarning(
+              "All sources were skipped because their content has not changed since the last ingestion",
+              10000
+            );
+            this.disabled = false;
+          } else {
+            if (ingestionResult.skipped_files.length > 0) {
+              showWarning(
+                "The folowing sources were skipped because their content has not changed since the last ingestion:",
+                10000
+              );
+              ingestionResult.skipped_files.forEach((filename) =>
+                showWarning(filename, 10000)
+              );
+            }
+            showSuccess(
+              `${ingestionResult.completed} sources were successfully ingested, redirecting to the QA session`
+            );
+
+            setTimeout(
+              () => this.$router.push("/chat/document"),
+              ingestionResult.skipped_files.length > 0 ? 10000 : 2000
+            );
+          }
           this.loading = false;
-          setTimeout(() => this.$router.push("/chat/document"), 2000);
         })
         .catch((error) => {
           showError(error.message);
@@ -110,8 +143,8 @@ export default {
           this.disabled = false;
         });
     },
-    handleFileSelect(evt) {
-      this.uploadedFile = evt.files[0];
+    handleFileSelectRemove(evt) {
+      this.selectedFiles = evt.files;
     },
   },
 };
