@@ -16,9 +16,7 @@ router = APIRouter()
 
 @router.post("/ingest/", response_model=IngestionResult)
 def ingest_source(documents: list[UploadFile], session: Annotated[Session, Depends(get_db)]):
-    """
-    Ingest a data source into the vector database
-    """
+    """Ingest sources used by the QA session"""
     try:
         context_manager = context.get_setter(SimilarityProcessor.LOCAL)
         processor = context.BatchProcessor(manager=context_manager)
@@ -53,6 +51,7 @@ def ingest_source(documents: list[UploadFile], session: Annotated[Session, Depen
 
 @router.get("/check-availability/", response_model=SourceStatus)
 async def check_sources(session: Annotated[Session, Depends(get_db)]):
+    """Check the availability of at least one source"""
     try:
         status_flag = context.sources_exists(session)
         return SourceStatus.from_count_status(status_flag)

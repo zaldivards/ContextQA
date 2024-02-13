@@ -12,9 +12,7 @@ router = APIRouter()
 
 @router.post("/")
 async def qa(params: LLMContextQueryRequest):
-    """
-    Perform a QA process against the documents you have ingested
-    """
+    """QA process using the ingested sources"""
     try:
         context_setter = context.get_setter()
         generator = context_setter.load_and_respond(params.question)
