@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, UploadFile, Depends, status
+from fastapi import APIRouter, HTTPException, UploadFile, Depends, status, Query
 from sqlalchemy.orm import Session
 
 from contextqa import context, get_logger
-from contextqa.models.schemas import SimilarityProcessor, SourceStatus, IngestionResult
+from contextqa.models.schemas import SimilarityProcessor, SourceStatus, IngestionResult, Source
 from contextqa.routes.dependencies import get_db
+from contextqa.services.sources import sources_exists, get_sources
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
 
 LOGGER = get_logger()
@@ -53,8 +54,24 @@ def ingest_source(documents: list[UploadFile], session: Annotated[Session, Depen
 async def check_sources(session: Annotated[Session, Depends(get_db)]):
     """Check the availability of at least one source"""
     try:
-        status_flag = context.sources_exists(session)
+        status_flag = sources_exists(session)
         return SourceStatus.from_count_status(status_flag)
+    except Exception as ex:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"message": "ContextQA could not get the results from the DB", "cause": str(ex)},
+        ) from ex
+
+
+@router.get("/", response_model=list[Source])
+async def get_active_sources(
+    session: Annotated[Session, Depends(get_db)],
+    limit: Annotated[int, Query(ge=1)] = 10,
+    skip: Annotated[int, Query(ge=0)] = 0,
+):
+    """List active sources"""
+    try:
+        return [Source(title=source.name, digest=source.digest) for source in get_sources(session, limit, skip)]
     except Exception as ex:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

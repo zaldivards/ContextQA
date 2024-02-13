@@ -22,7 +22,6 @@ from sqlalchemy.orm import Session
 
 from contextqa import get_logger, settings
 from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceFormat, IngestionResult
-from contextqa.models.orm import Source
 from contextqa.utils import memory, prompts
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
 from contextqa.utils.sources import check_digest, get_not_seen_chunks
@@ -259,18 +258,3 @@ def get_setter(processor: SimilarityProcessor | None = None) -> LLMContextManage
             return LocalManager()
         case SimilarityProcessor.PINECONE:
             return PineconeManager()
-
-
-def sources_exists(session: Session) -> bool:
-    """Check if there is at least one source available
-
-    Parameters
-    ----------
-    session : Session
-        sqlalchemy session
-
-    Returns
-    -------
-    bool
-    """
-    return session.query(Source.id).limit(1).count() > 0
