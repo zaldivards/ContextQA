@@ -206,6 +206,7 @@ class BatchProcessor(BaseModel):
     def _wrapper(self, *args) -> None | str:
         try:
             self.manager.persist(*args)
+            return None
         except DuplicatedSourceError:
             return args[0]  # filename
 
