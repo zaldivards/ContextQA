@@ -6,7 +6,7 @@ from pathlib import Path
 import fitz
 from contextqa import settings
 from contextqa.models.orm import Source as SourceORM
-from contextqa.models.schemas import Source, SourceFormat
+from contextqa.models.schemas import SourceSegment, SourceFormat
 from contextqa.utils.exceptions import DuplicatedSourceError
 from langchain.docstore.document import Document
 from sqlalchemy.orm import Session
@@ -115,7 +115,7 @@ def _csv_repr(cell_content: str) -> list[dict]:
     return [data]
 
 
-def build_sources(sources: list[Document]) -> list[Source]:
+def build_sources(sources: list[Document]) -> list[SourceSegment]:
     """Analyze each source and transform them into a format the client can render
 
     Parameters
@@ -157,7 +157,7 @@ def build_sources(sources: list[Document]) -> list[Source]:
                     content = _csv_repr(source.page_content)
 
         if title not in processed_sources:
-            source_data = Source(title=title, format=format_, content=content)
+            source_data = SourceSegment(title=title, format=format_, content=content)
             result.append(source_data.model_dump())
             processed_sources.add(title)
 

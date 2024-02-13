@@ -23,7 +23,19 @@ class SourceFormat(str, Enum):
     CSV = "csv"
 
 
-class Source(BaseModel):
+class BaseSource(BaseModel):
+    """Base source model"""
+
+    title: str
+
+
+class Source(BaseSource):
+    """Base source model"""
+
+    digest: str
+
+
+class SourceSegment(BaseSource):
     """Source returned as metadata in QA sessions"""
 
     title: str
