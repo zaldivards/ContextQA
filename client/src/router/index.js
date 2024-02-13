@@ -13,18 +13,18 @@ const routes = [
         component: Home
     },
     {
-        path: '/chat/document',
-        name: 'chat-document',
+        path: '/chat/qa',
+        name: 'chat-qa',
         component: DocumentQA
     },
     {
-        path: '/chat/talk',
-        name: 'chat-talk',
+        path: '/chat/conversational',
+        name: 'chat-conversational',
         component: Chat
     },
     {
-        path: '/context',
-        name: 'context',
+        path: '/sources/ingestion',
+        name: 'ingestion',
         component: ContextManager
     }
 ]

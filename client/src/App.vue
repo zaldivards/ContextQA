@@ -59,12 +59,12 @@ export default {
             {
               label: "Chat",
               icon: "pi pi-fw pi-comments",
-              command: () => this.$router.push({ path: "/chat/talk" }),
+              command: () => this.$router.push({ path: "/chat/conversational" }),
             },
             {
               label: "QA",
               icon: "pi pi-fw pi-file-o",
-              command: () => this.$router.push({ path: "/chat/document" }),
+              command: () => this.$router.push({ path: "/chat/qa" }),
             },
           ],
         },
@@ -74,7 +74,7 @@ export default {
             {
               label: "Ingestion",
               icon: "pi pi-fw pi-upload",
-              command: () => this.$router.push({ path: "/context" }),
+              command: () => this.$router.push({ path: "/sources/ingestion" }),
             },
             {
               label: "Manage",
