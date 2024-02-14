@@ -1,10 +1,10 @@
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Callable
 
 from langchain.agents import initialize_agent, AgentType, Agent
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain.callbacks.base import AsyncCallbackHandler
 from langchain.callbacks.streaming_aiter_final_only import AsyncFinalIteratorCallbackHandler
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models.base import BaseChatModel
 from langchain.chains import ConversationChain
 from langchain.chains.conversation.prompt import DEFAULT_TEMPLATE
 from langchain.prompts.chat import (
@@ -36,7 +36,9 @@ _MESSAGES = [
 ]
 
 
-def get_llm_assistant(internet_access: bool) -> tuple[ConversationChain | Agent, AsyncCallbackHandler]:
+def get_llm_assistant(
+    internet_access: bool, partial_model: Callable[..., BaseChatModel]
+) -> tuple[ConversationChain | Agent, AsyncCallbackHandler]:
     """Return certain LLM assistant based on the system configuration
 
     Parameters
@@ -53,7 +55,7 @@ def get_llm_assistant(internet_access: bool) -> tuple[ConversationChain | Agent,
         callback = AsyncFinalIteratorCallbackHandler(
             answer_prefix_tokens=["Final", "Answer", '",', "", '"', "action", "_input", '":', '"']
         )
-        llm = ChatOpenAI(temperature=0, streaming=True, callbacks=[callback])
+        llm = partial_model(streaming=True, callbacks=[callback])
         return (
             initialize_agent(
                 [searcher],
@@ -67,12 +69,12 @@ def get_llm_assistant(internet_access: bool) -> tuple[ConversationChain | Agent,
             callback,
         )
     callback = AsyncIteratorCallbackHandler()
-    llm = ChatOpenAI(temperature=0, streaming=True, callbacks=[callback])
+    llm = partial_model(streaming=True, callbacks=[callback])
     prompt = ChatPromptTemplate.from_messages(_MESSAGES)
     return ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings.debug), callback
 
 
-def qa_service(params: LLMQueryRequest) -> AsyncGenerator:
+def qa_service(params: LLMQueryRequest, partial_model: Callable[..., BaseChatModel]) -> AsyncGenerator:
     """Chat with the llm
 
     Parameters
@@ -85,5 +87,5 @@ def qa_service(params: LLMQueryRequest) -> AsyncGenerator:
     AsyncGenerator
     """
 
-    assistant, callback = get_llm_assistant(params.internet_access)
+    assistant, callback = get_llm_assistant(params.internet_access, partial_model)
     return stream(assistant.arun(input=params.message), callback)

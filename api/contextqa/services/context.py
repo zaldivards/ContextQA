@@ -2,13 +2,13 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import AsyncGenerator, BinaryIO, Type
+from typing import AsyncGenerator, BinaryIO, Type, Callable
 
 import pinecone
 from chromadb import PersistentClient
 from fastapi import UploadFile
 from langchain.callbacks import AsyncIteratorCallbackHandler
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models.base import BaseChatModel
 from langchain.docstore.document import Document
 from langchain.document_loaders import CSVLoader, PyMuPDFLoader, TextLoader
 from langchain.document_loaders.base import BaseLoader
@@ -114,7 +114,7 @@ class LLMContextManager(BaseModel, ABC):
         """
         raise NotImplementedError
 
-    def load_and_respond(self, question: str) -> AsyncGenerator:
+    def load_and_respond(self, question: str, partial_model: Callable[..., BaseChatModel]) -> AsyncGenerator:
         """Load the context and answer the question
 
         Parameters
@@ -129,12 +129,12 @@ class LLMContextManager(BaseModel, ABC):
         """
         callback = AsyncIteratorCallbackHandler()
         context_util = self.context_object()
-        llm = ChatOpenAI(verbose=True, temperature=0, callbacks=[callback], streaming=True)
+        llm = partial_model(verbose=True, callbacks=[callback], streaming=True)
         qa_chain = CustomQAChain.from_llm(
             llm=llm,
             # this separate LLM instance is needed to avoid streaming the result of the
             # standalone question
-            condense_question_llm=ChatOpenAI(temperature=0),
+            condense_question_llm=partial_model(temperature=0),
             retriever=context_util.as_retriever(),
             memory=memory.Redis(session="context"),
             condense_question_prompt=prompts.CONTEXTQA_RETRIEVAL_PROMPT,
