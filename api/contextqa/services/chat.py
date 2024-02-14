@@ -18,7 +18,6 @@ from contextqa import settings
 from contextqa.agents.tools import searcher
 from contextqa.models.schemas import LLMQueryRequest
 from contextqa.utils import memory, prompts
-from contextqa.agents.tools import searcher
 from contextqa.utils.streaming import stream
 
 

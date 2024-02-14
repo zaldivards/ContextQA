@@ -79,3 +79,24 @@ class LLMQueryRequest(BaseModel):
 
     message: str
     internet_access: bool = False
+
+
+class Settings(BaseModel):
+    """Used to update settings"""
+
+    platform: Literal["openai", "huggingface"]
+    model: str
+    temperature: float
+
+
+class PlatformDetail(BaseModel):
+    """Represents a platform and its available models"""
+
+    platform: Literal["openai", "huggingface"]
+    models: list[str]
+
+
+class SettingsDetail(Settings):
+    """Response object for settings"""
+
+    platforms_options: list[PlatformDetail]
