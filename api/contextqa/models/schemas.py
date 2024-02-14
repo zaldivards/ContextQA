@@ -32,6 +32,7 @@ class BaseSource(BaseModel):
 class Source(BaseSource):
     """Base source model"""
 
+    id: int
     digest: str
 
 
@@ -87,6 +88,7 @@ class Settings(BaseModel):
     platform: Literal["openai", "huggingface"]
     model: str
     temperature: float
+    local: bool = False
 
 
 class PlatformDetail(BaseModel):

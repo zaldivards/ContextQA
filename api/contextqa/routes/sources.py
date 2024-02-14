@@ -71,7 +71,10 @@ async def get_active_sources(
 ):
     """List active sources"""
     try:
-        return [Source(title=source.name, digest=source.digest) for source in get_sources(session, limit, skip)]
+        return [
+            Source(id=source.id, title=source.name, digest=source.digest)
+            for source in get_sources(session, limit, skip)
+        ]
     except Exception as ex:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
