@@ -1,4 +1,5 @@
 import logging
+import json
 from pathlib import Path
 
 from pydantic import field_validator
@@ -14,6 +15,7 @@ def get_logger() -> logging.Logger:
 class AppSettings(BaseSettings):
     """Project settings"""
 
+    config_path: Path = Path("settings.json")
     default_collection: str = "contextqa-default"
     tmp_separator: str = ":::sep:::"
     media_home: Path = Path(".media/")
@@ -35,6 +37,17 @@ class AppSettings(BaseSettings):
     def debug(self) -> bool:
         """lazy attr based on the deployment attr"""
         return self.deployment == "dev"
+
+    @property
+    def model_settings(self) -> dict:
+        """Get the initial settings"""
+        with open(self.config_path, mode="r", encoding="utf-8") as settings_file:
+            return json.load(settings_file)
+
+    @model_settings.setter
+    def model_settings(self, model_settings: dict):
+        with open(self.config_path, mode="w", encoding="utf-8") as settings_file:
+            return json.dump(model_settings, settings_file)
 
     @field_validator("media_home")
     @classmethod
