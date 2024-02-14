@@ -1,11 +1,12 @@
 from contextqa import settings as app_settings
+from contextqa.models import SettingsSchema
 
 
 def _config_manager():
     """Config manager closure"""
-    settings: dict = app_settings.model_settings
+    settings: SettingsSchema = app_settings.model_settings
 
-    def config_manager(**kwargs) -> dict:
+    def config_manager(**kwargs) -> SettingsSchema:
         """Manage settings. Note that this utility can be used either to get or set settings.
 
         Possible use cases are listed below:
@@ -17,7 +18,7 @@ def _config_manager():
 
         Returns
         -------
-        dict
+        SettingsSchema
         """
         nonlocal settings
         if not kwargs:
