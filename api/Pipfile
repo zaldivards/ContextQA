@@ -27,6 +27,7 @@ pymysql = "*"
 text-generation = "*"
 langchain-google-genai = "*"
 langchain-openai = "*"
+langchainhub = "*"
 
 [dev-packages]
 black = "*"
