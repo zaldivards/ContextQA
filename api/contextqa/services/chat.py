@@ -1,33 +1,25 @@
 from typing import AsyncGenerator
 
-from langchain.agents import initialize_agent, AgentType, Agent
-from langchain.callbacks.base import AsyncCallbackHandler
-from langchain.callbacks.streaming_aiter_final_only import AsyncFinalIteratorCallbackHandler
-from langchain.chains import ConversationChain
-from langchain.prompts.chat import ChatPromptTemplate, SystemMessagePromptTemplate, MessagesPlaceholder
+from langchain import hub
+from langchain.agents import AgentExecutor, create_json_chat_agent
+from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables.history import RunnableWithMessageHistory
 
-from contextqa import settings
 from contextqa.agents.tools import searcher
 from contextqa.models import PartialModelData
 from contextqa.models.schemas import LLMQueryRequest
-from contextqa.utils import memory, prompts
+from contextqa.utils import memory
 from contextqa.utils.streaming import consumer_producer
 
 
-from langchain_core.runnables.history import RunnableWithMessageHistory
-
 _MESSAGES = [
-    SystemMessagePromptTemplate.from_template(
-        "You are a helpful assistant called ContextQA that answers user inputs and questions"
-    ),
+    ("system", "You are a helpful assistant called ContextQA that answers user inputs and questions"),
     MessagesPlaceholder(variable_name="history"),
     ("human", "{input}"),
 ]
 
 
-def get_llm_assistant(
-    internet_access: bool, partial_model_data: PartialModelData
-) -> tuple[ConversationChain | Agent, AsyncCallbackHandler]:
+def get_llm_assistant(internet_access: bool, partial_model_data: PartialModelData) -> RunnableWithMessageHistory:
     """Return certain LLM assistant based on the system configuration
 
     Parameters
@@ -37,29 +29,25 @@ def get_llm_assistant(
 
     Returns
     -------
-    ConversationChain | Agent, AsyncCallbackHandler
+    RunnableWithMessageHistory
     """
-
-    if internet_access:
-        callback = partial_model_data.callback or AsyncFinalIteratorCallbackHandler(
-            answer_prefix_tokens=["Final", "Answer", '",', "", '"', "action", "_input", '":', '"']
-        )
-        llm = partial_model_data.partial_model(streaming=True, callbacks=[callback])
-        return (
-            initialize_agent(
-                [searcher],
-                llm=llm,
-                agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
-                memory=memory.Redis("default", internet_access=True),
-                verbose=settings.debug,
-                agent_kwargs={"prefix": prompts.PREFIX},
-                handle_parsing_errors=True,
-            ),
-            callback,
-        )
+    tools = [searcher]
     llm = partial_model_data.partial_model(streaming=True)
+    if internet_access:
+        prompt = hub.pull("hwchase17/react-chat-json")
+        agent = create_json_chat_agent(
+            llm=partial_model_data.partial_model(streaming=True),
+            prompt=prompt,
+            tools=tools,
+        )
+        agent_executor = AgentExecutor(agent=agent, tools=tools)
+        return RunnableWithMessageHistory(
+            agent_executor,
+            memory.Redis,
+            input_messages_key="input",
+            history_messages_key="chat_history",
+        )
     prompt = ChatPromptTemplate.from_messages(_MESSAGES)
-
     chain = prompt | llm
     chain_with_history = RunnableWithMessageHistory(
         chain, memory.Redis, input_messages_key="input", history_messages_key="history"
