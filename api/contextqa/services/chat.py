@@ -1,43 +1,32 @@
-from typing import AsyncGenerator, Callable
+from typing import AsyncGenerator
 
 from langchain.agents import initialize_agent, AgentType, Agent
-from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain.callbacks.base import AsyncCallbackHandler
 from langchain.callbacks.streaming_aiter_final_only import AsyncFinalIteratorCallbackHandler
-from langchain.chat_models.base import BaseChatModel
 from langchain.chains import ConversationChain
-from langchain.chains.conversation.prompt import DEFAULT_TEMPLATE
-from langchain.prompts.chat import (
-    AIMessagePromptTemplate,
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    SystemMessagePromptTemplate,
-)
+from langchain.prompts.chat import ChatPromptTemplate, SystemMessagePromptTemplate, MessagesPlaceholder
 
 from contextqa import settings
 from contextqa.agents.tools import searcher
+from contextqa.models import PartialModelData
 from contextqa.models.schemas import LLMQueryRequest
 from contextqa.utils import memory, prompts
-from contextqa.utils.streaming import stream
+from contextqa.utils.streaming import consumer_producer
 
+
+from langchain_core.runnables.history import RunnableWithMessageHistory
 
 _MESSAGES = [
     SystemMessagePromptTemplate.from_template(
-        """You are a helpful assistant called ContextQA that answer user inputs. You emphasize your name in every greeting.
-
-    
-    
-    Example: Hello, I am ContextQA, how can I help you?
-    """
+        "You are a helpful assistant called ContextQA that answers user inputs and questions"
     ),
-    HumanMessagePromptTemplate.from_template("Hi"),
-    AIMessagePromptTemplate.from_template("Hello, I am your assitant ContextQA, how may I help you?"),
-    SystemMessagePromptTemplate.from_template(DEFAULT_TEMPLATE),
+    MessagesPlaceholder(variable_name="history"),
+    ("human", "{input}"),
 ]
 
 
 def get_llm_assistant(
-    internet_access: bool, partial_model: Callable[..., BaseChatModel]
+    internet_access: bool, partial_model_data: PartialModelData
 ) -> tuple[ConversationChain | Agent, AsyncCallbackHandler]:
     """Return certain LLM assistant based on the system configuration
 
@@ -52,10 +41,10 @@ def get_llm_assistant(
     """
 
     if internet_access:
-        callback = AsyncFinalIteratorCallbackHandler(
+        callback = partial_model_data.callback or AsyncFinalIteratorCallbackHandler(
             answer_prefix_tokens=["Final", "Answer", '",', "", '"', "action", "_input", '":', '"']
         )
-        llm = partial_model(streaming=True, callbacks=[callback])
+        llm = partial_model_data.partial_model(streaming=True, callbacks=[callback])
         return (
             initialize_agent(
                 [searcher],
@@ -68,13 +57,17 @@ def get_llm_assistant(
             ),
             callback,
         )
-    callback = AsyncIteratorCallbackHandler()
-    llm = partial_model(streaming=True, callbacks=[callback])
+    llm = partial_model_data.partial_model(streaming=True)
     prompt = ChatPromptTemplate.from_messages(_MESSAGES)
-    return ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings.debug), callback
+
+    chain = prompt | llm
+    chain_with_history = RunnableWithMessageHistory(
+        chain, memory.Redis, input_messages_key="input", history_messages_key="history"
+    )
+    return chain_with_history
 
 
-def qa_service(params: LLMQueryRequest, partial_model: Callable[..., BaseChatModel]) -> AsyncGenerator:
+def qa_service(params: LLMQueryRequest, partial_model: PartialModelData) -> AsyncGenerator:
     """Chat with the llm
 
     Parameters
@@ -87,5 +80,7 @@ def qa_service(params: LLMQueryRequest, partial_model: Callable[..., BaseChatMod
     AsyncGenerator
     """
 
-    assistant, callback = get_llm_assistant(params.internet_access, partial_model)
-    return stream(assistant.arun(input=params.message), callback)
+    assistant = get_llm_assistant(params.internet_access, partial_model)
+    return consumer_producer(
+        assistant.astream({"input": params.message}, config={"configurable": {"session_id": "default"}})
+    )

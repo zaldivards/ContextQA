@@ -1,7 +1,7 @@
 # pylint: disable=C0413
 from fastapi import APIRouter, HTTPException, status
 
-from contextqa.models.schemas import SettingsDetail, PlatformDetail, Settings
+from contextqa.models.schemas import SettingsDetail, PlatformDetail, SettingsUpdate, Settings
 from contextqa.utils.settings import get_or_set
 
 router = APIRouter()
@@ -18,6 +18,7 @@ async def get_settings():
             platforms_options=[
                 PlatformDetail(platform="openai", models=["gpt-3.5-turbo", "gpt-4"]),
                 PlatformDetail(platform="huggingface", models=["tiiuae/falcon-7b-instruct"]),
+                PlatformDetail(platform="google", models=["gemini"]),
             ]
         )
     except Exception as ex:
@@ -28,7 +29,7 @@ async def get_settings():
 
 
 @router.put("/", response_model=Settings)
-async def update_settings(settings: Settings):
+async def update_settings(settings: SettingsUpdate):
     """
     Provide a message and receive a response from the LLM
     """
