@@ -24,6 +24,9 @@ pymupdf = "*"
 sqlalchemy = "*"
 alembic = "*"
 pymysql = "*"
+text-generation = "*"
+langchain-google-genai = "*"
+langchain-openai = "*"
 
 [dev-packages]
 black = "*"
