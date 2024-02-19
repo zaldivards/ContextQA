@@ -7,6 +7,7 @@ from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain.chains import ConversationalRetrievalChain
 from langchain.docstore.document import Document
 from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage, AIMessage, AIMessageChunk
+from langchain_core.runnables.utils import AddableDict
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_genai.chat_models import _convert_to_parts
 from langchain_google_genai._function_utils import convert_to_genai_function_declarations
@@ -16,6 +17,10 @@ from contextqa.utils.sources import build_sources
 
 class NoneType:
     """None sentinel type"""
+
+
+def _ensure_final_answer(chunk: AddableDict) -> str | None:
+    return chunk.get("output")
 
 
 async def consumer_producer(response_stream: AsyncGenerator[AIMessageChunk, None]) -> AsyncGenerator[str, None]:
@@ -35,11 +40,19 @@ async def consumer_producer(response_stream: AsyncGenerator[AIMessageChunk, None
     str
     """
     async for chunk in response_stream:
-        if len(chunk.content) > 10:
-            for word in chunk.content.split():
+        if isinstance(chunk, AddableDict):
+            # this type is streamed by agents, as normally it streams all the intermediate steps
+            content = _ensure_final_answer(chunk)
+            if not content:
+                continue
+        else:
+            content = chunk.content
+        if len(content) > 10:
+            for word in content.split():
+                await asyncio.sleep(0.05)
                 yield f"{word} "
         else:
-            yield chunk.content
+            yield content
 
 
 def _parse_chat_history(input_messages: Sequence[BaseMessage]) -> list:
