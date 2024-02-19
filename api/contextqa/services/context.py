@@ -1,31 +1,37 @@
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from operator import itemgetter
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import AsyncGenerator, BinaryIO, Type, Callable
+from typing import AsyncGenerator, BinaryIO, Type
 
 import pinecone
 from chromadb import PersistentClient
 from fastapi import UploadFile
-from langchain.callbacks import AsyncIteratorCallbackHandler
-from langchain.chat_models.base import BaseChatModel
-from langchain.docstore.document import Document
-from langchain.document_loaders import CSVLoader, PyMuPDFLoader, TextLoader
+from langchain.schema import format_document, BasePromptTemplate
+from langchain.memory.chat_memory import BaseChatMemory
 from langchain.document_loaders.base import BaseLoader
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.base import VectorStore
 from langchain.vectorstores.chroma import Chroma
 from langchain.vectorstores.pinecone import Pinecone
+from langchain_community.document_loaders import CSVLoader, PyMuPDFLoader, TextLoader
+from langchain_community.docstore.document import Document
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.messages import get_buffer_string
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough, RunnableLambda, RunnableSequence
+from langchain_openai import OpenAIEmbeddings
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from contextqa import get_logger, settings
+from contextqa.models import PartialModelData
 from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceFormat, IngestionResult
 from contextqa.utils import memory, prompts
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
 from contextqa.utils.sources import check_digest, get_not_seen_chunks
-from contextqa.utils.streaming import CustomQAChain, stream
+from contextqa.utils.streaming import consumer_producer_qa
 
 
 LOGGER = get_logger()
@@ -34,8 +40,50 @@ LOADERS: dict[str, Type[BaseLoader]] = {".pdf": PyMuPDFLoader, ".txt": TextLoade
 chroma_client = PersistentClient(path=str(settings.local_vectordb_home))
 
 
+def _combine_documents(
+    docs: list[Document],
+    document_prompt: BasePromptTemplate = prompts.DEFAULT_DOCUMENT_PROMPT,
+    document_separator: str = "\n\n",
+):
+    doc_strings = [format_document(doc, document_prompt) for doc in docs]
+    return document_separator.join(doc_strings)
+
+
 class LLMContextManager(BaseModel, ABC):
     """Base llm manager"""
+
+    def _get_runnable_qa(self, model: BaseChatModel, memory_obj: BaseChatMemory) -> RunnableSequence:
+        loaded_memory = RunnablePassthrough.assign(
+            chat_history=RunnableLambda(memory_obj.load_memory_variables) | itemgetter("chat_history"),
+        )
+        standalone_question = {
+            "standalone_question": {
+                "question": lambda x: x["question"],
+                "chat_history": lambda x: get_buffer_string(x["chat_history"]),
+            }
+            | prompts.CONTEXTQA_RETRIEVAL_PROMPT
+            | model
+            | StrOutputParser()
+        }
+        # Now we retrieve the documents
+        retrieved_documents = {
+            "docs": itemgetter("standalone_question") | self.context_object().as_retriever(),
+            "question": lambda x: x["standalone_question"],
+        }
+        # Now we construct the inputs for the final prompt
+        final_inputs = {
+            "context": lambda x: _combine_documents(x["docs"]),
+            "question": itemgetter("question"),
+        }
+        # And finally, we do the part that returns the answers
+        answer = {
+            "answer": final_inputs | prompts.ANSWER_PROMPT | model,
+            "docs": itemgetter("docs"),
+        }
+        # And now we put it all together!
+        final_chain = loaded_memory | standalone_question | retrieved_documents | answer
+
+        return final_chain
 
     def load_and_preprocess(self, filename: str, file_: BinaryIO, session: Session) -> tuple[list[Document], list[str]]:
         """Load and preprocess the file content
@@ -114,7 +162,7 @@ class LLMContextManager(BaseModel, ABC):
         """
         raise NotImplementedError
 
-    def load_and_respond(self, question: str, partial_model: Callable[..., BaseChatModel]) -> AsyncGenerator:
+    def load_and_respond(self, question: str, partial_model_data: PartialModelData) -> AsyncGenerator:
         """Load the context and answer the question
 
         Parameters
@@ -127,22 +175,9 @@ class LLMContextManager(BaseModel, ABC):
         AsyncGenerator
             stream of the final response
         """
-        callback = AsyncIteratorCallbackHandler()
-        context_util = self.context_object()
-        llm = partial_model(verbose=True, callbacks=[callback], streaming=True)
-        qa_chain = CustomQAChain.from_llm(
-            llm=llm,
-            # this separate LLM instance is needed to avoid streaming the result of the
-            # standalone question
-            condense_question_llm=partial_model(temperature=0),
-            retriever=context_util.as_retriever(),
-            memory=memory.Redis(session="context"),
-            condense_question_prompt=prompts.CONTEXTQA_RETRIEVAL_PROMPT,
-            verbose=settings.debug,
-            return_source_documents=True,
-        )
-
-        return stream(qa_chain.arun(question), callback, entrypoint_obj=qa_chain)
+        llm = partial_model_data.partial_model(streaming=True)
+        runnable = self._get_runnable_qa(llm, memory.Redis(session="context", buffer=True))
+        return consumer_producer_qa(runnable.astream({"question": question}))
 
 
 class LocalManager(LLMContextManager):
