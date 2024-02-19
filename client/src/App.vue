@@ -7,7 +7,7 @@
           class="my-4 sticky z-4 border-none w-full bg-inherit"
           :pt="{
             label: { class: 'text-gl text-white-alpha-80 shadow-6' },
-            submenuHeader: { class: 'text-gl text-white-alpha-80 bg-inherit' },
+            submenuHeader: { class: 'text-gl bg-inherit text-teal-300' },
             icon: { class: 'text-gl text-white-alpha-80 shadow-6' },
             separator: { class: 'border-black-alpha-10' },
             action: ({ props, state, context }) => ({
