@@ -23,6 +23,7 @@ def _js_disable_message(text: str) -> bool:
 
 def _searcher(search_term: str):
     """Search for the provided search term in Google Search when the assistant could not find information to answer"""
+    LOGGER.info("Searching for the next search term: '%s'", search_term)
     results = search(search_term, num_results=5)
     for url in results:
         try:
