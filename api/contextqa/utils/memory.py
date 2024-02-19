@@ -43,12 +43,12 @@ def _requires_raw(session: str, internet_access: bool) -> bool:
 
 def _redis(
     session: Literal["default", "context"] = "default", internet_access: bool = False, buffer: bool = False
-) -> BaseMemory:
+) -> RedisChatMessageHistory | ConversationBufferWindowMemory:
     history_db = LimitedRedisMemory(session_id=session, url=settings.redis_url)
     if not buffer:
         return history_db
     return ConversationBufferWindowMemory(
-        chat_memory=history_db,
+        chat_memory=RedisChatMessageHistory(session_id=session, url=settings.redis_url),
         max_token_limit=1000,
         k=5,
         return_messages=_requires_raw(session, internet_access),
@@ -56,7 +56,7 @@ def _redis(
     )
 
 
-def _redis_with_summary(session: Literal["default", "context"] = "default") -> BaseMemory:
+def _redis_with_summary(session: Literal["default", "context"] = "default") -> RedisChatMessageHistory:
     history_db = LimitedRedisMemory(session_id=session, url=settings.redis_url)
     memory = ConversationSummaryBufferMemory(
         llm=OpenAI(temperature=0),
