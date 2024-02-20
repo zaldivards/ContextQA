@@ -3,10 +3,9 @@ from typing import Generator
 
 from google.generativeai.types.safety_types import HarmBlockThreshold, HarmCategory
 from langchain_openai import ChatOpenAI
-from sqlalchemy.orm import scoped_session
 
 from contextqa.models import PartialModelData
-from contextqa.services.db import SessionLocal
+from contextqa.services.db import session_factory
 from contextqa.utils.settings import get_or_set
 from contextqa.utils.streaming import ChainCompatibleGoogleGenerativeAI
 
@@ -20,7 +19,7 @@ def get_partial_initialized_model() -> PartialModelData:
     """
     model_settings = get_or_set()
 
-    if model_settings["platform"] == "openai":
+    if model_settings["provider"] == "openai":
         return PartialModelData(
             partial_model=partial(
                 ChatOpenAI,
@@ -30,7 +29,7 @@ def get_partial_initialized_model() -> PartialModelData:
             ),
             callback=None,
         )
-    if model_settings["platform"] == "google":
+    if model_settings["provider"] == "google":
         return PartialModelData(
             partial_model=partial(
                 ChainCompatibleGoogleGenerativeAI,
@@ -58,7 +57,7 @@ def get_db() -> Generator:
         db session
     """
     try:
-        session = scoped_session(SessionLocal)
+        session = session_factory()
         yield session
         session.commit()
     except:
