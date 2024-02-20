@@ -14,7 +14,7 @@
             </DataTable>
 
             <Button type="button" label="Remove selected sources" icon="pi pi-times" severity="danger"
-                @click="deleteSources" class="col-offset-4 lg:col-offset-0 col-4 lg:col-3 mt-5" />
+                @click="deleteSources" class="col-offset-4 lg:col-offset-0 col-4 lg:col-3 mt-5" :disabled="disableButton" />
         </div>
 
     </div>
@@ -72,6 +72,11 @@ export default {
         pageUpdated(evt) {
             this.updateSources(evt.rows, evt.first)
         },
+    },
+    computed: {
+        disableButton() {
+            return this.selectedSources.length == 0;
+        }
     }
 }
 </script>
