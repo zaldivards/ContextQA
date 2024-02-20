@@ -2,28 +2,18 @@
   <div>
     <MainLayout>
       <template #menu>
-        <Menu
-          :model="items"
-          class="my-4 sticky z-4 border-none w-full bg-inherit"
-          :pt="{
-            label: { class: 'text-gl text-white-alpha-80 shadow-6' },
-            submenuHeader: { class: 'text-gl bg-inherit text-teal-300' },
-            icon: { class: 'text-gl text-white-alpha-80 shadow-6' },
-            separator: { class: 'border-black-alpha-10' },
-            action: ({ props, state, context }) => ({
-              class: context.focused ? 'bg-menu-focus' : undefined,
-            }),
-          }"
-        >
+        <Menu :model="items" class="my-4 sticky z-4 border-none w-full bg-inherit" :pt="{
+          label: { class: 'text-gl text-white-alpha-80 shadow-6' },
+          submenuHeader: { class: 'text-gl bg-inherit text-teal-300' },
+          icon: { class: 'text-gl text-white-alpha-80 shadow-6' },
+          separator: { class: 'border-black-alpha-10' },
+          action: ({ props, state, context }) => ({
+            class: context.focused ? 'bg-menu-focus' : undefined,
+          }),
+        }">
           <template #start>
             <div class="w-full">
-              <img
-                alt="logo"
-                src="/images/title.png"
-                height="30"
-                class="m-auto mb-3 block"
-                title="ContextQA"
-              />
+              <img alt="logo" src="/images/title.png" height="30" class="m-auto mb-3 block" title="ContextQA" />
             </div>
           </template>
         </Menu>
@@ -79,6 +69,7 @@ export default {
             {
               label: "Manage",
               icon: "pi pi-fw pi-th-large",
+              command: () => this.$router.push({ path: "/sources/" }),
             },
           ],
         },
@@ -124,10 +115,12 @@ body {
   margin: 0;
   background-color: #0e1b30;
 }
+
 .disabled {
   pointer-events: none;
   outline: none;
 }
+
 .top-img {
   top: 4px;
 }
@@ -156,6 +149,7 @@ body {
 .bg-contextqa-primary {
   background-color: #0e1624 !important;
 }
+
 .bg-contextqa-primary-main {
   background-color: #0e1b30 !important;
 }

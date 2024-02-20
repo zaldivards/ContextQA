@@ -4,6 +4,8 @@ import ContextManager from "@/views/ContextManager"
 import DocumentQA from "@/views/DocumentQA.vue"
 import Home from "@/views/Home"
 import ModelSettings from "@/views/ModelSettings"
+import SourcesManager from "@/views/SourcesManager"
+
 
 
 
@@ -29,10 +31,15 @@ const routes = [
         component: ContextManager
     },
     {
+        path: '/sources/',
+        name: 'sources-manager',
+        component: SourcesManager
+    },
+    {
         path: '/settings/models',
         name: 'models',
         component: ModelSettings
-    }
+    },
 ]
 
 const router = createRouter({
