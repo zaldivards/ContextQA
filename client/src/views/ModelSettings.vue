@@ -23,7 +23,7 @@
                 }"></Listbox>
             <div class="col-7">
                 <label for="temperature">Temperature</label>
-                <Slider v-model="temperature" class="mt-2" :min="0.0" :max="2.0" :step="0.1" id="temperature" />
+                <Slider v-model="temperature" class="mt-2" :min="0.1" :max="2.0" :step="0.1" id="temperature" />
                 <div class="mt-2">{{ temperature }}</div>
             </div>
             <div class="col-12">
@@ -57,10 +57,10 @@ export default {
     created() {
         fetchResource("/settings/").then(settings => {
             this.selectedModel = settings.model
-            this.provider = settings.platform
+            this.provider = settings.provider
             this.temperature = settings.temperature
-            settings.platforms_options.forEach(entry => {
-                this.globalModelOptions[entry.platform] = entry.models
+            settings.provider_options.forEach(entry => {
+                this.globalModelOptions[entry.provider] = entry.models
             })
         })
             .catch((error) => showError(error));
@@ -78,14 +78,14 @@ export default {
         setConfig() {
             console.log(this.selectedModel, this.temperature, this.provider);
             fetchResource("/settings/", {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ platform: this.provider, model: this.selectedModel, temperature: this.temperature, token: this.token })
+                body: JSON.stringify({ provider: this.provider, model: this.selectedModel, temperature: this.temperature, token: this.token || null })
             }).then(response => {
                 this.selectedModel = response.model
-                this.provider = response.platform
+                this.provider = response.provider
                 this.temperature = response.temperature
                 showSuccess("Settings were updated successfully")
             }).catch((error) => showError(error));
@@ -96,7 +96,7 @@ export default {
             return this.globalModelOptions[this.provider]
         },
         disableButton() {
-            return this.selectedModel == null || !this.token
+            return this.selectedModel == null
         }
     }
 }

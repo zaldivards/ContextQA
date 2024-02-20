@@ -85,26 +85,26 @@ class LLMQueryRequest(BaseModel):
 class Settings(BaseModel):
     """Used to show settings"""
 
-    platform: Literal["openai", "huggingface", "google"]
-    model: str
-    temperature: float
+    provider: Literal["openai", "huggingface", "google"] | None = None
+    model: str | None = None
+    temperature: float | None = None
     local: bool = False
 
 
 class SettingsUpdate(Settings):
     """Used to update settings"""
 
-    token: str
+    token: str | None = None
 
 
-class PlatformDetail(BaseModel):
-    """Represents a platform and its available models"""
+class ProviderDetail(BaseModel):
+    """Represents a provider and its available models"""
 
-    platform: Literal["openai", "huggingface", "google"]
+    provider: Literal["openai", "huggingface", "google"]
     models: list[str]
 
 
 class SettingsDetail(Settings):
     """Response object for settings"""
 
-    platforms_options: list[PlatformDetail]
+    provider_options: list[ProviderDetail]

@@ -8,7 +8,7 @@ from langchain.callbacks.streaming_aiter_final_only import AsyncFinalIteratorCal
 class SettingsSchema(TypedDict):
     """Dict schema returned from the config manager"""
 
-    platform: Literal["openai", "huggingface", "google"]
+    provider: Literal["openai", "huggingface", "google"]
     model: str
     temperature: float
     local: bool
