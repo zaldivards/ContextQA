@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, Depends, status, Query
 from sqlalchemy.orm import Session
 
 from contextqa import context, get_logger
-from contextqa.models.schemas import SimilarityProcessor, SourceStatus, IngestionResult, Source
+from contextqa.models.schemas import SimilarityProcessor, SourceStatus, IngestionResult, Source, SourcesList
 from contextqa.routes.dependencies import get_db
 from contextqa.services.sources import sources_exists, get_sources
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
@@ -63,7 +63,7 @@ async def check_sources(session: Annotated[Session, Depends(get_db)]):
         ) from ex
 
 
-@router.get("/", response_model=list[Source])
+@router.get("/", response_model=SourcesList)
 async def get_active_sources(
     session: Annotated[Session, Depends(get_db)],
     limit: Annotated[int, Query(ge=1)] = 10,
@@ -71,10 +71,10 @@ async def get_active_sources(
 ):
     """List active sources"""
     try:
-        return [
-            Source(id=source.id, title=source.name, digest=source.digest)
-            for source in get_sources(session, limit, skip)
-        ]
+        sources, total = get_sources(session, limit, skip)
+        return SourcesList(
+            sources=[Source(id=source.id, title=source.name, digest=source.digest) for source in sources], total=total
+        )
     except Exception as ex:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

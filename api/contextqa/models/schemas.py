@@ -36,6 +36,11 @@ class Source(BaseSource):
     digest: str
 
 
+class SourcesList(BaseModel):
+    sources: list[Source]
+    total: int
+
+
 class SourceSegment(BaseSource):
     """Source returned as metadata in QA sessions"""
 

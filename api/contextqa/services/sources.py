@@ -20,8 +20,12 @@ def sources_exists(session: Session) -> bool:
     return session.query(Source.id).limit(1).count() > 0
 
 
-def get_sources(session: Session, limit: int, offset: int) -> Iterable[Source]:
-    """Get a list of sources
+def _sources_count(session: Session) -> int:
+    return session.query(Source.id).count()
+
+
+def get_sources(session: Session, limit: int, offset: int) -> tuple[Iterable[Source], int]:
+    """Get a list of sources and the total number of sources
 
     Parameters
     ----------
@@ -34,6 +38,6 @@ def get_sources(session: Session, limit: int, offset: int) -> Iterable[Source]:
 
     Returns
     -------
-    Iterable[Source]
+    tuple[Iterable[Source], int]
     """
-    return session.query(Source).offset(offset).limit(limit)
+    return session.query(Source).offset(offset).limit(limit), _sources_count(session)
