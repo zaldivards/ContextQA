@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from contextqa import context, get_logger
 from contextqa.models.schemas import SimilarityProcessor, SourceStatus, IngestionResult, Source, SourcesList
 from contextqa.routes.dependencies import get_db
-from contextqa.services.sources import sources_exists, get_sources
+from contextqa.services.sources import sources_exists, get_sources, remove_sources
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
 
 LOGGER = get_logger()
@@ -75,6 +75,18 @@ async def get_active_sources(
         return SourcesList(
             sources=[Source(id=source.id, title=source.name, digest=source.digest) for source in sources], total=total
         )
+    except Exception as ex:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"message": "ContextQA could not get the results from the DB", "cause": str(ex)},
+        ) from ex
+
+
+@router.post("/remove/")
+async def remove_active_sources(sources: list[str], session: Annotated[Session, Depends(get_db)]):
+    """Remove active sources from both the relational and vector databases"""
+    try:
+        return {"removed": remove_sources(session, sources)}
     except Exception as ex:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

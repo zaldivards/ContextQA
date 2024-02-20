@@ -90,6 +90,9 @@ def get_not_seen_chunks(chunks: list[Document], extension: str) -> tuple[list[Do
     unique_ids = set()
     for idx, (chunk, id_) in enumerate(zip(chunks, ids), start=1):
         chunk: Document = chunk
+        # removes random prefix generated when creating the temporary file. This ensures easier queries against
+        # vector databases, using metadata lookups
+        chunk.metadata.update(source=chunk.metadata["source"].split(settings.tmp_separator)[-1])
         if id_ not in unique_ids:
             if len(chunk.page_content) > 2:
                 if extension != SourceFormat.PDF:
