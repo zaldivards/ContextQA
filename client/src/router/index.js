@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Chat from "@/views/Chat.vue"
-import DocumentQA from "@/views/DocumentQA.vue"
 import ContextManager from "@/views/ContextManager"
+import DocumentQA from "@/views/DocumentQA.vue"
 import Home from "@/views/Home"
+import ModelSettings from "@/views/ModelSettings"
 
 
 
@@ -26,6 +27,11 @@ const routes = [
         path: '/sources/ingestion',
         name: 'ingestion',
         component: ContextManager
+    },
+    {
+        path: '/settings/models',
+        name: 'models',
+        component: ModelSettings
     }
 ]
 

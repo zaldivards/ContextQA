@@ -88,6 +88,8 @@ export default {
             {
               label: "Models",
               icon: "pi pi-fw pi-box",
+              command: () => this.$router.push({ path: "/settings/models" }),
+
             },
             {
               label: "Status",
