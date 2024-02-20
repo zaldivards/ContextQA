@@ -24,40 +24,32 @@ async function handleResponse(res) {
 }
 
 
-export async function setContext(endpoint, data) {
-    const formData = new FormData()
-    data.files.forEach(file => {
-        formData.append("documents", file)
-    })
+export async function fetchResource(endpoint, data) {
     const response = await fetch(
-        API_BASE_URL + endpoint, {
-        method: 'POST',
-        body: formData
-    }
+        API_BASE_URL + endpoint, data
     );
     if (response.ok) {
         return await response.json();
     }
     else {
         await handleResponse(response)
+        return;
     }
 }
 
-export async function getSourcesAvailability() {
-    const response = await fetch(
-        API_BASE_URL + "/sources/check-availability", {
-        headers: {
-            'Content-Type': 'application/json',
-        }
+export async function ingestSources(endpoint, data) {
+    const formData = new FormData()
+    data.files.forEach(file => {
+        formData.append("documents", file)
     })
-    if (response.ok) {
-        const json_ = await response.json();
-        return json_.status
+    return await fetchResource(
+        endpoint, {
+        method: 'POST',
+        body: formData
     }
-    else {
-        await handleResponse(response)
-    }
+    );
 }
+
 
 export async function* askLLM(endpoint, params) {
     let sources = []

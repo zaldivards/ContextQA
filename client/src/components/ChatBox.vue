@@ -153,7 +153,7 @@ import {
   showError,
   showWarning,
   getDateTimeStr,
-  getSourcesAvailability,
+  fetchResource,
 } from "@/utils/client";
 import { formatCode } from "@/utils/text";
 
@@ -174,9 +174,9 @@ export default {
   props: { requiresContext: Boolean },
   mounted() {
     if (!this.sourcesReady) {
-      getSourcesAvailability()
-        .then((status) => {
-          this.$store.dispatch("setSourcesFlag", status == "ready");
+      fetchResource("/sources/check-availability/")
+        .then((response) => {
+          this.$store.dispatch("setSourcesFlag", response.status == "ready");
           if (!this.sourcesReady && this.requiresContext) {
             showWarning(
               "You need to ingest at least one source to initialize a QA session"

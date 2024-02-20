@@ -70,7 +70,7 @@ import Button from "primevue/button";
 import Toast from "primevue/toast";
 
 import {
-  setContext,
+  ingestSources,
   showSuccess,
   showError,
   showWarning,
@@ -106,7 +106,7 @@ export default {
       this.loading = true;
       this.disabled = true;
 
-      setContext("/sources/ingest/", {
+      ingestSources("/sources/ingest/", {
         files: this.selectedFiles,
       })
         .then((ingestionResult) => {
