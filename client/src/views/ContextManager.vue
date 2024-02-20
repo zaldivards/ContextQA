@@ -131,7 +131,7 @@ export default {
             );
 
             setTimeout(
-              () => this.$router.push("/chat/document"),
+              () => this.$router.push("/chat/qa"),
               ingestionResult.skipped_files.length > 0 ? 10000 : 2000
             );
           }

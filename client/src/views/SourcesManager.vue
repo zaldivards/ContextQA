@@ -1,5 +1,6 @@
 <template>
     <div class="my-2 justify-content-center">
+        <Toast class="z-5" />
         <div class="px-3 lg:px-0 w-full lg:w-9 m-auto grid">
             <h1>Manage sources</h1>
             <DataTable v-model:selection="selectedSources" :value="sources" dataKey="id" tableStyle="min-width: 50rem"
@@ -20,16 +21,17 @@
 
 <script>
 import Button from "primevue/button";
-
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
+import Toast from "primevue/toast";
 import {
     fetchResource,
-    showError
+    showError,
+    showSuccess
 } from "@/utils/client";
 export default {
     name: "SourcesManager",
-    components: { Column, DataTable, Button },
+    components: { Column, DataTable, Button, Toast },
     data() {
         return {
             loading: false,
@@ -53,7 +55,18 @@ export default {
             this.loading = false
         },
         deleteSources() {
-            console.log(this.selectedSources, this.size, this.totalRecords);
+            const sourcesNames = this.selectedSources.map(entry => entry.title)
+            fetchResource("/sources/remove/", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(sourcesNames)
+            })
+                .then(json => {
+                    showSuccess(`${json.removed} source(s) removed successfully`)
+                    this.sources = this.sources.filter(entry => !sourcesNames.includes(entry.title))
+                }).catch((error) => showError(error));
         },
         pageUpdated(evt) {
             this.updateSources(evt.rows, evt.first)
