@@ -1,5 +1,5 @@
 <template>
-    <label :title="capitalizedProvider" class="text-center">
+    <label :title="capitalizedProvider" class="text-center border-round-2xl" :class="checked ? 'checked' : ''">
         <input type="radio" name="provider" :value="provider" v-model="inputValue" :checked="checked" />
         <img alt="provider logo" :src="src" class="max-w-full max-h-full" />
     </label>
@@ -39,9 +39,22 @@ label:hover {
     cursor: pointer;
 }
 
+label{
+    background-color: rgba(252, 254, 255, 0);
+}
+
+
 input[type="radio"]:checked+img,
 input[type="radio"]:hover+img {
     filter: grayscale(0%);
+}
+
+.checked{
+    background-color: rgba(252, 254, 255, 0.01);
+}
+
+label:hover{
+    background-color: rgba(252, 254, 255, 0.01);
 }
 
 img {
