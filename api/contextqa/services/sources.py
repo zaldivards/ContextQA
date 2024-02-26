@@ -23,11 +23,14 @@ def sources_exists(session: Session) -> bool:
     return session.query(Source.id).limit(1).count() > 0
 
 
-def _sources_count(session: Session) -> int:
-    return session.query(Source.id).count()
+def _sources_count(session: Session, like_query: str | None) -> int:
+    query = session.query(Source)
+    if like_query:
+        query = query.filter(Source.name.ilike(f"%{like_query}%"))
+    return query.count()
 
 
-def get_sources(session: Session, limit: int, offset: int) -> tuple[Iterable[Source], int]:
+def get_sources(session: Session, limit: int, offset: int, like_query: str | None) -> tuple[Iterable[Source], int]:
     """Get a list of sources and the total number of sources
 
     Parameters
@@ -38,12 +41,16 @@ def get_sources(session: Session, limit: int, offset: int) -> tuple[Iterable[Sou
         number of sources to return
     offset : int
         number of sources to skip
+    like_query: str | None
 
     Returns
     -------
     tuple[Iterable[Source], int]
     """
-    return session.query(Source).offset(offset).limit(limit), _sources_count(session)
+    query = session.query(Source)
+    if like_query:
+        query = query.filter(Source.name.ilike(f"%{like_query}%"))
+    return query.offset(offset).limit(limit), _sources_count(session, like_query)
 
 
 def remove_sources(session: Session, sources: list[str]) -> int:

@@ -68,10 +68,11 @@ async def get_active_sources(
     session: Annotated[Session, Depends(get_db)],
     limit: Annotated[int, Query(ge=1)] = 10,
     skip: Annotated[int, Query(ge=0)] = 0,
+    query: Annotated[str | None, Query()] = None,
 ):
     """List active sources"""
     try:
-        sources, total = get_sources(session, limit, skip)
+        sources, total = get_sources(session, limit, skip, query)
         return SourcesList(
             sources=[Source(id=source.id, title=source.name, digest=source.digest) for source in sources], total=total
         )

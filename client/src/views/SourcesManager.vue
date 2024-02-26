@@ -6,6 +6,19 @@
             <DataTable v-model:selection="selectedSources" :value="sources" dataKey="id" tableStyle="min-width: 50rem"
                 paginator size="large" :rows="size" :totalRecords="totalRecords" :rowsPerPageOptions="[5, 10]"
                 @page="pageUpdated" :lazy="true" :loading="loading">
+
+                <template #header>
+                    <div class="flex justify-content-between">
+                        <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clear()" />
+                        <IconField iconPosition="left">
+                            <InputIcon>
+                                <i class="pi pi-search" />
+                            </InputIcon>
+                            <InputText v-model="searchSubstr" placeholder="Search sources" ref="searcher" @input="filter" />
+                        </IconField>
+                    </div>
+                </template>
+
                 <Column field="id" header="ID"></Column>
                 <Column field="title" header="Name"></Column>
                 <Column field="digest" header="Digest"></Column>
@@ -24,6 +37,9 @@
 import Button from "primevue/button";
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import InputText from 'primevue/inputtext';
 import Toast from "primevue/toast";
 import {
     fetchResource,
@@ -32,7 +48,7 @@ import {
 } from "@/utils/client";
 export default {
     name: "SourcesManager",
-    components: { Column, DataTable, Button, Toast },
+    components: { Column, DataTable, Button, Toast, InputText, IconField, InputIcon },
     data() {
         return {
             loading: false,
@@ -40,15 +56,23 @@ export default {
             selectedSources: [],
             size: 10,
             totalRecords: 0,
+            searchSubstr: null
         }
     },
     mounted() {
         this.updateSources(this.size, 0)
+        window.onkeydown = ((evt) => {
+            this.$refs.searcher.$el.focus()
+            if (evt.keyCode == 27) {
+                this.clear()
+            }
+        })
+        window.focus()
     },
     methods: {
-        updateSources(limit, skip) {
+        updateSources(limit, skip, query = "") {
             this.loading = true;
-            fetchResource("/sources/?" + new URLSearchParams({ limit: limit, skip: skip }))
+            fetchResource("/sources/?" + new URLSearchParams({ limit: limit, skip: skip, query: query }))
                 .then(json => {
                     this.sources = json.sources
                     this.totalRecords = json.total
@@ -67,11 +91,22 @@ export default {
                 .then(json => {
                     showSuccess(`${json.removed} source(s) removed successfully`)
                     this.sources = this.sources.filter(entry => !sourcesNames.includes(entry.title))
+                    this.selectedSources = []
                 }).catch((error) => showError(error));
         },
         pageUpdated(evt) {
             this.updateSources(evt.rows, evt.first)
         },
+        clear() {
+            this.searchSubstr = null
+            this.$refs.searcher.$el.blur()
+            this.updateSources(this.size, 0)
+        },
+        filter() {
+            setTimeout(() => {
+                this.updateSources(this.size, 0, this.searchSubstr)
+            }, 500);
+        }
     },
     computed: {
         disableButton() {
