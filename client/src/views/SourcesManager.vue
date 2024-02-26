@@ -1,5 +1,6 @@
 <template>
     <div class="my-2 justify-content-center">
+        <ConfirmDialog></ConfirmDialog>
         <Toast class="z-5" />
         <div class="px-3 lg:px-0 w-full lg:w-10 m-auto">
             <h1>Manage sources</h1>
@@ -36,6 +37,7 @@
 <script>
 import Button from "primevue/button";
 import Column from 'primevue/column';
+import ConfirmDialog from "primevue/confirmdialog";
 import DataTable from 'primevue/datatable';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
@@ -48,7 +50,7 @@ import {
 } from "@/utils/client";
 export default {
     name: "SourcesManager",
-    components: { Column, DataTable, Button, Toast, InputText, IconField, InputIcon },
+    components: { Column, DataTable, Button, Toast, InputText, IconField, InputIcon, ConfirmDialog },
     data() {
         return {
             loading: false,
@@ -69,13 +71,13 @@ export default {
         })
         window.focus()
     },
-    beforeUnmount(){
+    beforeUnmount() {
         window.onkeydown = null
     },
     methods: {
         updateSources(limit, skip, query = "") {
             this.loading = true;
-            fetchResource("/sources/?" + new URLSearchParams({ limit: limit, skip: skip, query: query }))
+            fetchResource("/sources/?" + new URLSearchParams({ limit: limit, skip: skip, query: query ?? "" }))
                 .then(json => {
                     this.sources = json.sources
                     this.totalRecords = json.total
@@ -83,22 +85,31 @@ export default {
             this.loading = false
         },
         deleteSources() {
-            const sourcesNames = this.selectedSources.map(entry => entry.title)
-            fetchResource("/sources/remove/", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(sourcesNames)
+            this.$confirm.require({
+                message: "Are you sure you want to delete the selected sources?",
+                header: "Danger Zone",
+                icon: "pi pi-info-circle",
+                rejectClass: 'p-button-secondary p-button-outlined',
+                acceptClass: 'p-button-danger',
+                accept: () => {
+                    const sourcesNames = this.selectedSources.map(entry => entry.title)
+                    fetchResource("/sources/remove/", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(sourcesNames)
+                    })
+                        .then(json => {
+                            showSuccess(`${json.removed} source(s) removed successfully`)
+                            this.sources = this.sources.filter(entry => !sourcesNames.includes(entry.title))
+                            this.selectedSources = []
+                        }).catch((error) => showError(error));
+                }
             })
-                .then(json => {
-                    showSuccess(`${json.removed} source(s) removed successfully`)
-                    this.sources = this.sources.filter(entry => !sourcesNames.includes(entry.title))
-                    this.selectedSources = []
-                }).catch((error) => showError(error));
         },
         pageUpdated(evt) {
-            this.updateSources(evt.rows, evt.first)
+            this.updateSources(evt.rows, evt.first, this.searchSubstr)
         },
         clear() {
             this.searchSubstr = null
