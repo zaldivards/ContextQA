@@ -34,7 +34,7 @@
         type="button"
         label="Submit"
         icon="pi pi-check"
-        @click="postData(doPost)"
+        @click="sendFiles"
         :disabled="nullData || disabled"
         :loading="loading"
         class="col-offset-4 lg:col-offset-0 col-4 lg:col-2 mt-5"
@@ -42,27 +42,6 @@
     </form>
   </div>
 </template>
-<script setup>
-import { useConfirm } from "primevue/useconfirm";
-import { useStore } from "vuex";
-const confirm = useConfirm();
-const store = useStore();
-function postData(postFunction) {
-  if (store.state.vectorStore) {
-    confirm.require({
-      message: "Are you sure you want to replace the context?",
-      header: "Confirmation",
-      icon: "pi pi-exclamation-triangle",
-      accept: () => {
-        postFunction();
-      },
-    });
-  } else {
-    postFunction();
-  }
-}
-</script>
-
 <script>
 import ConfirmDialog from "primevue/confirmdialog";
 import FileUpload from "primevue/fileupload";
@@ -102,7 +81,7 @@ export default {
     },
   },
   methods: {
-    doPost() {
+    sendFiles() {
       this.loading = true;
       this.disabled = true;
 
