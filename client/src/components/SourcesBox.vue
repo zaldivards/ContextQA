@@ -1,13 +1,9 @@
 <template>
   <div class="w-full">
-    <Card
-      :key="i"
-      v-for="(source, i) in data"
-      class="mx-0 my-5"
-      :pt="{
-        content: { class: 'mx-0' },
-      }"
-    >
+    <p v-if="data.length == 0">No related sources</p>
+    <Card v-else :key="i" v-for="(source, i) in data" class="mx-0 my-5" :pt="{
+      content: { class: 'mx-0' },
+    }">
       <template #title>
         {{ source.title }}
       </template>
@@ -16,19 +12,10 @@
           {{ source.content }}
         </p>
         <DataTable v-else-if="source.format_ == 'csv'" :value="source.content">
-          <Column
-            v-for="(name, i) in Object.keys(source.content[0])"
-            :key="i"
-            :field="name"
-            :header="name"
-          ></Column>
+          <Column v-for="(name, i) in Object.keys(source.content[0])" :key="i" :field="name" :header="name"></Column>
         </DataTable>
         <div v-else class="text-center">
-          <Image
-            class="m-0"
-            :src="`data:image/jpg;base64,${source.content}`"
-            preview
-          />
+          <Image class="m-0" :src="`data:image/jpg;base64,${source.content}`" preview />
         </div>
       </template>
     </Card>
@@ -62,5 +49,4 @@ export default {
 };
 </script>
 
-<style>
-</style>
+<style></style>

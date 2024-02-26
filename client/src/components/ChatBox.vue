@@ -180,7 +180,7 @@ export default {
           style: {
             width: "50vw",
           },
-          class: ["h-full", "w-9"],
+          class: ["w-9"],
           modal: true,
         },
         data: {
