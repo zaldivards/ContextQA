@@ -69,6 +69,9 @@ export default {
         })
         window.focus()
     },
+    beforeUnmount(){
+        window.onkeydown = null
+    },
     methods: {
         updateSources(limit, skip, query = "") {
             this.loading = true;
