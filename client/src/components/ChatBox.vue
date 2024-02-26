@@ -1,20 +1,9 @@
 <template>
-  <div
-    class="justify-content-center mx-auto"
-    :class="sourcesReady || !requiresContext ? '' : ['opacity-50', 'disabled']"
-  >
+  <div class="justify-content-center mx-auto" :class="sourcesReady || !requiresContext ? '' : ['opacity-50', 'disabled']">
     <DynamicDialog :pt="{ content: { class: 'h-full' } }" />
     <div>
-      <Dialog
-        :dismissableMask="true"
-        :closeOnEscape="true"
-        :closable="true"
-        :visible="showDialog"
-        :draggable="false"
-        modal
-        header="Internet access enabled"
-        class="w-full lg:w-6"
-      >
+      <Dialog :dismissableMask="true" :closeOnEscape="true" :closable="true" :visible="showDialog" :draggable="false"
+        modal header="Internet access enabled" class="w-full lg:w-6">
         <template #closeicon>
           <button @click="closeDialog" class="no-background">
             <i class="pi pi-times" style="color: red"></i>
@@ -45,11 +34,9 @@
     </div>
     <Toast class="z-5 w-9 lg:w-3" />
 
-    <Panel
-      ref="panel"
+    <Panel ref="panel"
       class="w-12 lg:w-8 m-auto lg:my-5 scroll-panel chat-height overflow-y-scroll scrollbar bg-inherit relative"
-      :header="header"
-      :pt="{
+      :header="header" :pt="{
         header: {
           class: 'border-none bg-contextqa-primary-main sticky top-0',
         },
@@ -60,51 +47,27 @@
         content: {
           class: 'border-none bg-inherit',
         },
-      }"
-    >
+      }">
       <div :key="i" v-for="(message, i) in messages">
-        <ProgressBar
-          mode="indeterminate"
-          style="height: 1px"
-          v-if="activate && message.role == 'bot' && message.isLatest"
-        ></ProgressBar>
-        <div
-          v-else
-          class="formgrid grid"
-          :class="message.role == 'user' ? 'max-w-max' : ''"
-        >
-          <Avatar
-            image="/images/user.png"
-            size="small"
-            shape="circle"
-            v-if="message.role == 'user'"
-          />
-          <Avatar
-            image="/images/logo.png"
-            size="small"
-            v-if="message.role != 'user'"
-          />
+        <ProgressBar mode="indeterminate" style="height: 1px"
+          v-if="activate && message.role == 'bot' && message.isLatest"></ProgressBar>
+        <div v-else class="formgrid grid" :class="message.role == 'user' ? 'max-w-max' : ''">
+          <Avatar image="/images/user.png" size="small" shape="circle" v-if="message.role == 'user'" />
+          <Avatar image="/images/logo.png" size="small" v-if="message.role != 'user'" />
 
-          <Card
-            class="field col mx-2 shadow-none animation-duration-300 breakline-ok"
-            :class="
-              message.role == 'user'
-                ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
-                : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
-            "
-            :pt="{
-              content: { class: 'py-1' },
-              body: { class: message.role == 'user' ? 'pt-0' : '' },
-            }"
-          >
+          <Card class="field col mx-2 shadow-none animation-duration-300 breakline-ok" :class="message.role == 'user'
+            ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
+            : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
+            " :pt="{
+    content: { class: 'py-1' },
+    body: { class: message.role == 'user' ? 'pt-0' : '' },
+  }">
             <template #content>
               <div v-if="message.isLatest" v-html="answer"></div>
               <div v-else v-html="message.content"></div>
             </template>
             <template #footer>
-              <div
-                class="date w-max justify-content-end text-xs text-white-alpha-70"
-              >
+              <div class="date w-max justify-content-end text-xs text-white-alpha-70">
                 {{ message.date }}
               </div>
             </template>
@@ -118,12 +81,7 @@
             <span class="mr-2">Enable internet access</span>
             <InputSwitch v-model="internetEnabled" @input="switchHandler" />
           </div>
-          <Button
-            v-else
-            label="Check response sources"
-            icon="pi pi-search"
-            @click="showSources"
-          />
+          <Button v-else label="Check response sources" icon="pi pi-search" @click="showSources" />
           <MessageAdder @send="pushMessages" ref="adder" />
         </div>
       </div>
@@ -132,7 +90,7 @@
 </template>
 
 <script>
-import { markRaw, defineAsyncComponent } from "vue";
+import { defineAsyncComponent } from "vue";
 import Button from "primevue/button";
 import DynamicDialog from "primevue/dynamicdialog";
 import Panel from "primevue/panel";
@@ -173,18 +131,23 @@ export default {
   },
   props: { requiresContext: Boolean },
   mounted() {
-    if (!this.sourcesReady) {
-      fetchResource("/sources/check-availability/")
-        .then((response) => {
-          this.$store.dispatch("setSourcesFlag", response.status == "ready");
-          if (!this.sourcesReady && this.requiresContext) {
-            showWarning(
-              "You need to ingest at least one source to initialize a QA session"
-            );
-          }
-        })
-        .catch((error) => showError(error));
+    if (this.requiresContext) {
+      if (!this.sourcesReady) {
+        fetchResource("/sources/check-availability/")
+          .then((response) => {
+            this.$store.dispatch("setSourcesFlag", response.status == "ready");
+            if (!this.sourcesReady && this.requiresContext) {
+              showWarning(
+                "You need to ingest at least one source to initialize a QA session"
+              );
+            }
+            this.$refs.adder.$refs.textarea.$el.focus()
+          })
+          .catch((error) => showError(error));
+      }
+      else this.$refs.adder.$refs.textarea.$el.focus()
     }
+    else this.$refs.adder.$refs.textarea.$el.focus()
   },
   created() {
     let action = "";
@@ -339,7 +302,7 @@ export default {
         role: "user",
         date: getDateTimeStr(),
       });
-      this.ask(message).then(() => {});
+      this.ask(message).then(() => { });
     },
     autoScroll() {
       this.$nextTick(() => {
@@ -386,10 +349,12 @@ export default {
   height: auto !important;
   max-height: 45rem !important;
 }
+
 .no-background {
   background: none;
   border: none;
 }
+
 .no-background:hover {
   cursor: pointer;
 }

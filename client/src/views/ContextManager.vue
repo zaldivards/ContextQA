@@ -10,7 +10,7 @@
         <FileUpload
           @remove="handleFileSelectRemove"
           accept=".pdf,.txt,.csv"
-          fileLimit="10"
+          :fileLimit="10"
           :maxFileSize="100000000"
           @select="handleFileSelectRemove"
           :showUploadButton="false"
