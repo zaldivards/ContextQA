@@ -58,11 +58,24 @@ export default {
             selectedSources: [],
             size: 10,
             totalRecords: 0,
-            searchSubstr: null
+            searchSubstr: null,
+            recoverContext: false
         }
     },
     mounted() {
-        this.updateSources(this.size, 0)
+
+        if (this.$store.state.sourcesDetails.sources.length == 0) {
+            this.updateSources(this.size, 0)
+        }
+        else {
+            this.sources = this.$store.state.sourcesDetails.sources
+            this.totalRecords = this.$store.state.sourcesDetails.total
+            this.searchSubstr = this.$store.state.sourcesDetails.query
+            this.size = this.$store.state.sourcesDetails.size
+            this.highlightPage(this.$store.state.sourcesDetails.page)
+        }
+
+
         window.onkeydown = ((evt) => {
             this.$refs.searcher.$el.focus()
             if (evt.keyCode == 27) {
@@ -75,12 +88,29 @@ export default {
         window.onkeydown = null
     },
     methods: {
+        highlightPage(page) {
+            this.$nextTick(() => {
+                const nodes = this.getPageButtonsNodes()
+                for (let i = 0; i < nodes.length; i++) {
+                    const node = nodes[i];
+                    if (parseInt(node.innerText) == page) {
+                        this.recoverContext = true
+                        node.click()
+                    }
+                }
+            });
+        },
+        getPageButtonsNodes() {
+            return document.getElementsByClassName("p-paginator-page");
+        },
         updateSources(limit, skip, query = "") {
             this.loading = true;
             fetchResource("/sources/?" + new URLSearchParams({ limit: limit, skip: skip, query: query ?? "" }))
                 .then(json => {
                     this.sources = json.sources
                     this.totalRecords = json.total
+                    this.size = limit
+                    this.$store.dispatch("setSourcesDetails", { sources: this.sources, total: this.totalRecords, query: query, size: this.size, page: (skip / limit) + 1 })
                 }).catch((error) => showError(error));
             this.loading = false
         },
@@ -109,12 +139,16 @@ export default {
             })
         },
         pageUpdated(evt) {
-            this.updateSources(evt.rows, evt.first, this.searchSubstr)
+            if (!this.recoverContext)
+                this.updateSources(evt.rows, evt.first, this.searchSubstr)
+            this.recoverContext = false
         },
         clear() {
             this.searchSubstr = null
             this.$refs.searcher.$el.blur()
             this.updateSources(this.size, 0)
+            this.recoverContext = true
+            this.getPageButtonsNodes() ?? [0].click()
         },
         filter() {
             setTimeout(() => {
