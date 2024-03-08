@@ -10,17 +10,21 @@
             <h3 class="mb-5 col-12">Providers</h3>
 
 
-            <RadioBox provider="openai" class="col-6 max-h-15rem" :checked="provider == 'openai'" v-model="provider">
+            <RadioBox provider="openai" class="col-6 max-h-15rem" :checked="provider == 'openai'" v-model="provider"
+                @change="onBoxCHange">
             </RadioBox>
-            <RadioBox provider="google" class="col-6 max-h-15rem" :checked="provider == 'google'" v-model="provider">
+            <RadioBox provider="google" class="col-6 max-h-15rem" :checked="provider == 'google'" v-model="provider"
+                @change="onBoxCHange">
             </RadioBox>
 
             <h3 class="mb-5 col-12">Models</h3>
 
-            <Listbox v-model="selectedModel" :options="modelOptions" class="col-5 bg-inherit border-black-alpha-20"
-                :focusOnHover="false" :pt="{
-                    item: { class: 'bg-inherit' }
-                }"></Listbox>
+            <div class="col-5">
+                <Dropdown v-model="selectedModel" :options="modelOptions"
+                    class="w-full bg-inherit border-black-alpha-20" :focusOnHover="false" :pt="{
+                panel: { class: 'bg-inherit' }
+            }" placeholder="Select a model"></Dropdown>
+            </div>
             <div class="col-7">
                 <label for="temperature">Temperature</label>
                 <Slider v-model="temperature" class="mt-2" :min="0.1" :max="2.0" :step="0.1" id="temperature" />
@@ -29,8 +33,8 @@
             <div class="col-12">
                 <div for="token">Access token</div>
                 <Password v-model="token" :feedback="false" id="token" class="col-5" :pt="{
-                    root: { 'class': 'p-0' }
-                }" />
+                root: { 'class': 'p-0' }
+            }" />
             </div>
             <Button type="button" label="Set model config" icon="pi pi-check" @click="setConfig"
                 class="col-offset-4 lg:col-offset-0 col-4 lg:col-3 mt-5" :disabled="disableButton" />
@@ -40,7 +44,7 @@
 
 <script>
 import Button from "primevue/button";
-import Listbox from 'primevue/listbox';
+import Dropdown from 'primevue/dropdown';
 import Password from 'primevue/password';
 import RadioBox from "@/components/RadioBox";
 import Slider from 'primevue/slider';
@@ -53,11 +57,13 @@ import {
 
 export default {
     name: "ModelSetttings",
-    components: { RadioBox, Listbox, Slider, Button, Password, Toast },
+    components: { RadioBox, Slider, Button, Password, Toast, Dropdown },
     created() {
         fetchResource("/settings/").then(settings => {
             this.selectedModel = settings.model
+            this.initialModel = this.selectedModel
             this.provider = settings.provider
+            this.initialProvider = this.provider
             this.temperature = settings.temperature
             settings.provider_options.forEach(entry => {
                 this.globalModelOptions[entry.provider] = entry.models
@@ -67,8 +73,10 @@ export default {
     },
     data() {
         return {
+            initialProvider: "",
             provider: "",
             selectedModel: "",
+            initialModel: "",
             temperature: 0.1,
             globalModelOptions: {},
             token: ""
@@ -76,7 +84,6 @@ export default {
     },
     methods: {
         setConfig() {
-            console.log(this.selectedModel, this.temperature, this.provider);
             fetchResource("/settings/", {
                 method: 'PATCH',
                 headers: {
@@ -89,6 +96,12 @@ export default {
                 this.temperature = response.temperature
                 showSuccess("Settings were updated successfully")
             }).catch((error) => showError(error));
+        },
+        onBoxCHange() {
+            if (this.initialProvider != this.provider)
+                this.selectedModel = null;
+            else
+                this.selectedModel = this.initialModel
         }
     },
     computed: {
@@ -103,9 +116,10 @@ export default {
 </script>
 
 <style>
-.p-listbox-item:hover,
-.p-listbox-item:focus {
-    background-color: #183462 !important;
+.p-dropdown {
+    border-color: inherit !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 .p-highlight {
