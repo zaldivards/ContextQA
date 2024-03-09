@@ -5,6 +5,7 @@ import DocumentQA from "@/views/DocumentQA.vue"
 import Home from "@/views/Home"
 import ModelSettings from "@/views/ModelSettings"
 import SourcesManager from "@/views/SourcesManager"
+import VectorStoreManager from "@/views/VectorStoreManager"
 
 
 
@@ -39,6 +40,11 @@ const routes = [
         path: '/settings/models',
         name: 'models',
         component: ModelSettings
+    },
+    {
+        path: '/settings/vector-stores',
+        name: 'vectoStores',
+        component: VectorStoreManager,
     },
 ]
 

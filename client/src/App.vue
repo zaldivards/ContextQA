@@ -80,6 +80,12 @@ export default {
               label: "Models",
               icon: "pi pi-fw pi-box",
               command: () => this.$router.push({ path: "/settings/models" }),
+            },
+            {
+              label: "Vector stores",
+              icon: "pi pi-fw pi-database",
+              command: () => this.$router.push({ path: "/settings/vector-stores" }),
+
 
             },
             {

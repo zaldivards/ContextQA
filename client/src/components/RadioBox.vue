@@ -39,7 +39,7 @@ label:hover {
     cursor: pointer;
 }
 
-label{
+label {
     background-color: rgba(252, 254, 255, 0);
 }
 
@@ -49,12 +49,9 @@ input[type="radio"]:hover+img {
     filter: grayscale(0%);
 }
 
-.checked{
-    background-color: rgba(252, 254, 255, 0.01);
-}
-
-label:hover{
-    background-color: rgba(252, 254, 255, 0.01);
+label:hover,
+.checked {
+    background-color: white;
 }
 
 img {

@@ -36,8 +36,8 @@
                 root: { 'class': 'p-0' }
             }" />
             </div>
-            <Button type="button" label="Set model config" icon="pi pi-check" @click="setConfig"
-                class="col-offset-4 lg:col-offset-0 col-4 lg:col-3 mt-5" :disabled="disableButton" />
+            <Button type="button" label="Save" icon="pi pi-check" @click="setConfig"
+                class="col-offset-4 lg:col-offset-0 col-4 lg:col-2 mt-5" :disabled="disableButton" />
         </div>
     </div>
 </template>
