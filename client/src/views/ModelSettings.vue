@@ -19,22 +19,25 @@
 
             <h3 class="mb-5 col-12">Models</h3>
 
-            <div class="col-5">
-                <Dropdown v-model="selectedModel" :options="modelOptions"
-                    class="w-full bg-inherit border-black-alpha-20" :focusOnHover="false" :pt="{
+            <div class="grid col-12">
+
+                <div class="col-6">
+                    <Dropdown v-model="selectedModel" :options="modelOptions"
+                        class="w-full bg-inherit border-black-alpha-20" :focusOnHover="false" :pt="{
                 panel: { class: 'bg-inherit' }
             }" placeholder="Select a model"></Dropdown>
-            </div>
-            <div class="col-7">
-                <label for="temperature">Temperature</label>
-                <Slider v-model="temperature" class="mt-2" :min="0.1" :max="2.0" :step="0.1" id="temperature" />
-                <div class="mt-2">{{ temperature }}</div>
-            </div>
-            <div class="col-12">
-                <div for="token">Access token</div>
-                <Password v-model="token" :feedback="false" id="token" class="col-5" :pt="{
+                </div>
+                <div class="col-6">
+                    <label for="temperature">Temperature</label>
+                    <Slider v-model="temperature" class="mt-2" :min="0.1" :max="2.0" :step="0.1" id="temperature" />
+                    <div class="mt-2">{{ temperature }}</div>
+                </div>
+                <div class="col-6">
+                    <label for="token">Access token</label>
+                    <Password v-model="token" :feedback="false" id="token" :pt="{
                 root: { 'class': 'p-0' }
-            }" />
+            }" class="w-full"/>
+                </div>
             </div>
             <Button type="button" label="Save" icon="pi pi-check" @click="setConfig"
                 class="col-offset-4 lg:col-offset-0 col-4 lg:col-2 mt-5" :disabled="disableButton" />
