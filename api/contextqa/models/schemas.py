@@ -5,16 +5,6 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field
 
 
-class SimilarityProcessor(str, Enum):
-    """Enum representing the supported vector stores
-
-    Note that the LOCAL identifier refers to ChromaDB
-    """
-
-    LOCAL = "local"
-    PINECONE = "pinecone"
-
-
 class SourceFormat(str, Enum):
     """Enum representing the supported file formats"""
 

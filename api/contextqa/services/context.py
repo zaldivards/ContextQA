@@ -27,7 +27,7 @@ from sqlalchemy.orm import Session
 
 from contextqa import logger, settings
 from contextqa.models import PartialModelData, VectorStoreSettings
-from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceFormat, IngestionResult
+from contextqa.models.schemas import LLMResult, SourceFormat, IngestionResult
 from contextqa.utils import memory, prompts
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
 from contextqa.utils.settings import get_or_set
@@ -258,6 +258,7 @@ class PineconeManager(LLMContextManager):
             _CustomPineconeVectorStore.from_documents(documents, embeddings_util, index_name=index, ids=ids)
         except Exception as ex:
             logger.exception("Error indexing source: %s", ex)
+            session.rollback()
             raise VectorDBConnectionError from ex
         return LLMResult(response="success")
 
@@ -312,24 +313,3 @@ class BatchProcessor(BaseModel):
                     # successfully ingested
                     completed += 1
         return IngestionResult(completed=completed, skipped_files=skipped_files)
-
-
-def get_setter(processor: SimilarityProcessor | None = None) -> LLMContextManager:
-    """LLMContextManager factory function
-
-    Parameters
-    ----------
-    processor : SimilarityProcessor
-        Manager identifier
-
-    Returns
-    -------
-    LLMContextManager
-        Specific LLMContextManager implementation
-    """
-    processor = processor or SimilarityProcessor.LOCAL
-    match processor:
-        case SimilarityProcessor.LOCAL:
-            return LocalManager()
-        case SimilarityProcessor.PINECONE:
-            return PineconeManager()
