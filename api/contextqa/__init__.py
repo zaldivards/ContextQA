@@ -6,10 +6,7 @@ from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
-
-def get_logger() -> logging.Logger:
-    return logging.getLogger("contextqa")
+logger = logging.getLogger("contextqa")
 
 
 class AppSettings(BaseSettings):
@@ -58,7 +55,7 @@ class AppSettings(BaseSettings):
         """sqlalchemy url built either from the sqlite url or the credential of a specific mysql server"""
         mysql_requirements = [self.mysql_user, self.mysql_password, self.mysql_host, self.mysql_dbname]
         if not all(mysql_requirements):
-            get_logger().info("Using sqlite")
+            logger.info("Using sqlite")
             return self.sqlite_url
         uri = "mysql+pymysql://{}:{}@{}/{}".format(*mysql_requirements)
         if extras := self.mysql_extra_args:

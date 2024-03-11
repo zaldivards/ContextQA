@@ -5,10 +5,7 @@ from bs4 import BeautifulSoup
 from googlesearch import search
 from langchain.agents import Tool
 
-from contextqa import get_logger
-
-
-LOGGER = get_logger()
+from contextqa import logger
 
 
 def _get_content(url: str, timeout: int = 5) -> bytes:
@@ -23,22 +20,22 @@ def _js_disable_message(text: str) -> bool:
 
 def _searcher(search_term: str):
     """Search for the provided search term in Google Search when the assistant could not find information to answer"""
-    LOGGER.info("Searching for the next search term: '%s'", search_term)
+    logger.info("Searching for the next search term: '%s'", search_term)
     results = search(search_term, num_results=5)
     for url in results:
         try:
             html_content = BeautifulSoup(_get_content(url), "html.parser")
         except (ReadTimeoutError, HTTPError) as ex:
-            LOGGER.warning("Got HTTP error when requesting %s. Error %s", url, ex)
+            logger.warning("Got HTTP error when requesting %s. Error %s", url, ex)
             continue
         else:
             html_text = html_content.text
             if _js_disable_message(html_text):
-                LOGGER.warning("%s detected JavaScript not available", url)
+                logger.warning("%s detected JavaScript not available", url)
                 continue
             words = html_text.replace("\n", "").split()
             if len(words) > 100:
-                LOGGER.info("Chosen url: %s", url)
+                logger.info("Chosen url: %s", url)
                 text = "I got the response:" + " ".join(words[:500])
                 break
     return text

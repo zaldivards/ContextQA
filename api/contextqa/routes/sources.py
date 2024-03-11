@@ -3,13 +3,11 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, UploadFile, Depends, status, Query
 from sqlalchemy.orm import Session
 
-from contextqa import context, get_logger
+from contextqa import context, logger
 from contextqa.models.schemas import SimilarityProcessor, SourceStatus, IngestionResult, Source, SourcesList
 from contextqa.routes.dependencies import get_db
 from contextqa.services.sources import sources_exists, get_sources, remove_sources
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
-
-LOGGER = get_logger()
 
 
 router = APIRouter()
@@ -43,7 +41,7 @@ def ingest_source(documents: list[UploadFile], session: Annotated[Session, Depen
             },
         ) from ex
     except Exception as ex:
-        LOGGER.exception("Error while setting context. Cause: %s", ex)
+        logger.exception("Error while setting context. Cause: %s", ex)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"message": "ContextQA server did not process the request successfully", "cause": str(ex)},

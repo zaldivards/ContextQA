@@ -25,7 +25,7 @@ from langchain_pinecone import PineconeVectorStore
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from contextqa import get_logger, settings
+from contextqa import logger, settings
 from contextqa.models import PartialModelData
 from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceFormat, IngestionResult
 from contextqa.utils import memory, prompts
@@ -34,9 +34,11 @@ from contextqa.utils.settings import get_or_set
 from contextqa.utils.sources import check_digest, get_not_seen_chunks
 from contextqa.utils.streaming import consumer_producer_qa
 
-
-LOGGER = get_logger()
-LOADERS: dict[str, Type[BaseLoader]] = {".pdf": PyMuPDFLoader, ".txt": TextLoader, ".csv": CSVLoader}
+LOADERS: dict[str, Type[BaseLoader]] = {
+    ".pdf": PyMuPDFLoader,
+    ".txt": TextLoader,
+    ".csv": CSVLoader,
+}
 
 chroma_client = PersistentClient(path=str(settings.local_vectordb_home))
 
@@ -127,7 +129,7 @@ class LLMContextManager(BaseModel, ABC):
         # we do not want to split csv files as they are splitted by rows
         if extension == "." + SourceFormat.CSV:
             return get_not_seen_chunks(documents, extension)
-        settings_ = get_or_set()["store"]
+        settings_ = get_or_set(kind="store")
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=settings_["chunk_size"], chunk_overlap=settings_["overlap"], separators=["\n\n", "\n", "."]
         )
@@ -217,7 +219,7 @@ class PineconeManager(LLMContextManager):
 
     def persist(self, filename: str, file_: BinaryIO, session: Session) -> LLMResult:
         try:
-            LOGGER.info("Initializing Pinecone connection")
+            logger.info("Initializing Pinecone connection")
             pinecone.init(api_key=settings.pinecone_token, environment=settings.pinecone_environment_region)
         except Exception as ex:
             raise VectorDBConnectionError from ex

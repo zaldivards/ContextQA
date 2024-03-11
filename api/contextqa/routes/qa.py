@@ -3,13 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.responses import StreamingResponse
 
-from contextqa import context, get_logger
+from contextqa import context
 from contextqa.models import PartialModelData
 from contextqa.models.schemas import LLMContextQueryRequest
 from contextqa.routes.dependencies import get_partial_initialized_model
-
-
-LOGGER = get_logger()
 
 
 router = APIRouter()
