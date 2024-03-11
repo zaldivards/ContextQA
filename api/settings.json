@@ -1,5 +1,18 @@
 {
-    "platform": "openai",
-    "model": "gpt-3.5-turbo",
-    "temperature": 0
+    "model": {
+        "provider": "openai",
+        "model": "gpt-3.5-turbo",
+        "temperature": 0.1,
+        "local": false,
+        "token": ""
+    },
+    "store": {
+        "store": "chroma",
+        "chunk_size": 1000,
+        "overlap": 200,
+        "store_params": {
+            "home": ".chromadb",
+            "collection": "contextqa-default"
+        }
+    }
 }
