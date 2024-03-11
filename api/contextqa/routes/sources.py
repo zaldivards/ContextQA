@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from contextqa import context, logger
 from contextqa.models.schemas import SourceStatus, IngestionResult, Source, SourcesList
-from contextqa.routes.dependencies import get_db, StoreClient, store_client, context_procesor
+from contextqa.routes.dependencies import get_db, StoreClient, store_client, context_manager
 from contextqa.services.sources import sources_exists, get_sources, remove_sources
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
 
@@ -17,10 +17,11 @@ router = APIRouter()
 def ingest_source(
     documents: list[UploadFile],
     session: Annotated[Session, Depends(get_db)],
-    processor: Annotated[context.BatchProcessor, Depends(context_procesor)],
+    manager: Annotated[context.BatchProcessor, Depends(context_manager)],
 ):
     """Ingest sources used by the QA session"""
     try:
+        processor = context.BatchProcessor(manager=manager)
         # pylint: disable=E1102
         return processor.persist(documents, session)
     except DuplicatedSourceError as ex:
