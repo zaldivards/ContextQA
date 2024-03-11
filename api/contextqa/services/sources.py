@@ -1,11 +1,12 @@
 from typing import Iterable
 
+from chromadb import PersistentClient
 from langchain.vectorstores.chroma import Chroma
 from sqlalchemy.orm import Session
 
 from contextqa import settings
-from contextqa.models.orm import Source
-from contextqa.services.context import chroma_client
+from contextqa.models.orm import Source, VectorStore, Index
+from contextqa.utils.settings import get_or_set
 
 
 def sources_exists(session: Session) -> bool:
@@ -47,7 +48,16 @@ def get_sources(session: Session, limit: int, offset: int, like_query: str | Non
     -------
     tuple[Iterable[Source], int]
     """
-    query = session.query(Source)
+    store_settings = get_or_set(kind="store")
+    query = (
+        session.query(Source)
+        .join(Index)
+        .join(VectorStore)
+        .filter(
+            Index.name == store_settings["store_params"].get("collection", "index"),
+            VectorStore.name == store_settings["store"],
+        )
+    )
     if like_query:
         query = query.filter(Source.name.ilike(f"%{like_query}%"))
     return query.offset(offset).limit(limit), _sources_count(session, like_query)
@@ -63,12 +73,27 @@ def remove_sources(session: Session, sources: list[str]) -> int:
     sources : list[str]
         list of source names
     """
-    removed_sources = session.query(Source).filter(Source.name.in_(sources)).delete()
+    store_settings = get_or_set(kind="store")
+    home = str(store_settings["store_params"]["home"])
+    chroma_client = PersistentClient(path=home)
+    sources_to_remove = (
+        session.query(Source.id)
+        .join(Index)
+        .join(VectorStore)
+        .filter(
+            Source.name.in_(sources),
+            Index.name == store_settings["store_params"].get("collection", "index"),
+            VectorStore.name == store_settings["store"],
+        )
+    )
+
+    removed_sources = session.query(Source).filter(Source.id.in_(sources_to_remove)).delete(synchronize_session=False)
+
     chunks_to_remove = []
     vector_store = Chroma(
         client=chroma_client,
-        collection_name=settings.default_collection,
-        persist_directory=str(settings.local_vectordb_home),
+        collection_name=store_settings["store_params"]["collection"],
+        persist_directory=home,
     )
     for source in sources:
         if source.endswith(".pdf"):
