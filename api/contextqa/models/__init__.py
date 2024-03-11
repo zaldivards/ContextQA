@@ -6,6 +6,8 @@ from langchain.callbacks.streaming_aiter_final_only import AsyncFinalIteratorCal
 
 
 class ModelSettings(TypedDict):
+    """Settings related to specific LLMs"""
+
     provider: Literal["openai", "huggingface", "google"]
     model: str
     temperature: float
@@ -14,6 +16,8 @@ class ModelSettings(TypedDict):
 
 
 class VectorStoreSettings(TypedDict):
+    """Settings related to specific vector stores"""
+
     store: Literal["chroma", "pinecone"]
     chunk_size: int
     overlap: int

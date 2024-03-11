@@ -1,11 +1,9 @@
 from typing import Iterable
 
-from chromadb import PersistentClient
-from langchain.vectorstores.chroma import Chroma
 from sqlalchemy.orm import Session
 
-from contextqa import settings
 from contextqa.models.orm import Source, VectorStore, Index
+from contextqa.utils.clients import StoreClient
 from contextqa.utils.settings import get_or_set
 
 
@@ -63,7 +61,7 @@ def get_sources(session: Session, limit: int, offset: int, like_query: str | Non
     return query.offset(offset).limit(limit), _sources_count(session, like_query)
 
 
-def remove_sources(session: Session, sources: list[str]) -> int:
+def remove_sources(session: Session, sources: list[str], client: StoreClient) -> int:
     """Remove all the provided sources
 
     Parameters
@@ -72,10 +70,10 @@ def remove_sources(session: Session, sources: list[str]) -> int:
         sqlalchemy session
     sources : list[str]
         list of source names
+    client : StoreClient
+        Specific store client
     """
     store_settings = get_or_set(kind="store")
-    home = str(store_settings["store_params"]["home"])
-    chroma_client = PersistentClient(path=home)
     sources_to_remove = (
         session.query(Source.id)
         .join(Index)
@@ -89,18 +87,7 @@ def remove_sources(session: Session, sources: list[str]) -> int:
 
     removed_sources = session.query(Source).filter(Source.id.in_(sources_to_remove)).delete(synchronize_session=False)
 
-    chunks_to_remove = []
-    vector_store = Chroma(
-        client=chroma_client,
-        collection_name=store_settings["store_params"]["collection"],
-        persist_directory=home,
-    )
-    for source in sources:
-        if source.endswith(".pdf"):
-            source = f"{settings.media_home}/{source}"
-        chunks = vector_store.get(where={"source": source})
-        chunks_to_remove.extend(chunks["ids"])
-
-    vector_store.delete(chunks_to_remove)
+    chunks_to_remove = client.get_ids(sources)
+    client.delete(chunks_to_remove)
 
     return removed_sources

@@ -4,8 +4,8 @@ from fastapi import APIRouter, HTTPException, UploadFile, Depends, status, Query
 from sqlalchemy.orm import Session
 
 from contextqa import context, logger
-from contextqa.models.schemas import SimilarityProcessor, SourceStatus, IngestionResult, Source, SourcesList
-from contextqa.routes.dependencies import get_db
+from contextqa.models.schemas import SourceStatus, IngestionResult, Source, SourcesList
+from contextqa.routes.dependencies import get_db, StoreClient, store_client, context_procesor
 from contextqa.services.sources import sources_exists, get_sources, remove_sources
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
 
@@ -14,11 +14,13 @@ router = APIRouter()
 
 
 @router.post("/ingest/", response_model=IngestionResult)
-def ingest_source(documents: list[UploadFile], session: Annotated[Session, Depends(get_db)]):
+def ingest_source(
+    documents: list[UploadFile],
+    session: Annotated[Session, Depends(get_db)],
+    processor: Annotated[context.BatchProcessor, Depends(context_procesor)],
+):
     """Ingest sources used by the QA session"""
     try:
-        context_manager = context.get_setter(SimilarityProcessor.LOCAL)
-        processor = context.BatchProcessor(manager=context_manager)
         # pylint: disable=E1102
         return processor.persist(documents, session)
     except DuplicatedSourceError as ex:
@@ -82,10 +84,14 @@ async def get_active_sources(
 
 
 @router.post("/remove/")
-async def remove_active_sources(sources: list[str], session: Annotated[Session, Depends(get_db)]):
+async def remove_active_sources(
+    sources: list[str],
+    session: Annotated[Session, Depends(get_db)],
+    client: Annotated[StoreClient, Depends(store_client)],
+):
     """Remove active sources from both the relational and vector databases"""
     try:
-        return {"removed": remove_sources(session, sources)}
+        return {"removed": remove_sources(session, sources, client)}
     except Exception as ex:
         logger.error("Error removing sources. Reason: %s", ex)
         raise HTTPException(
