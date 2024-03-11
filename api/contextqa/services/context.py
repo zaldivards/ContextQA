@@ -14,7 +14,6 @@ from langchain.document_loaders.base import BaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.base import VectorStore
 from langchain.vectorstores.chroma import Chroma
-from langchain.vectorstores.pinecone import Pinecone
 from langchain_community.document_loaders import CSVLoader, PyMuPDFLoader, TextLoader
 from langchain_community.docstore.document import Document
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -22,6 +21,7 @@ from langchain_core.messages import get_buffer_string
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda, RunnableSequence
 from langchain_openai import OpenAIEmbeddings
+from langchain_pinecone import PineconeVectorStore
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -218,17 +218,19 @@ class PineconeManager(LLMContextManager):
             pinecone.init(api_key=settings.pinecone_token, environment=settings.pinecone_environment_region)
         except Exception as ex:
             raise VectorDBConnectionError from ex
-        documents = self.load_and_preprocess(filename, file_, session)
+        documents, ids = self.load_and_preprocess(filename, file_, session)
         embeddings_util = OpenAIEmbeddings()
         try:
-            Pinecone.from_documents(documents, embeddings_util, index_name=settings.pinecone_index)
+            PineconeVectorStore.from_documents(documents, embeddings_util, index_name=settings.pinecone_index, ids=ids)
         except Exception as ex:
             raise VectorDBConnectionError from ex
         return LLMResult(response="success")
 
     def context_object(self) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
-        processor = Pinecone.from_existing_index(index_name=settings.pinecone_index, embedding=embeddings_util)
+        processor = PineconeVectorStore.from_existing_index(
+            index_name=settings.pinecone_index, embedding=embeddings_util
+        )
         return processor
 
 
