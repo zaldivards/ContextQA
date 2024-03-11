@@ -30,6 +30,7 @@ from contextqa.models import PartialModelData
 from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceFormat, IngestionResult
 from contextqa.utils import memory, prompts
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
+from contextqa.utils.settings import get_or_set
 from contextqa.utils.sources import check_digest, get_not_seen_chunks
 from contextqa.utils.streaming import consumer_producer_qa
 
@@ -126,8 +127,10 @@ class LLMContextManager(BaseModel, ABC):
         # we do not want to split csv files as they are splitted by rows
         if extension == "." + SourceFormat.CSV:
             return get_not_seen_chunks(documents, extension)
-
-        splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100, separators=["\n\n", "\n", "."])
+        settings_ = get_or_set()["store"]
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=settings_["chunk_size"], chunk_overlap=settings_["overlap"], separators=["\n\n", "\n", "."]
+        )
         chunks = splitter.split_documents(documents)
         return get_not_seen_chunks(chunks, extension)
 
