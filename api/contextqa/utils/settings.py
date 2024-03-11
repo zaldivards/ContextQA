@@ -4,7 +4,7 @@ from contextqa import settings as app_settings
 from contextqa.models import SettingsSchema, VectorStoreSettings, ModelSettings
 
 
-def _check_local_store_args(store_settings: VectorStoreSettings | None) -> VectorStoreSettings | None:
+def _check_local_store_args(store_settings: VectorStoreSettings | None) -> VectorStoreSettings:
     store_settings = store_settings or {"store": "chroma", "chunk_size": 1000, "overlap": 200, "store_params": {}}
     if store_settings["store"] == "chroma":
         if "home" not in store_settings["store_params"]:
@@ -12,7 +12,7 @@ def _check_local_store_args(store_settings: VectorStoreSettings | None) -> Vecto
         if "collection" not in store_settings["store_params"]:
             store_settings["store_params"]["collection"] = app_settings.default_collection
         return store_settings
-    return None
+    return store_settings
 
 
 def _config_manager():
