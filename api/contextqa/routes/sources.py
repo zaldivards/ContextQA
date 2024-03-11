@@ -87,6 +87,7 @@ async def remove_active_sources(sources: list[str], session: Annotated[Session, 
     try:
         return {"removed": remove_sources(session, sources)}
     except Exception as ex:
+        logger.error("Error removing sources. Reason: %s", ex)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"message": "ContextQA could not get the results from the DB", "cause": str(ex)},

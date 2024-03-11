@@ -250,7 +250,8 @@ class BatchProcessor(BaseModel):
             return None
         except DuplicatedSourceError:
             return args[0]  # filename
-        except Exception:
+        except Exception as ex:
+            logger.warning("'%s' ingestion failed. Reason: %s", args[0], ex)
             return f"{args[0]} - Failed to persist"
 
     def persist(self, sources: list[UploadFile], session: Session) -> IngestionResult:
