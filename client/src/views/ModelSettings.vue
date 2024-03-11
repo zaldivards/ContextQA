@@ -59,7 +59,7 @@ export default {
     name: "ModelSetttings",
     components: { RadioBox, Slider, Button, Password, Toast, Dropdown },
     created() {
-        fetchResource("/settings/").then(settings => {
+        fetchResource("/settings/model").then(settings => {
             this.selectedModel = settings.model
             this.initialModel = this.selectedModel
             this.provider = settings.provider
@@ -84,7 +84,7 @@ export default {
     },
     methods: {
         setConfig() {
-            fetchResource("/settings/", {
+            fetchResource("/settings/model", {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
