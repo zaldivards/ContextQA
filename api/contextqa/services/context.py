@@ -5,7 +5,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import AsyncGenerator, BinaryIO, Type
 
-import pinecone
+from pinecone import Pinecone, ServerlessSpec, Index
 from chromadb import PersistentClient
 from fastapi import UploadFile
 from langchain.schema import format_document, BasePromptTemplate
@@ -219,31 +219,51 @@ class LocalManager(LLMContextManager):
         return processor
 
 
+class _CustomPineconeVectorStore(PineconeVectorStore):
+    """Custom implementation of `get_pinecone_index` to ensure a raw `api_key` is passed as argument"""
+
+    # pylint: disable=W0221
+    @classmethod
+    def get_pinecone_index(cls, index_name: str, pool_threads: int = 4, *, _: str | None = None) -> Index:
+        token = get_or_set(kind="store")["store_params"]["token"]
+        return super().get_pinecone_index(index_name, pool_threads, pinecone_api_key=token)
+
+
 class PineconeManager(LLMContextManager):
     """Pinecone manager implementation. It uses `Pinecone` as its processor and vector store"""
+
+    def _init(self) -> str:
+        index = self._store_settings["store_params"]["index"]
+        pc = Pinecone(api_key=self._store_settings["store_params"]["token"])
+
+        if index not in pc.list_indexes().names():
+            pc.create_index(
+                name=index,
+                dimension=1536,
+                metric="cosine",
+                spec=ServerlessSpec(cloud="aws", region=self._store_settings["store_params"]["environment"]),
+            )
+        return index
 
     def persist(self, filename: str, file_: BinaryIO, session: Session) -> LLMResult:
         try:
             logger.info("Initializing Pinecone connection")
-            pinecone.init(
-                api_key=self._store_settings["store_params"]["token"],
-                environment=self._store_settings["store_params"]["environment"],
-            )
+            index = self._init()
         except Exception as ex:
+            logger.exception("Error connecting to pinecone: %s", ex)
             raise VectorDBConnectionError from ex
         documents, ids = self.load_and_preprocess(filename, file_, session)
         embeddings_util = OpenAIEmbeddings()
         try:
-            PineconeVectorStore.from_documents(
-                documents, embeddings_util, index_name=self._store_settings["store_params"]["index"], ids=ids
-            )
+            _CustomPineconeVectorStore.from_documents(documents, embeddings_util, index_name=index, ids=ids)
         except Exception as ex:
+            logger.exception("Error indexing source: %s", ex)
             raise VectorDBConnectionError from ex
         return LLMResult(response="success")
 
     def context_object(self) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
-        processor = PineconeVectorStore.from_existing_index(
+        processor = _CustomPineconeVectorStore.from_existing_index(
             index_name=self._store_settings["store_params"]["index"], embedding=embeddings_util
         )
         return processor
