@@ -2,15 +2,15 @@
     <div class="my-2 justify-content-center">
         <ConfirmDialog></ConfirmDialog>
         <Toast class="z-5" />
-        <div class="px-3 lg:px-0 w-full lg:w-10 m-auto">
+        <div class="px-3 lg:px-0 w-screen lg:w-10 m-auto">
             <h1>Manage sources</h1>
-            <DataTable v-model:selection="selectedSources" :value="sources" dataKey="id" tableStyle="min-width: 50rem"
+            <DataTable v-model:selection="selectedSources" :value="sources" dataKey="id"
                 paginator size="large" :rows="size" :totalRecords="totalRecords" :rowsPerPageOptions="[5, 10]"
-                @page="pageUpdated" :lazy="true" :loading="loading">
+                @page="pageUpdated" :lazy="true" :loading="loading" class="dt-responsive-table">
 
                 <template #header>
                     <div class="flex justify-content-between">
-                        <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clear()" />
+                        <Button type="button" icon="pi pi-filter-slash" outlined @click="clear()" />
                         <IconField iconPosition="left">
                             <InputIcon>
                                 <i class="pi pi-search" />
@@ -26,8 +26,8 @@
                 <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
                 <template #empty>No sources available</template>
             </DataTable>
-
-            <Button type="button" label="Remove selected sources" icon="pi pi-times" severity="danger"
+            
+            <Button type="button" label="Remove sources" icon="pi pi-times" severity="danger"
                 @click="deleteSources" class="col-offset-4 lg:col-offset-0 col-4 lg:col-3 mt-5" :disabled="disableButton" />
         </div>
 

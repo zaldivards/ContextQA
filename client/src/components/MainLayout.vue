@@ -1,23 +1,11 @@
 <template>
   <div id="container" class="text-white-alpha-80" :class="customClass">
     <div id="sidebar" class="sticky top-0 z-3">
-      <aside
-        ref="sidebar"
-        v-if="show"
-        class="animation-duration-200"
-        :class="animation"
-      >
+      <aside ref="sidebar" v-if="show" class="animation-duration-200" :class="animation">
         <slot name="menu"></slot>
       </aside>
-      <Button
-        type="button"
-        :icon="icon"
-        @click="toggle"
-        aria-haspopup="true"
-        aria-controls="overlay_menu"
-        id="menu-button"
-        class="hidden"
-      />
+      <Button type="button" :icon="icon" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu"
+        id="menu-button" class="hidden" />
     </div>
 
     <section id="main" @click="hideMenu" class="h-screen">
@@ -108,14 +96,17 @@ export default {
   grid-template-columns: 20% 5% 1fr;
   grid-template-areas: "sidebar main main";
 }
+
 #sidebar {
   background-color: #1d2d39;
   grid-area: sidebar;
 }
+
 #menu-button {
   grid-row: button;
   box-shadow: none !important;
 }
+
 #main {
   grid-area: main;
 }
@@ -153,6 +144,7 @@ export default {
     width: 100%;
   }
 }
+
 @media screen and (min-width: 1000px) {
   #container {
     height: 100vh !important;
