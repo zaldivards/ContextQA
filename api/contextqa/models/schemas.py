@@ -87,7 +87,7 @@ class LLMQueryRequest(BaseModel):
     internet_access: bool = False
 
 
-class Settings(BaseModel):
+class ModelSettings(BaseModel):
     """Used to show settings"""
 
     provider: Literal["openai", "huggingface", "google"] | None = None
@@ -96,7 +96,7 @@ class Settings(BaseModel):
     local: bool = False
 
 
-class SettingsUpdate(Settings):
+class ModelSettingsUpdate(ModelSettings):
     """Used to update settings"""
 
     token: str | None = None
@@ -109,7 +109,20 @@ class ProviderDetail(BaseModel):
     models: list[str]
 
 
-class SettingsDetail(Settings):
+class ModelSettingsDetail(ModelSettings):
     """Response object for settings"""
 
     provider_options: list[ProviderDetail]
+
+
+class StoreSettings(BaseModel):
+    """Used to show store settings"""
+
+    store: Literal["chroma", "pinecone"] | None = None
+    chunk_size: int | None = None
+    overlap: int | None = None
+    store_params: dict | None = None
+
+
+class StoreSettingsUpdate(StoreSettings):
+    """Used to update store settings"""

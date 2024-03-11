@@ -23,9 +23,6 @@ class AppSettings(BaseSettings):
     sqlite_url: str = "sqlite:///contextqa.sqlite3"
     openai_api_key: str | None = None
     redis_url: str | None = None
-    pinecone_token: str | None = None
-    pinecone_index: str | None = None
-    pinecone_environment_region: str | None = None
     deployment: str = "dev"
     mysql_user: str | None = None
     mysql_password: str | None = None

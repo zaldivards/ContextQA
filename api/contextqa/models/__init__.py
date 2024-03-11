@@ -5,14 +5,26 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain.callbacks.streaming_aiter_final_only import AsyncFinalIteratorCallbackHandler
 
 
-class SettingsSchema(TypedDict):
-    """Dict schema returned from the config manager"""
-
+class ModelSettings(TypedDict):
     provider: Literal["openai", "huggingface", "google"]
     model: str
     temperature: float
     local: bool
     token: str
+
+
+class VectorStoreSettings(TypedDict):
+    store: Literal["chroma", "pinecone"]
+    chunk_size: int
+    overlap: int
+    store_params: dict
+
+
+class SettingsSchema(TypedDict):
+    """Dict schema returned from the config manager"""
+
+    model: ModelSettings
+    store: VectorStoreSettings
 
 
 @dataclass
