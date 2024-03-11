@@ -4,12 +4,38 @@ import uuid
 from pathlib import Path
 
 import fitz
-from contextqa import settings
-from contextqa.models.orm import Source as SourceORM
+from fastapi import HTTPException, status
+from langchain.docstore.document import Document
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from contextqa import settings, logger
+from contextqa.models.orm import Source as SourceORM, VectorStore, Index
 from contextqa.models.schemas import SourceSegment, SourceFormat
 from contextqa.utils.exceptions import DuplicatedSourceError
-from langchain.docstore.document import Document
-from sqlalchemy.orm import Session
+from contextqa.utils.settings import get_or_set
+
+
+def _get_or_create_index(session: Session) -> Index:
+    settings_ = get_or_set(kind="store")
+    current_store = settings_["store"]
+    # collection for chroma and index for pinecone
+    current_index = settings_["store_params"].get("collection", "index")
+    index = session.query(Index).filter_by(name=current_index).first()
+    if index:
+        return index
+    store = session.query(VectorStore).filter_by(name=current_store)
+    new_index = Index(name=current_index, store_id=store.id)
+    try:
+        session.add(new_index)
+        session.commit()
+        session.refresh(new_index)
+    except IntegrityError as ex:
+        raise HTTPException(
+            status_code=status.HTTP_424_FAILED_DEPENDENCY, detail="New index could not be created"
+        ) from ex
+    logger.info("New index created: %s", current_index)
+    return new_index
 
 
 def _get_digest(content: bytes) -> str:
@@ -64,7 +90,8 @@ def check_digest(name: str, content: bytes, session: Session):
             raise DuplicatedSourceError(f"Digest of {name} has not changed")
         source.digest = digest
     else:
-        new_source = SourceORM(name=name, digest=digest)
+        index = _get_or_create_index(session)
+        new_source = SourceORM(name=name, digest=digest, index_id=index.id)
         session.add(new_source)
 
 

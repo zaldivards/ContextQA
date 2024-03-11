@@ -1,7 +1,7 @@
 from typing import Literal
 
 from contextqa import settings as app_settings
-from contextqa.models import SettingsSchema, VectorStoreSettings
+from contextqa.models import SettingsSchema, VectorStoreSettings, ModelSettings
 
 
 def _check_local_store_args(store_settings: VectorStoreSettings | None) -> VectorStoreSettings | None:
@@ -19,7 +19,7 @@ def _config_manager():
     """Config manager closure"""
     settings: SettingsSchema = app_settings.model_settings
 
-    def config_manager(kind: Literal["model", "store"] = "model", **kwargs) -> SettingsSchema:
+    def config_manager(kind: Literal["model", "store"] = "model", **kwargs) -> ModelSettings | VectorStoreSettings:
         """Manage settings. Note that this utility can be used either to get or set settings.
 
         Possible use cases are listed below:
@@ -31,7 +31,7 @@ def _config_manager():
 
         Returns
         -------
-        SettingsSchema
+        ModelSettings | VectorStoreSettings
         """
         nonlocal settings
         if not kwargs:
