@@ -24,7 +24,7 @@ def _get_or_create_index(session: Session) -> Index:
     index = session.query(Index).filter_by(name=current_index).first()
     if index:
         return index
-    store = session.query(VectorStore).filter_by(name=current_store)
+    store = session.query(VectorStore).filter_by(name=current_store).first()
     new_index = Index(name=current_index, store_id=store.id)
     try:
         session.add(new_index)
