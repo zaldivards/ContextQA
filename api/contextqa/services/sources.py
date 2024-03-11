@@ -23,7 +23,17 @@ def sources_exists(session: Session) -> bool:
 
 
 def _sources_count(session: Session, like_query: str | None) -> int:
-    query = session.query(Source)
+    store_settings = get_or_set(kind="store")
+
+    query = (
+        session.query(Source)
+        .join(Index)
+        .join(VectorStore)
+        .filter(
+            Index.name == store_settings["store_params"].get("collection", "index"),
+            VectorStore.name == store_settings["store"],
+        )
+    )
     if like_query:
         query = query.filter(Source.name.ilike(f"%{like_query}%"))
     return query.count()
