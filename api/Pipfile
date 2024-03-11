@@ -28,6 +28,7 @@ text-generation = "*"
 langchain-google-genai = "*"
 langchain-openai = "*"
 langchainhub = "*"
+langchain-pinecone = "*"
 
 [dev-packages]
 black = "*"
