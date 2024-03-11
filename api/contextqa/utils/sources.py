@@ -168,7 +168,7 @@ def build_sources(sources: list[Document]) -> list[SourceSegment]:
 
         match extension:
             case SourceFormat.PDF:
-                page_number = source.metadata.get("page")
+                page_number = int(source.metadata.get("page"))
                 path = Path(name)
                 title = f"{path.name} - Page {page_number}"
                 if title not in processed_sources:
