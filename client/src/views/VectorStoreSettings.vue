@@ -79,7 +79,7 @@ import {
 } from "@/utils/client";
 
 export default {
-    name: "VectorStoreManager",
+    name: "VectorStoreSettings",
     components: { RadioBox, InputText, Password, Dropdown, Button, Toast },
     created() {
         fetchResource("/settings/store").then(settings => {
