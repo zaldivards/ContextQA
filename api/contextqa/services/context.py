@@ -26,7 +26,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from contextqa import logger, settings
-from contextqa.models import PartialModelData
+from contextqa.models import PartialModelData, VectorStoreSettings
 from contextqa.models.schemas import LLMResult, SimilarityProcessor, SourceFormat, IngestionResult
 from contextqa.utils import memory, prompts
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
@@ -40,8 +40,6 @@ LOADERS: dict[str, Type[BaseLoader]] = {
     ".csv": CSVLoader,
 }
 
-chroma_client = PersistentClient(path=str(settings.local_vectordb_home))
-
 
 def _combine_documents(
     docs: list[Document],
@@ -54,6 +52,10 @@ def _combine_documents(
 
 class LLMContextManager(BaseModel, ABC):
     """Base llm manager"""
+
+    @property
+    def _store_settings(self) -> VectorStoreSettings:
+        return get_or_set(kind="store")
 
     def _get_runnable_qa(self, model: BaseChatModel, memory_obj: BaseChatMemory) -> RunnableSequence:
         loaded_memory = RunnablePassthrough.assign(
@@ -129,9 +131,10 @@ class LLMContextManager(BaseModel, ABC):
         # we do not want to split csv files as they are splitted by rows
         if extension == "." + SourceFormat.CSV:
             return get_not_seen_chunks(documents, extension)
-        settings_ = get_or_set(kind="store")
         splitter = RecursiveCharacterTextSplitter(
-            chunk_size=settings_["chunk_size"], chunk_overlap=settings_["overlap"], separators=["\n\n", "\n", "."]
+            chunk_size=self._store_settings["chunk_size"],
+            chunk_overlap=self._store_settings["overlap"],
+            separators=["\n\n", "\n", "."],
         )
         chunks = splitter.split_documents(documents)
         return get_not_seen_chunks(chunks, extension)
@@ -190,26 +193,28 @@ class LocalManager(LLMContextManager):
     parquet file"""
 
     def persist(self, filename: str, file_: BinaryIO, session: Session) -> LLMResult:
+        chroma_client = PersistentClient(path=str(self._store_settings["store_params"]["home"]))
         documents, ids = self.load_and_preprocess(filename, file_, session)
         embeddings_util = OpenAIEmbeddings()
         processor = Chroma.from_documents(
             documents,
             embeddings_util,
             ids=ids,
-            persist_directory=str(settings.local_vectordb_home),
+            persist_directory=str(self._store_settings["store_params"]["home"]),
             client=chroma_client,
-            collection_name=settings.default_collection,
+            collection_name=self._store_settings["store_params"]["collection"],
         )
         processor.persist()
         return LLMResult(response="success")
 
     def context_object(self) -> VectorStore:
+        chroma_client = PersistentClient(path=str(self._store_settings["store_params"]["home"]))
         embeddings_util = OpenAIEmbeddings()
         processor = Chroma(
             client=chroma_client,
-            collection_name=settings.default_collection,
+            collection_name=self._store_settings["store_params"]["collection"],
             embedding_function=embeddings_util,
-            persist_directory=str(settings.local_vectordb_home),
+            persist_directory=str(self._store_settings["store_params"]["home"]),
         )
         return processor
 
@@ -220,13 +225,18 @@ class PineconeManager(LLMContextManager):
     def persist(self, filename: str, file_: BinaryIO, session: Session) -> LLMResult:
         try:
             logger.info("Initializing Pinecone connection")
-            pinecone.init(api_key=settings.pinecone_token, environment=settings.pinecone_environment_region)
+            pinecone.init(
+                api_key=self._store_settings["store_params"]["token"],
+                environment=self._store_settings["store_params"]["environment"],
+            )
         except Exception as ex:
             raise VectorDBConnectionError from ex
         documents, ids = self.load_and_preprocess(filename, file_, session)
         embeddings_util = OpenAIEmbeddings()
         try:
-            PineconeVectorStore.from_documents(documents, embeddings_util, index_name=settings.pinecone_index, ids=ids)
+            PineconeVectorStore.from_documents(
+                documents, embeddings_util, index_name=self._store_settings["store_params"]["index"], ids=ids
+            )
         except Exception as ex:
             raise VectorDBConnectionError from ex
         return LLMResult(response="success")
@@ -234,7 +244,7 @@ class PineconeManager(LLMContextManager):
     def context_object(self) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
         processor = PineconeVectorStore.from_existing_index(
-            index_name=settings.pinecone_index, embedding=embeddings_util
+            index_name=self._store_settings["store_params"]["index"], embedding=embeddings_util
         )
         return processor
 
