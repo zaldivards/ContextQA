@@ -68,7 +68,7 @@ class ChromaClient(StoreClient):
         self._client = client
 
     def delete(self, ids: list[str]):
-        return self._client.delete(ids)
+        self._client.delete(ids)
 
     def get(self, source: str) -> Iterable[str]:
         return self._client.get(where={"source": source})["ids"]
@@ -82,7 +82,7 @@ class PineconeClient(StoreClient):
         self._client = client
 
     def delete(self, ids: list[str]):
-        return self._client.delete(ids=ids)
+        self._client.delete(ids=ids)
 
     def get(self, source: str) -> Iterable[str]:
         data = self._client.query(
