@@ -1,5 +1,6 @@
 <template>
     <div class="my-6 justify-content-center">
+        <ConfirmDialog></ConfirmDialog>
         <Toast class="z-5" />
 
         <div class="px-3 lg:px-0 w-full lg:w-7 m-auto grid">
@@ -46,19 +47,27 @@
             <h3 class="mb-2 col-12">Advanced settings</h3>
 
             <div class="grid col-12">
-                <Dropdown v-model="chunkSize" :options="[2000, 1000, 500, 400, 300, 100]"
-                    class="col-6 bg-inherit border-black-alpha-20" :focusOnHover="false" :pt="{
-                panel: { class: 'bg-inherit' }
-            }" placeholder="Select the chunk size"></Dropdown>
+                <div class="flex flex-column gap-2 col-6">
+                    <label for="chunkSize">Chunk size</label>
 
-                <Dropdown v-model="overlap" :options="[1000, 500, 200, 100, 50]"
-                    class="col-6 bg-inherit border-black-alpha-20" :focusOnHover="false" :pt="{
+                    <Dropdown v-model="chunkSize" :options="[2000, 1000, 500, 400, 300, 100]"
+                        class="col-12 bg-inherit border-black-alpha-20" :focusOnHover="false" :pt="{
                 panel: { class: 'bg-inherit' }
-            }" placeholder="Select the chunk overlap"></Dropdown>
+            }" placeholder="Select the chunk size" id="chunkSize"></Dropdown>
+                </div>
+                <div class="flex flex-column gap-2 col-6">
+                    <label for="overlap">Chunk overlap</label>
+
+                    <Dropdown v-model="overlap" :options="[1000, 500, 200, 100, 50]"
+                        class="col-12 bg-inherit border-black-alpha-20" :focusOnHover="false" :pt="{
+                panel: { class: 'bg-inherit' }
+            }" placeholder="Select the chunk overlap" id="overlap"></Dropdown>
+                </div>
+
             </div>
 
             <Button type="button" label="Save" icon="pi pi-check" @click="setConfig"
-                class="col-offset-4 lg:col-offset-0 col-4 lg:col-2 mt-5" :disabled="disableButton"/>
+                class="col-offset-4 lg:col-offset-0 col-4 lg:col-2 mt-5" :disabled="disableButton" />
         </div>
     </div>
 
@@ -66,11 +75,13 @@
 
 <script>
 import Button from "primevue/button";
+import ConfirmDialog from "primevue/confirmdialog";
 import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
 import RadioBox from "@/components/RadioBox";
 import Toast from "primevue/toast";
+
 
 import {
     fetchResource,
@@ -80,7 +91,7 @@ import {
 
 export default {
     name: "VectorStoreSettings",
-    components: { RadioBox, InputText, Password, Dropdown, Button, Toast },
+    components: { RadioBox, InputText, Password, Dropdown, Button, Toast, ConfirmDialog },
     created() {
         fetchResource("/settings/store").then(settings => {
             this.store = settings.store
@@ -104,20 +115,30 @@ export default {
     },
     methods: {
         setConfig() {
-            fetchResource("/settings/store", {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ store: this.store, chunk_size: this.chunkSize, overlap: this.overlap, store_params: this.storeParams })
-            }).then(response => {
-                this.store = response.store
-                this.chunkSize = response.chunk_size
-                this.overlap = response.overlap
-                this.storeParams = response.store_params
-                showSuccess("Settings successfully updated")
-            }).catch((error) => showError(error));
+            this.$confirm.require({
+                message: "Are you sure you want to update the store settings?",
+                header: "Danger Zone",
+                icon: "pi pi-info-circle",
+                rejectClass: 'p-button-secondary p-button-outlined',
+                acceptClass: 'p-button-danger',
+                accept: () => {
+                    fetchResource("/settings/store", {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ store: this.store, chunk_size: this.chunkSize, overlap: this.overlap, store_params: this.storeParams })
+                    }).then(response => {
+                        this.store = response.store
+                        this.chunkSize = response.chunk_size
+                        this.overlap = response.overlap
+                        this.storeParams = response.store_params
+                        showSuccess("Settings successfully updated")
+                    }).catch((error) => showError(error));
+                }
+            })
         },
+
         onBoxCHange() {
             if (this.initialStore != this.store)
 

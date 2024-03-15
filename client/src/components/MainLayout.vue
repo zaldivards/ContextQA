@@ -94,6 +94,7 @@ export default {
   display: grid;
   height: 100vh;
   grid-template-columns: 20% 5% 1fr;
+  overflow: scroll;
   grid-template-areas: "sidebar main main";
 }
 
