@@ -1,5 +1,6 @@
 <template>
     <div class="my-6 justify-content-center">
+        <ConfirmDialog></ConfirmDialog>
         <Toast class="z-5" />
 
         <div class="px-3 lg:px-0 w-full lg:w-7 m-auto grid">
@@ -36,7 +37,7 @@
                     <label for="token">Access token</label>
                     <Password v-model="token" :feedback="false" id="token" :pt="{
                 root: { 'class': 'p-0' }
-            }" class="w-full"/>
+            }" class="w-full" />
                 </div>
             </div>
             <Button type="button" label="Save" icon="pi pi-check" @click="setConfig"
@@ -47,11 +48,13 @@
 
 <script>
 import Button from "primevue/button";
+import ConfirmDialog from "primevue/confirmdialog";
 import Dropdown from 'primevue/dropdown';
 import Password from 'primevue/password';
 import RadioBox from "@/components/RadioBox";
 import Slider from 'primevue/slider';
 import Toast from "primevue/toast";
+
 import {
     fetchResource,
     showError,
@@ -60,7 +63,7 @@ import {
 
 export default {
     name: "ModelSetttings",
-    components: { RadioBox, Slider, Button, Password, Toast, Dropdown },
+    components: { RadioBox, Slider, Button, Password, Toast, Dropdown, ConfirmDialog },
     created() {
         fetchResource("/settings/model").then(settings => {
             this.selectedModel = settings.model
@@ -87,18 +90,27 @@ export default {
     },
     methods: {
         setConfig() {
-            fetchResource("/settings/model", {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ provider: this.provider, model: this.selectedModel, temperature: this.temperature, token: this.token || null })
-            }).then(response => {
-                this.selectedModel = response.model
-                this.provider = response.provider
-                this.temperature = response.temperature
-                showSuccess("Settings were updated successfully")
-            }).catch((error) => showError(error));
+            this.$confirm.require({
+                message: "Are you sure you want to update the model settings?",
+                header: "Danger Zone",
+                icon: "pi pi-info-circle",
+                rejectClass: 'p-button-secondary p-button-outlined',
+                acceptClass: 'p-button-danger',
+                accept: () => {
+                    fetchResource("/settings/model", {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ provider: this.provider, model: this.selectedModel, temperature: this.temperature, token: this.token || null })
+                    }).then(response => {
+                        this.selectedModel = response.model
+                        this.provider = response.provider
+                        this.temperature = response.temperature
+                        showSuccess("Settings were updated successfully")
+                    }).catch((error) => showError(error));
+                }
+            })
         },
         onBoxCHange() {
             if (this.initialProvider != this.provider)
