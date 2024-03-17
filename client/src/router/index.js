@@ -6,6 +6,7 @@ import Home from "@/views/Home"
 import ModelSettings from "@/views/ModelSettings"
 import SourcesManager from "@/views/SourcesManager"
 import VectorStoreSettings from "@/views/VectorStoreSettings"
+import ExtraSettings from "@/views/ExtraSettings"
 
 
 
@@ -43,8 +44,13 @@ const routes = [
     },
     {
         path: '/settings/vector-stores',
-        name: 'vectoStoreSettings',
+        name: 'vectorStoreSettings',
         component: VectorStoreSettings,
+    },
+    {
+        path: '/settings/extra',
+        name: 'extraSettings',
+        component: ExtraSettings,
     },
 ]
 

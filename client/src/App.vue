@@ -44,6 +44,10 @@ export default {
           command: () => this.$router.push({ path: "/" }),
         },
         {
+          label: "Status",
+          icon: "pi pi-fw pi-info-circle",
+        },
+        {
           label: "Assistants",
           items: [
             {
@@ -85,19 +89,15 @@ export default {
               label: "Vector stores",
               icon: "pi pi-fw pi-database",
               command: () => this.$router.push({ path: "/settings/vector-stores" }),
-
-
             },
             {
-              label: "Status",
-              icon: "pi pi-fw pi-info-circle",
-            },
-            {
-              label: "Other configurations",
+              label: "Extra settings",
               icon: "pi pi-fw pi-cog",
+              command: () => this.$router.push({ path: "/settings/extra" }),
+
             },
           ],
-        },
+        }
       ],
     };
   },
@@ -162,7 +162,7 @@ body {
 
 @media (max-width: 767px) {
 
-  .p-datatable-wrapper{
+  .p-datatable-wrapper {
     width: 100%;
     overflow: scroll !important;
   }
