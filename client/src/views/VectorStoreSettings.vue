@@ -153,7 +153,6 @@ export default {
             return this.store == "chroma"
         },
         disableButton() {
-            console.log(this.storeParams);
             for (var key in this.storeParams) {
                 return (this.storeParams[key] == null || this.storeParams[key] == "") && key != "token"
             }

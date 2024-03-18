@@ -6,7 +6,7 @@
             <div class="flex flex-column gap-2 col-12">
                 <h3>Media</h3>
                 <label for="media-dir">Media directory</label>
-                <InputText id="media-dir" class="col-6" />
+                <InputText id="media-dir" v-model="media" class="col-6" />
             </div>
             <div class="col-12 grid">
                 <h3 class="col-12 mb-0 pb-0">LLM Memory</h3>
@@ -23,7 +23,7 @@
                 </SelectButton>
                 <div class="flex flex-column gap-2 col-6" v-if="isRedis">
                     <label for="redis-url">Redis connection URL</label>
-                    <InputText id="redis-url" class="col-12" />
+                    <InputText id="redis-url" v-model="memoryUrl" class="col-12" />
                 </div>
             </div>
             <div class="col-12 grid">
@@ -43,26 +43,26 @@
                 <div class="grid col-12" v-if="isMysql">
                     <div class="flex flex-column gap-2 grid col-3">
                         <label for="db-user">User</label>
-                        <InputText id="db-user" class="col-11" />
+                        <InputText id="db-user" v-model="mysqlData.user" class="col-11" />
                     </div>
                     <div class="flex flex-column gap-2 grid col-3">
                         <label for="db-name">Database name</label>
-                        <InputText id="db-name" class="col-11" />
+                        <InputText id="db-name" v-model="mysqlData.db" class="col-11" />
                     </div>
                     <div class="col-6"></div>
                     <div class="flex flex-column gap-2 grid col-3">
                         <label for="db-host">Host</label>
-                        <InputText id="db-host" class="col-11" />
+                        <InputText id="db-host" v-model="mysqlData.host" class="col-11" />
                     </div>
                     <div class="flex flex-column gap-2 grid col-3">
                         <label for="db-passw">Password</label>
-                        <Password id="db-passw" :feedback="false" class="col-11 p-0"/>
-                        
+                        <Password id="db-passw" v-model="mysqlData.password" :feedback="false" class="col-11 p-0" />
+
                     </div>
                 </div>
                 <div class="flex flex-column gap-2 col-6" v-else>
                     <label for="sqlite-url">SQLite connection URL</label>
-                    <InputText id="sqlite-url" class="col-12" />
+                    <InputText id="sqlite-url" v-model="sqliteUrl" class="col-12" />
                 </div>
             </div>
             <Button type="button" label="Save" icon="pi pi-check"
@@ -78,15 +78,36 @@ import Password from 'primevue/password';
 import SelectButton from 'primevue/selectbutton';
 import Toast from "primevue/toast";
 
+import {
+    fetchResource,
+    showError,
+    showSuccess
+} from "@/utils/client";
+
 export default {
     name: "ExtraSettings",
     components: { Toast, InputText, SelectButton, Button, Password },
+    created() {
+        fetchResource("/settings/extra").then(settings => {
+            this.media = settings.media_dir
+            this.memoryUrl = settings.memory.url
+            this.memoryValue = settings.memory.kind
+            this.dbValue = settings.database.kind
+            this.sqliteUrl = settings.database.url
+            this.mysqlData = settings.database.data ?? {}
+        })
+            .catch((error) => showError(error));
+    },
     data() {
         return {
-            memoryValue: "Local",
+            media: '',
+            memoryUrl: null,
+            memoryValue: "",
             memoryOptions: ["Local", "Redis"],
-            dbValue: "sqlite",
+            dbValue: "",
             dbOptions: ["sqlite", "mysql"],
+            sqliteUrl: null,
+            mysqlData: {}
         }
     },
     computed: {

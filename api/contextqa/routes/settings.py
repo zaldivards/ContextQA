@@ -7,6 +7,7 @@ from contextqa.models import (
     ModelSettingsUpdate,
     ModelSettings,
     StoreSettings,
+    ExtraSettings,
 )
 from contextqa.utils.settings import get_or_set
 
@@ -80,6 +81,19 @@ async def update_store_settings(settings: StoreSettings):
         store_params = updated_settings.store_params.copy()
         store_params.pop("token")
         return StoreSettings(**(updated_settings.model_dump() | {"store_params": store_params}))
+    except Exception as ex:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"message": "Something went wrong", "cause": str(ex)},
+        ) from ex
+
+
+@router.get("/extra", response_model=ExtraSettings)
+async def get_extra_settings():
+    """Get extra settings"""
+    try:
+        settings = get_or_set(kind="extra")
+        return ExtraSettings(**settings.model_dump())
     except Exception as ex:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
