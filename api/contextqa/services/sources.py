@@ -7,6 +7,20 @@ from contextqa.utils.clients import StoreClient
 from contextqa.utils.settings import get_or_set
 
 
+def _main_filter_query(session: Session, expresion):
+    store_settings = get_or_set(kind="store")
+
+    return (
+        session.query(expresion)
+        .join(Index)
+        .join(VectorStore)
+        .filter(
+            Index.name == store_settings.store_params.get("collection", "index"),
+            VectorStore.name == store_settings.store,
+        )
+    )
+
+
 def sources_exists(session: Session) -> bool:
     """Check if there is at least one source available
 
@@ -19,21 +33,12 @@ def sources_exists(session: Session) -> bool:
     -------
     bool
     """
-    return session.query(Source.id).limit(1).count() > 0
+    query = _main_filter_query(session, Source.id)
+    return query.limit(1).count() > 0
 
 
 def _sources_count(session: Session, like_query: str | None) -> int:
-    store_settings = get_or_set(kind="store")
-
-    query = (
-        session.query(Source)
-        .join(Index)
-        .join(VectorStore)
-        .filter(
-            Index.name == store_settings["store_params"].get("collection", "index"),
-            VectorStore.name == store_settings["store"],
-        )
-    )
+    query = _main_filter_query(session, Source)
     if like_query:
         query = query.filter(Source.name.ilike(f"%{like_query}%"))
     return query.count()
@@ -56,16 +61,8 @@ def get_sources(session: Session, limit: int, offset: int, like_query: str | Non
     -------
     tuple[Iterable[Source], int]
     """
-    store_settings = get_or_set(kind="store")
-    query = (
-        session.query(Source)
-        .join(Index)
-        .join(VectorStore)
-        .filter(
-            Index.name == store_settings["store_params"].get("collection", "index"),
-            VectorStore.name == store_settings["store"],
-        )
-    )
+    query = _main_filter_query(session, Source)
+
     if like_query:
         query = query.filter(Source.name.ilike(f"%{like_query}%"))
     return query.offset(offset).limit(limit), _sources_count(session, like_query)
@@ -90,8 +87,8 @@ def remove_sources(session: Session, sources: list[str], client: StoreClient) ->
         .join(VectorStore)
         .filter(
             Source.name.in_(sources),
-            Index.name == store_settings["store_params"].get("collection", "index"),
-            VectorStore.name == store_settings["store"],
+            Index.name == store_settings.store_params.get("collection", "index"),
+            VectorStore.name == store_settings.store,
         )
     )
 
