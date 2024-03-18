@@ -1,7 +1,7 @@
 # pylint: disable=C0413
 from fastapi import APIRouter, HTTPException, status
 
-from contextqa.models.schemas import (
+from contextqa.models import (
     ModelSettingsDetail,
     ProviderDetail,
     ModelSettingsUpdate,
@@ -17,8 +17,9 @@ router = APIRouter()
 async def get_model_settings():
     """Get model settings"""
     try:
+        settings = get_or_set()
         return ModelSettingsDetail(
-            **get_or_set(),
+            **settings.model_dump(),
             provider_options=[
                 ProviderDetail(provider="openai", models=["gpt-3.5-turbo", "gpt-4"]),
                 ProviderDetail(provider="huggingface", models=["tiiuae/falcon-7b-instruct"]),
@@ -37,7 +38,13 @@ async def update_model_settings(settings: ModelSettingsUpdate):
     """Update model settings"""
     try:
         partial_model = settings.model_dump(exclude_unset=True, exclude_none=True)
-        return ModelSettings(**get_or_set(**partial_model))
+        updated_settings = get_or_set(**partial_model)
+        return ModelSettings(
+            provider=updated_settings.provider,
+            model=updated_settings.model,
+            temperature=updated_settings.temperature,
+            local=updated_settings.local,
+        )
     except Exception as ex:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -49,7 +56,10 @@ async def update_model_settings(settings: ModelSettingsUpdate):
 async def get_store_settings():
     """Get store settings"""
     try:
-        return StoreSettings(**get_or_set(kind="store"))
+        settings = get_or_set(kind="store")
+        store_params = settings.store_params.copy()
+        store_params.pop("token", None)
+        return StoreSettings(**(settings.model_dump() | {"store_params": store_params}))
     except Exception as ex:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -61,8 +71,15 @@ async def get_store_settings():
 async def update_store_settings(settings: StoreSettings):
     """Update model settings"""
     try:
+        current_settings = get_or_set(kind="store")
+        # If the token is not in the received settings, do not overwrite the existing one with a None value
+        if not settings.store_params.get("token") and settings.store == "pinecone":
+            settings.store_params["token"] = current_settings.store_params.get("token")
         partial_model = settings.model_dump(exclude_unset=True, exclude_none=True)
-        return StoreSettings(**get_or_set(kind="store", **partial_model))
+        updated_settings = get_or_set(kind="store", **partial_model)
+        store_params = updated_settings.store_params.copy()
+        store_params.pop("token")
+        return StoreSettings(**(updated_settings.model_dump() | {"store_params": store_params}))
     except Exception as ex:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

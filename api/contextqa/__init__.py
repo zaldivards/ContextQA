@@ -5,6 +5,9 @@ from pathlib import Path
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
+from contextqa.models import SettingsSchema
+
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("contextqa")
 
@@ -33,15 +36,15 @@ class AppSettings(BaseSettings):
         return self.deployment == "dev"
 
     @property
-    def model_settings(self) -> dict:
+    def model_settings(self) -> SettingsSchema:
         """Get the initial settings"""
         with open(self.config_path, mode="r", encoding="utf-8") as settings_file:
-            return json.load(settings_file)
+            return SettingsSchema.model_validate_json(settings_file.read())
 
     @model_settings.setter
-    def model_settings(self, model_settings: dict):
+    def model_settings(self, model_settings: SettingsSchema):
         with open(self.config_path, mode="w", encoding="utf-8") as settings_file:
-            return json.dump(model_settings, settings_file)
+            return json.dump(model_settings.model_dump(), settings_file)
 
     @field_validator("media_home")
     @classmethod

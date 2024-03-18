@@ -1,23 +1,25 @@
 from typing import Literal
 
 from contextqa import settings as app_settings
-from contextqa.models import SettingsSchema, VectorStoreSettings, ModelSettings
+from contextqa.models import VectorStoreSettings, ModelSettings
 
 
 def _check_local_store_args(store_settings: VectorStoreSettings | None) -> VectorStoreSettings:
-    store_settings = store_settings or {"store": "chroma", "chunk_size": 1000, "overlap": 200, "store_params": {}}
-    if store_settings["store"] == "chroma":
-        if "home" not in store_settings["store_params"]:
-            store_settings["store_params"]["home"] = app_settings.local_vectordb_home
-        if "collection" not in store_settings["store_params"]:
-            store_settings["store_params"]["collection"] = app_settings.default_collection
+    store_settings = store_settings or VectorStoreSettings(
+        store="chroma", chunk_size=1000, overlap=200, store_params={}
+    )
+    if store_settings.store == "chroma":
+        if "home" not in store_settings.store_params:
+            store_settings.store_params["home"] = app_settings.local_vectordb_home
+        if "collection" not in store_settings.store_params:
+            store_settings.store_params["collection"] = app_settings.default_collection
         return store_settings
     return store_settings
 
 
 def _config_manager():
     """Config manager closure"""
-    settings: SettingsSchema = app_settings.model_settings
+    settings = app_settings.model_settings
 
     def config_manager(kind: Literal["model", "store"] = "model", **kwargs) -> ModelSettings | VectorStoreSettings:
         """Manage settings. Note that this utility can be used either to get or set settings.
@@ -36,16 +38,17 @@ def _config_manager():
         nonlocal settings
         if not kwargs:
             if kind == "store":
-                settings_ = settings.get(kind)
-                settings_ = _check_local_store_args(settings_)
+                settings_ = _check_local_store_args(settings.store)
                 return settings_
-            return settings[kind]
-        if not settings.get(kind):
-            settings[kind] = kwargs
+            return getattr(settings, kind)
+        if not getattr(settings, kind):
+            setattr(settings, kind, kwargs)
         else:
-            settings[kind].update(kwargs)
+            specific_settings: VectorStoreSettings | ModelSettings = getattr(settings, kind)
+            new_settings = specific_settings.__class__.model_validate(specific_settings.model_dump() | kwargs)
+            setattr(settings, kind, new_settings)
         app_settings.model_settings = settings
-        return settings[kind]
+        return getattr(settings, kind)
 
     return config_manager
 

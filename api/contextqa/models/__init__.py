@@ -3,32 +3,25 @@ from typing import TypedDict, Literal, Callable
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain.callbacks.streaming_aiter_final_only import AsyncFinalIteratorCallbackHandler
+from pydantic import BaseModel
 
 
-class ModelSettings(TypedDict):
+from contextqa.models.schemas import ModelSettingsUpdate, StoreSettings, ProviderDetail, ModelSettingsDetail
+
+
+class ModelSettings(ModelSettingsUpdate):
     """Settings related to specific LLMs"""
 
-    provider: Literal["openai", "huggingface", "google"]
-    model: str
-    temperature: float
-    local: bool
-    token: str
 
-
-class VectorStoreSettings(TypedDict):
+class VectorStoreSettings(StoreSettings):
     """Settings related to specific vector stores"""
 
-    store: Literal["chroma", "pinecone"]
-    chunk_size: int
-    overlap: int
-    store_params: dict
 
-
-class SettingsSchema(TypedDict):
+class SettingsSchema(BaseModel):
     """Dict schema returned from the config manager"""
 
-    model: ModelSettings
-    store: VectorStoreSettings
+    model: ModelSettings | None = None
+    store: VectorStoreSettings | None = None
 
 
 @dataclass
