@@ -1,5 +1,6 @@
 # pylint: disable=E0611
 from enum import Enum
+from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
@@ -116,3 +117,41 @@ class StoreSettings(BaseModel):
 
 class StoreSettingsUpdate(StoreSettings):
     """Used to update store settings"""
+
+
+class LLMMemory(BaseModel):
+    kind: Literal["Local", "Redis"] = "Redis"
+    url: str | None = None
+
+
+class _DBData(BaseModel):
+    user: str
+    db: str
+    host: str
+    password: str | None
+
+
+class DBModel(BaseModel):
+    kind: Literal["sqlite", "mysql"] = "sqlite"
+    url: str | None = None
+    data: _DBData | None = None
+
+
+class ExtraSettings(BaseModel):
+    media_dir: Path
+    memory: LLMMemory
+    database: DBModel
+
+    @classmethod
+    def from_defaults(cls) -> "ExtraSettings":
+        # pylint: disable=C0415
+        from contextqa import settings
+
+        return cls(
+            media_dir=settings.media_home,
+            memory=LLMMemory(url=settings.redis_url),
+            database=DBModel(url=settings.sqlite_url),
+        )
+
+
+# class ExtraSettingsUpdate(ExtraSettings):
