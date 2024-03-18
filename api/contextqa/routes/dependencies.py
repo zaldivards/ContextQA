@@ -24,17 +24,17 @@ def get_partial_initialized_model() -> PartialModelData:
     """
     model_settings = get_or_set()
 
-    if model_settings["provider"] == "openai":
+    if model_settings.provider == "openai":
         return PartialModelData(
             partial_model=partial(
                 ChatOpenAI,
-                openai_api_key=model_settings["token"],
-                temperature=model_settings["temperature"],
-                model=model_settings["model"],
+                openai_api_key=model_settings.token,
+                temperature=model_settings.temperature,
+                model=model_settings.model,
             ),
             callback=None,
         )
-    if model_settings["provider"] == "google":
+    if model_settings.provider == "google":
         return PartialModelData(
             partial_model=partial(
                 ChainCompatibleGoogleGenerativeAI,
@@ -45,9 +45,9 @@ def get_partial_initialized_model() -> PartialModelData:
                     HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
                 },
                 convert_system_message_to_human=True,
-                google_api_key=model_settings["token"],
-                temperature=model_settings["temperature"],
-                model=model_settings["model"],
+                google_api_key=model_settings.token,
+                temperature=model_settings.temperature,
+                model=model_settings.model,
             ),
             callback=None,
         )
@@ -61,18 +61,16 @@ def store_client() -> StoreClient:
     StoreClient
     """
     store_settings = get_or_set(kind="store")
-    if store_settings["store"] == "chroma":
-        home = str(store_settings["store_params"]["home"])
+    if store_settings.store == "chroma":
+        home = str(store_settings.store_params["home"])
         # chroma_client = PersistentClient(path=home)
         chroma_client = Chroma(
             client=PersistentClient(path=home),
-            collection_name=store_settings["store_params"]["collection"],
+            collection_name=store_settings.store_params["collection"],
             persist_directory=home,
         )
         return ChromaClient(client=chroma_client)
-    pinecone_client = Pinecone(api_key=store_settings["store_params"]["token"]).Index(
-        store_settings["store_params"]["index"]
-    )
+    pinecone_client = Pinecone(api_key=store_settings.store_params["token"]).Index(store_settings.store_params["index"])
     return PineconeClient(client=pinecone_client)
 
 
@@ -84,7 +82,7 @@ def context_manager() -> LLMContextManager:
     LLMContextManager
     """
     store_settings = get_or_set(kind="store")
-    if store_settings["store"] == "chroma":
+    if store_settings.store == "chroma":
         manager = LocalManager()
     else:
         manager = PineconeManager()
