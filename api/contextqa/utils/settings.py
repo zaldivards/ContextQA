@@ -4,19 +4,6 @@ from contextqa import settings as app_settings
 from contextqa.models import VectorStoreSettings, ModelSettings, Extra
 
 
-def _check_local_store_args(store_settings: VectorStoreSettings | None) -> VectorStoreSettings:
-    store_settings = store_settings or VectorStoreSettings(
-        store="chroma", chunk_size=1000, overlap=200, store_params={}
-    )
-    if store_settings.store == "chroma":
-        if "home" not in store_settings.store_params:
-            store_settings.store_params["home"] = app_settings.local_vectordb_home
-        if "collection" not in store_settings.store_params:
-            store_settings.store_params["collection"] = app_settings.default_collection
-        return store_settings
-    return store_settings
-
-
 def _config_manager():
     """Config manager closure"""
     settings = app_settings.model_settings
@@ -39,9 +26,6 @@ def _config_manager():
         """
         nonlocal settings
         if not kwargs:
-            if kind == "store":
-                settings_ = _check_local_store_args(settings.store)
-                return settings_
             return getattr(settings, kind)
         if not getattr(settings, kind):
             setattr(settings, kind, kwargs)

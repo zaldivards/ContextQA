@@ -1,14 +1,8 @@
 # pylint: disable=C0413
 from fastapi import APIRouter, HTTPException, status
 
-from contextqa.models import (
-    ModelSettingsDetail,
-    ProviderDetail,
-    ModelSettingsUpdate,
-    ModelSettings,
-    StoreSettings,
-    ExtraSettings,
-)
+from contextqa.models import ModelSettingsUpdate, ModelSettings, StoreSettings, ExtraSettings
+from contextqa.models.schemas import ModelSettingsDetail, ProviderDetail
 from contextqa.utils.settings import get_or_set
 
 router = APIRouter()

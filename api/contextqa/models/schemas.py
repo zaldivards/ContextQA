@@ -120,6 +120,8 @@ class StoreSettingsUpdate(StoreSettings):
 
 
 class LLMMemory(BaseModel):
+    """LLM memory settings"""
+
     kind: Literal["Local", "Redis"] = "Redis"
     url: str | None = None
 
@@ -132,26 +134,22 @@ class _DBData(BaseModel):
 
 
 class DBModel(BaseModel):
+    """ContextQA database settings
+
+    The database contains information about ingested sources
+    """
+
     kind: Literal["sqlite", "mysql"] = "sqlite"
     url: str | None = None
     data: _DBData | None = None
 
 
 class ExtraSettings(BaseModel):
+    """Extra settings related to LLM's memory and ingested sources database"""
+
     media_dir: Path
     memory: LLMMemory
     database: DBModel
-
-    @classmethod
-    def from_defaults(cls) -> "ExtraSettings":
-        # pylint: disable=C0415
-        from contextqa import settings
-
-        return cls(
-            media_dir=settings.media_home,
-            memory=LLMMemory(url=settings.redis_url),
-            database=DBModel(url=settings.sqlite_url),
-        )
 
 
 # class ExtraSettingsUpdate(ExtraSettings):
