@@ -1,8 +1,8 @@
 <template>
-  <div class="w-full">
+  <div class="w-full grid">
     <p v-if="data.length == 0">No related sources</p>
-    <Card v-else :key="i" v-for="(source, i) in data" class="mx-0 my-5" :pt="{
-      content: { class: 'mx-0' },
+    <Card v-else :key="i" v-for="(source, i) in data" class="mx-0 my-5 col-12 lg:col-6" :pt="{
+      content: { class: 'mx-0' }, title: { class: 'lg:text-xl text-xs' },
     }">
       <template #title>
         {{ source.title }}
@@ -15,7 +15,8 @@
           <Column v-for="(name, i) in Object.keys(source.content[0])" :key="i" :field="name" :header="name"></Column>
         </DataTable>
         <div v-else class="text-center">
-          <Image class="m-0" :src="`data:image/jpg;base64,${source.content}`" preview />
+          <Image class="m-0" :src="`data:image/jpg;base64,${source.content}`" preview
+            :pt="{ image: { class: 'w-full' }, mask: { class: 'w-full' } }" />
         </div>
       </template>
     </Card>
