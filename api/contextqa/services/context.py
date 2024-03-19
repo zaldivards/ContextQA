@@ -132,8 +132,8 @@ class LLMContextManager(BaseModel, ABC):
         if extension == "." + SourceFormat.CSV:
             return get_not_seen_chunks(documents, extension)
         splitter = RecursiveCharacterTextSplitter(
-            chunk_size=self._store_settings["chunk_size"],
-            chunk_overlap=self._store_settings["overlap"],
+            chunk_size=self._store_settings.chunk_size,
+            chunk_overlap=self._store_settings.overlap,
             separators=["\n\n", "\n", "."],
         )
         chunks = splitter.split_documents(documents)
@@ -193,28 +193,28 @@ class LocalManager(LLMContextManager):
     parquet file"""
 
     def persist(self, filename: str, file_: BinaryIO, session: Session) -> LLMResult:
-        chroma_client = PersistentClient(path=str(self._store_settings["store_params"]["home"]))
+        chroma_client = PersistentClient(path=str(self._store_settings.store_params["home"]))
         documents, ids = self.load_and_preprocess(filename, file_, session)
         embeddings_util = OpenAIEmbeddings()
         processor = Chroma.from_documents(
             documents,
             embeddings_util,
             ids=ids,
-            persist_directory=str(self._store_settings["store_params"]["home"]),
+            persist_directory=str(self._store_settings.store_params["home"]),
             client=chroma_client,
-            collection_name=self._store_settings["store_params"]["collection"],
+            collection_name=self._store_settings.store_params["collection"],
         )
         processor.persist()
         return LLMResult(response="success")
 
     def context_object(self) -> VectorStore:
-        chroma_client = PersistentClient(path=str(self._store_settings["store_params"]["home"]))
+        chroma_client = PersistentClient(path=str(self._store_settings.store_params["home"]))
         embeddings_util = OpenAIEmbeddings()
         processor = Chroma(
             client=chroma_client,
-            collection_name=self._store_settings["store_params"]["collection"],
+            collection_name=self._store_settings.store_params["collection"],
             embedding_function=embeddings_util,
-            persist_directory=str(self._store_settings["store_params"]["home"]),
+            persist_directory=str(self._store_settings.store_params["home"]),
         )
         return processor
 
@@ -225,7 +225,7 @@ class _CustomPineconeVectorStore(PineconeVectorStore):
     # pylint: disable=W0221
     @classmethod
     def get_pinecone_index(cls, index_name: str, pool_threads: int = 4, *, _: str | None = None) -> Index:
-        token = get_or_set(kind="store")["store_params"]["token"]
+        token = get_or_set(kind="store").store_params["token"]
         return super().get_pinecone_index(index_name, pool_threads, pinecone_api_key=token)
 
 
@@ -233,15 +233,15 @@ class PineconeManager(LLMContextManager):
     """Pinecone manager implementation. It uses `Pinecone` as its processor and vector store"""
 
     def _init(self) -> str:
-        index = self._store_settings["store_params"]["index"]
-        pc = Pinecone(api_key=self._store_settings["store_params"]["token"])
+        index = self._store_settings.store_params["index"]
+        pc = Pinecone(api_key=self._store_settings.store_params["token"])
 
         if index not in pc.list_indexes().names():
             pc.create_index(
                 name=index,
                 dimension=1536,
                 metric="cosine",
-                spec=ServerlessSpec(cloud="aws", region=self._store_settings["store_params"]["environment"]),
+                spec=ServerlessSpec(cloud="aws", region=self._store_settings.store_params["environment"]),
             )
         return index
 
@@ -265,7 +265,7 @@ class PineconeManager(LLMContextManager):
     def context_object(self) -> VectorStore:
         embeddings_util = OpenAIEmbeddings()
         processor = _CustomPineconeVectorStore.from_existing_index(
-            index_name=self._store_settings["store_params"]["index"], embedding=embeddings_util
+            index_name=self._store_settings.store_params["index"], embedding=embeddings_util
         )
         return processor
 
