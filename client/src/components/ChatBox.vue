@@ -1,5 +1,6 @@
 <template>
-  <div class="justify-content-center mx-auto" :class="sourcesReady || !requiresContext ? '' : ['opacity-50', 'disabled']">
+      <div class="my-6 justify-content-center">
+        <div class="px-3 lg:px-0 w-full lg:w-10 m-auto grid justify-content-center" :class="sourcesReady || !requiresContext ? '' : ['opacity-50', 'disabled']">
     <DynamicDialog :pt="{ content: { class: 'h-full' } }" />
     <div>
       <Dialog :dismissableMask="true" :closeOnEscape="true" :closable="true" :visible="showDialog" :draggable="false"
@@ -35,10 +36,10 @@
     <Toast class="z-5 w-9 lg:w-3" />
 
     <Panel ref="panel"
-      class="w-12 lg:w-8 m-auto lg:my-5 scroll-panel chat-height overflow-y-scroll scrollbar bg-inherit relative"
+      class="col-12 lg:col-8 lg:my-5 scroll-panel chat-height overflow-y-scroll scrollbar bg-inherit  py-0"
       :header="header" :pt="{
         header: {
-          class: 'border-none bg-contextqa-primary-main sticky top-0',
+          class: 'border-none bg-contextqa-primary-main sticky top-0 pt-3',
         },
         footer: {
           style: 'border-top: 1px solid #eee;',
@@ -75,17 +76,18 @@
         </div>
       </div>
 
-      <div class="fixed bottom-0 w-11 lg:w-7 mb-5 align-items-center">
+      <div class="fixed bottom-0 w-11 lg:w-5 mb-5 align-items-center z-5">
         <div class="m-auto">
           <div class="flex align-items-center mb-2" v-if="!requiresContext">
             <span class="mr-2">Enable internet access</span>
             <InputSwitch v-model="internetEnabled" @input="switchHandler" />
           </div>
-          <Button v-else label="Check response sources" icon="pi pi-search" @click="showSources" />
+          <Button v-else label="Sources" class="my-2" icon="pi pi-search-plus" severity="secondary" rounded @click="showSources" />
           <MessageAdder @send="pushMessages" ref="adder" />
         </div>
       </div>
     </Panel>
+  </div>
   </div>
 </template>
 
