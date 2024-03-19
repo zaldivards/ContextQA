@@ -35,7 +35,7 @@ class Extra(ExtraSettings):
         """Get default settings related to LLM's memory and ingested sources database"""
 
         return cls(
-            media_dir=settings.media_home,
+            media_dir=str(settings.media_home),
             memory=LLMMemory(url=settings.redis_url),
             database=DBModel(url=settings.sqlite_url),
         )

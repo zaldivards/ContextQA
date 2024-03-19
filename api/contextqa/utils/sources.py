@@ -18,13 +18,12 @@ from contextqa.utils.settings import get_or_set
 
 def _get_or_create_index(session: Session) -> Index:
     settings_ = get_or_set(kind="store")
-    current_store = settings_["store"]
     # collection for chroma and index for pinecone
-    current_index = settings_["store_params"].get("collection", "index")
+    current_index = settings_.store_params.get("collection", "index")
     index = session.query(Index).filter_by(name=current_index).first()
     if index:
         return index
-    store = session.query(VectorStore).filter_by(name=current_store).first()
+    store = session.query(VectorStore).filter_by(name=settings_.store).first()
     new_index = Index(name=current_index, store_id=store.id)
     try:
         session.add(new_index)
@@ -176,12 +175,12 @@ def build_sources(sources: list[Document]) -> list[SourceSegment]:
                     content = _get_base64_image(path, page_number)
             case SourceFormat.TXT:
                 idx = source.metadata.get("idx")
-                title = f"{source_name} - Segment {idx}"
+                title = f"{source_name} - Segment {int(idx)}"
                 if title not in processed_sources:
                     format_ = SourceFormat.TXT
                     content = source.page_content
             case SourceFormat.CSV:
-                title = f"{source_name} - Row {source.metadata.get('row')}"
+                title = f"{source_name} - Row {int(source.metadata.get('row'))}"
                 format_ = SourceFormat.CSV
                 if title not in processed_sources:
                     content = _csv_repr(source.page_content)

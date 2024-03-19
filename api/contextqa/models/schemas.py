@@ -147,7 +147,7 @@ class DBModel(BaseModel):
 class ExtraSettings(BaseModel):
     """Extra settings related to LLM's memory and ingested sources database"""
 
-    media_dir: Path
+    media_dir: str
     memory: LLMMemory
     database: DBModel
 
