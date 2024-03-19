@@ -1,43 +1,44 @@
 <template>
-      <div class="my-6 justify-content-center">
-        <div class="px-3 lg:px-0 w-full lg:w-10 m-auto grid justify-content-center" :class="sourcesReady || !requiresContext ? '' : ['opacity-50', 'disabled']">
-    <DynamicDialog :pt="{ content: { class: 'h-full' } }" />
-    <div>
-      <Dialog :dismissableMask="true" :closeOnEscape="true" :closable="true" :visible="showDialog" :draggable="false"
-        modal header="Internet access enabled" class="w-full lg:w-6">
-        <template #closeicon>
-          <button @click="closeDialog" class="no-background">
-            <i class="pi pi-times" style="color: red"></i>
-          </button>
-        </template>
-        <p>
-          There are two main points you need to take into account when enabling
-          internet access:
-        </p>
-        <ul>
-          <li>
-            <b>Increased API usage</b>: With internet access, the assistant may
-            need to make additional API calls to fetch information from the web.
-            This can result in slightly higher API usage compared to when
-            internet access is disabled.
-          </li>
-          <li>
-            <b>Accuracy limitations</b>: While internet access can provide the
-            assistant with access to a vast amount of information, it's
-            important to note that the assistant's responses are still based on
-            a mixture of licensed data, data created by human trainers, and
-            publicly available data. Therefore, there may be instances where the
-            assistant's accuracy is not the best, especially when it comes to
-            real-time or highly specific information.
-          </li>
-        </ul>
-      </Dialog>
-    </div>
-    <Toast class="z-5 w-9 lg:w-3" />
+  <div class="my-6 justify-content-center">
+    <div class="px-3 lg:px-0 w-full lg:w-10 m-auto grid justify-content-center"
+      :class="sourcesReady || !requiresContext ? '' : ['opacity-50', 'disabled']">
+      <DynamicDialog :pt="{ content: { class: 'h-full' } }" />
+      <div>
+        <Dialog :dismissableMask="true" :closeOnEscape="true" :closable="true" :visible="internetEnabled"
+          :draggable="false" modal header="Internet access enabled" class="w-full lg:w-6">
+          <template #closeicon>
+            <button @click="closeDialog" class="no-background">
+              <i class="pi pi-times" style="color: red"></i>
+            </button>
+          </template>
+          <p>
+            There are two main points you need to take into account when enabling
+            internet access:
+          </p>
+          <ul>
+            <li>
+              <b>Increased API usage</b>: With internet access, the assistant may
+              need to make additional API calls to fetch information from the web.
+              This can result in slightly higher API usage compared to when
+              internet access is disabled.
+            </li>
+            <li>
+              <b>Accuracy limitations</b>: While internet access can provide the
+              assistant with access to a vast amount of information, it's
+              important to note that the assistant's responses are still based on
+              a mixture of licensed data, data created by human trainers, and
+              publicly available data. Therefore, there may be instances where the
+              assistant's accuracy is not the best, especially when it comes to
+              real-time or highly specific information.
+            </li>
+          </ul>
+        </Dialog>
+      </div>
+      <Toast class="z-5 w-9 lg:w-3" />
 
-    <Panel ref="panel"
-      class="col-12 lg:col-8 lg:my-5 scroll-panel chat-height overflow-y-scroll scrollbar bg-inherit  py-0"
-      :header="header" :pt="{
+      <Panel ref="panel"
+        class="col-12 lg:col-8 lg:my-5 scroll-panel chat-height overflow-y-scroll scrollbar bg-inherit  py-0"
+        :header="header" :pt="{
         header: {
           class: 'border-none bg-contextqa-primary-main sticky top-0 pt-3',
         },
@@ -49,45 +50,47 @@
           class: 'border-none bg-inherit',
         },
       }">
-      <div :key="i" v-for="(message, i) in messages">
-        <ProgressBar mode="indeterminate" style="height: 1px"
-          v-if="activate && message.role == 'bot' && message.isLatest"></ProgressBar>
-        <div v-else class="formgrid grid" :class="message.role == 'user' ? 'max-w-max' : ''">
-          <Avatar image="/images/user.png" size="small" shape="circle" v-if="message.role == 'user'" />
-          <Avatar image="/images/logo.png" size="small" v-if="message.role != 'user'" />
+        <div :key="i" v-for="(message, i) in messages">
+          <ProgressBar mode="indeterminate" style="height: 1px"
+            v-if="activate && message.role == 'bot' && message.isLatest">
+          </ProgressBar>
+          <div v-else class="formgrid grid" :class="message.role == 'user' ? 'max-w-max' : ''">
+            <Avatar image="/images/user.png" size="small" shape="circle" v-if="message.role == 'user'" />
+            <Avatar image="/images/logo.png" size="small" v-if="message.role != 'user'" />
 
-          <Card class="field col mx-2 shadow-none animation-duration-300 breakline-ok" :class="message.role == 'user'
-            ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
-            : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
-            " :pt="{
-    content: { class: 'py-1' },
-    body: { class: message.role == 'user' ? 'pt-0' : '' },
-  }">
-            <template #content>
-              <div v-if="message.isLatest" v-html="answer"></div>
-              <div v-else v-html="message.content"></div>
-            </template>
-            <template #footer>
-              <div class="date w-max justify-content-end text-xs text-white-alpha-70">
-                {{ message.date }}
-              </div>
-            </template>
-          </Card>
-        </div>
-      </div>
-
-      <div class="fixed bottom-0 w-11 lg:w-5 mb-5 align-items-center z-5">
-        <div class="m-auto">
-          <div class="flex align-items-center mb-2" v-if="!requiresContext">
-            <span class="mr-2">Enable internet access</span>
-            <InputSwitch v-model="internetEnabled" @input="switchHandler" />
+            <Card class="field col mx-2 shadow-none animation-duration-300 breakline-ok" :class="message.role == 'user'
+        ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
+        : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
+        " :pt="{
+        content: { class: 'py-1' },
+        body: { class: message.role == 'user' ? 'pt-0' : '' },
+      }">
+              <template #content>
+                <div v-if="message.isLatest" v-html="answer"></div>
+                <div v-else v-html="message.content"></div>
+              </template>
+              <template #footer>
+                <div class="date w-max justify-content-end text-xs text-white-alpha-70">
+                  {{ message.date }}
+                </div>
+              </template>
+            </Card>
           </div>
-          <Button v-else label="Sources" class="my-2" icon="pi pi-search-plus" severity="secondary" rounded @click="showSources" />
-          <MessageAdder @send="pushMessages" ref="adder" />
         </div>
-      </div>
-    </Panel>
-  </div>
+
+        <div class="fixed bottom-0 w-11 lg:w-5 mb-5 align-items-center z-5">
+          <div class="m-auto">
+            <div class="flex align-items-center mb-2" v-if="!requiresContext">
+              <span class="mr-2">Enable internet access</span>
+              <InputSwitch v-model="internetEnabled" @input="switchHandler" />
+            </div>
+            <Button v-else label="Sources" class="my-2" icon="pi pi-search-plus" severity="secondary" rounded
+              @click="showSources" />
+            <MessageAdder @send="pushMessages" ref="adder" />
+          </div>
+        </div>
+      </Panel>
+    </div>
   </div>
 </template>
 
@@ -322,13 +325,12 @@ export default {
       this.$store.dispatch(action, message);
       this.autoScroll();
     },
-    switchHandler(value) {
-      this.showDialog = value;
+    switchHandler() {
       if (!this.requiresContext)
-        this.$store.dispatch("setInternetAccess", value);
+        this.$store.dispatch("setInternetAccess", this.internetEnabled);
     },
     closeDialog() {
-      this.showDialog = false;
+      this.internetEnabled = false;
     },
   },
   computed: {
