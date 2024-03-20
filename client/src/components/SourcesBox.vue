@@ -47,7 +47,7 @@ export default {
     try {
       this.data = JSON.parse(sources);
     } catch (e) {
-      console.log(e);
+      console.log(e.message);
     }
   },
 };

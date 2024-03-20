@@ -187,6 +187,8 @@ export default {
           },
           class: ["w-9"],
           modal: true,
+          dismissableMask: true,
+          draggable: false,
         },
         data: {
           sources: this.latestSources,
