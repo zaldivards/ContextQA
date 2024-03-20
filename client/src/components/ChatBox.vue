@@ -4,8 +4,8 @@
       :class="sourcesReady || !requiresContext ? '' : ['opacity-50', 'disabled']">
       <DynamicDialog :pt="{ content: { class: 'h-full' } }" />
       <div>
-        <Dialog :dismissableMask="true" :closeOnEscape="true" :closable="true" :visible="internetEnabled"
-          :draggable="false" modal header="Internet access enabled" class="w-full lg:w-6">
+        <Dialog :dismissableMask="true" :closeOnEscape="true" :closable="true" :visible="showDialog" :draggable="false"
+          modal header="Internet access enabled" class="w-full lg:w-6">
           <template #closeicon>
             <button @click="closeDialog" class="no-background">
               <i class="pi pi-times" style="color: red"></i>
@@ -82,7 +82,7 @@
           <div class="m-auto">
             <div class="flex align-items-center mb-2" v-if="!requiresContext">
               <span class="mr-2">Enable internet access</span>
-              <InputSwitch v-model="internetEnabled" @input="switchHandler" />
+              <InputSwitch v-model="internetEnabled" @change="switchHandler" />
             </div>
             <Button v-else label="Sources" class="my-2" icon="pi pi-search-plus" severity="secondary" rounded
               @click="showSources" />
@@ -327,12 +327,14 @@ export default {
       this.$store.dispatch(action, message);
       this.autoScroll();
     },
-    switchHandler() {
-      if (!this.requiresContext)
+    switchHandler(value) {
+      this.showDialog = value.target.checked
+      if (!this.requiresContext) {
         this.$store.dispatch("setInternetAccess", this.internetEnabled);
+      }
     },
     closeDialog() {
-      this.internetEnabled = false;
+      this.showDialog = false;
     },
   },
   computed: {
