@@ -7,6 +7,7 @@ import ModelSettings from "@/views/ModelSettings"
 import SourcesManager from "@/views/SourcesManager"
 import VectorStoreSettings from "@/views/VectorStoreSettings"
 import ExtraSettings from "@/views/ExtraSettings"
+import Status from "@/views/Status"
 
 
 
@@ -16,6 +17,11 @@ const routes = [
         path: '/',
         name: 'home',
         component: Home
+    },
+    {
+        path: '/status',
+        name: 'status',
+        component: Status
     },
     {
         path: '/chat/qa',
