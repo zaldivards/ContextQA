@@ -1,7 +1,7 @@
 <template>
   <div class="justify-content-center h-max">
     <div class="m-0 lg:m-8">
-      <Card class="text-lg text-white-alpha-80 max-h-full bg-contextqa-primary" :pt="{
+      <Card class="text-lg text-white-alpha-80 max-h-full bg-black-alpha-40 border-round-2xl" :pt="{
         content: {
           class: 'justify-content-center',
         },

@@ -6,12 +6,12 @@
             <div class="flex flex-column gap-2 col-12">
                 <h3>Media</h3>
                 <label for="media-dir">Media directory</label>
-                <InputText id="media-dir" v-model="media" class="col-6" />
+                <InputText id="media-dir" v-model="media" class="col-6 border-round-lg" />
             </div>
             <div class="col-12 grid">
                 <h3 class="col-12 mb-0 pb-0">LLM Memory</h3>
                 <p class="col-12 pt-0">Manage memory history in-memory (Local) or using an external Redis server</p>
-                <SelectButton class="choice col-4 w-max" v-model="memoryValue" :options="memoryOptions"
+                <SelectButton class="choice col-4 w-max border-round-lg" v-model="memoryValue" :options="memoryOptions"
                     :allowEmpty="false"
                     :pt="{ button: { class: 'choice w-min col-6 h-full border-none text-black-alpha-90' } }">
                     <template #option="slotProps">
@@ -23,7 +23,7 @@
                 </SelectButton>
                 <div class="flex flex-column gap-2 col-6" v-if="isRedis">
                     <label for="redis-url">Redis connection URL</label>
-                    <InputText id="redis-url" v-model="memoryUrl" class="col-12" />
+                    <InputText id="redis-url" v-model="memoryUrl" class="col-12 border-round-lg" />
                 </div>
             </div>
             <div class="col-12 grid">
@@ -41,32 +41,34 @@
                     </template>
                 </SelectButton>
                 <div class="grid col-12" v-if="isMysql">
-                    <div class="flex flex-column gap-2 grid col-3">
+                    <div class="flex flex-column gap-2 lg:col-6 md:col-6 col-6">
                         <label for="db-user">User</label>
-                        <InputText id="db-user" v-model="mysqlData.user" class="col-11" />
+                        <InputText id="db-user" v-model="mysqlData.user" class="border-round-lg" />
                     </div>
-                    <div class="flex flex-column gap-2 grid col-3">
-                        <label for="db-name">Database name</label>
-                        <InputText id="db-name" v-model="mysqlData.db" class="col-11" />
+                    <div class="flex flex-column gap-2 lg:col-6 md:col-6 col-6">
+                        <label for="db-name">Database</label>
+                        <InputText id="db-name" v-model="mysqlData.db" class="border-round-lg" />
                     </div>
-                    <div class="col-6"></div>
-                    <div class="flex flex-column gap-2 grid col-3">
+                    <div class="flex flex-column gap-2 lg:col-6 md:col-6 col-6">
                         <label for="db-host">Host</label>
-                        <InputText id="db-host" v-model="mysqlData.host" class="col-11" />
+                        <InputText id="db-host" v-model="mysqlData.host" class="border-round-lg" />
                     </div>
-                    <div class="flex flex-column gap-2 grid col-3">
+                    <div class="flex flex-column gap-2 lg:col-6 md:col-6 col-6">
                         <label for="db-passw">Password</label>
-                        <Password id="db-passw" v-model="mysqlData.password" :feedback="false" class="col-11 p-0" />
+                        <Password id="db-passw" v-model="mysqlData.password" :feedback="false"
+                            inputClass="border-round-lg" />
 
                     </div>
                 </div>
                 <div class="flex flex-column gap-2 col-6" v-else>
                     <label for="sqlite-url">SQLite connection URL</label>
-                    <InputText id="sqlite-url" v-model="sqliteUrl" class="col-12" />
+                    <InputText id="sqlite-url" v-model="sqliteUrl" class="col-12 border-round-lg" />
                 </div>
             </div>
-            <Button type="button" label="Save" icon="pi pi-check"
-                class="col-offset-4 lg:col-offset-0 col-4 lg:col-2 mt-5" />
+            <div class="mx-auto lg:mx-0">
+
+                <Button type="button" label="Save" icon="pi pi-check" class="mt-5" rounded />
+            </div>
         </div>
     </div>
 </template>

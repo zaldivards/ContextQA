@@ -19,27 +19,27 @@
             <div class="grid col-12 mt-5" v-if="isLocal">
                 <div class="flex flex-column gap-2 col-6">
                     <label for="home">Vector store home</label>
-                    <InputText id="home" v-model="storeParams['home']" />
+                    <InputText id="home" v-model="storeParams['home']" class="border-round-xl"/>
                 </div>
                 <div class="flex flex-column gap-2 col-6">
-                    <label for="collection">Colletion name</label>
-                    <InputText id="collection" v-model="storeParams['collection']" />
+                    <label for="collection">Collection name</label>
+                    <InputText id="collection" v-model="storeParams['collection']" class="border-round-xl"/>
                 </div>
             </div>
 
             <div class="grid col-12 mt-5" v-else>
                 <div class="flex flex-column gap-2 col-6">
                     <label for="token">Access token</label>
-                    <Password id="token" :feedback="false" v-model="storeParams['token']" />
+                    <Password id="token" :feedback="false" v-model="storeParams['token']" inputClass="border-round-xl"/>
                 </div>
                 <div class="flex flex-column gap-2 col-6">
                     <label for="index">Index</label>
-                    <InputText id="index" v-model="storeParams['index']" />
+                    <InputText id="index" v-model="storeParams['index']" class="border-round-xl"/>
                 </div>
 
                 <div class="flex flex-column gap-2 col-6">
                     <label for="environment">Environment region</label>
-                    <InputText id="environment" v-model="storeParams['environment']" />
+                    <InputText id="environment" v-model="storeParams['environment']" class="border-round-xl"/>
                 </div>
             </div>
 
@@ -52,22 +52,24 @@
 
                     <Dropdown v-model="chunkSize" :options="[2000, 1000, 500, 400, 300, 100]"
                         class="col-12 bg-inherit border-black-alpha-20" :focusOnHover="false" :pt="{
-                panel: { class: 'bg-inherit' }
-            }" placeholder="Select the chunk size" id="chunkSize"></Dropdown>
+                            panel: { class: 'bg-inherit' }
+                        }" placeholder="Select the chunk size" id="chunkSize"></Dropdown>
                 </div>
                 <div class="flex flex-column gap-2 col-6">
                     <label for="overlap">Chunk overlap</label>
 
                     <Dropdown v-model="overlap" :options="[1000, 500, 200, 100, 50]"
                         class="col-12 bg-inherit border-black-alpha-20" :focusOnHover="false" :pt="{
-                panel: { class: 'bg-inherit' }
-            }" placeholder="Select the chunk overlap" id="overlap"></Dropdown>
+                            panel: { class: 'bg-inherit' }
+                        }" placeholder="Select the chunk overlap" id="overlap"></Dropdown>
                 </div>
 
             </div>
+            <div class="mx-auto lg:mx-0">
+                <Button type="button" label="Save" icon="pi pi-check" @click="setConfig"
+                    class="mt-5" :disabled="disableButton" rounded />
+            </div>
 
-            <Button type="button" label="Save" icon="pi pi-check" @click="setConfig"
-                class="col-offset-4 lg:col-offset-0 col-4 lg:col-2 mt-5" :disabled="disableButton" />
         </div>
     </div>
 

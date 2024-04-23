@@ -3,8 +3,10 @@
         <table>
             <tbody>
                 <tr :key="i" v-for="([name, value], i) in Object.entries(cell)" class="cursor-pointer">
-                    <th class="text-left border-bottom-1 border-black-alpha-40">{{ capitalize(name) }}</th>
-                    <td class="py-1 border-bottom-1 border-black-alpha-40">{{ value }}</td>
+                    <th class="text-left border-bottom-1 border-black-alpha-40 lg:text-base md:text-base text-xs">{{
+                        capitalize(name) }}</th>
+                    <td class="py-1 border-bottom-1 border-black-alpha-40 lg:text-base md:text-base text-xs">{{ value }}
+                    </td>
                 </tr>
             </tbody>
         </table>

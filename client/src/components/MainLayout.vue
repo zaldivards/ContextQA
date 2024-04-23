@@ -5,10 +5,10 @@
         <slot name="menu"></slot>
       </aside>
       <Button type="button" :icon="icon" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu"
-        id="menu-button" class="hidden" />
+        id="menu-button" class="hidden sticky" />
     </div>
 
-    <section id="main" @click="hideMenu" class="h-screen">
+    <section id="main" @click="hideMenu" class="h-screen z-0">
       <slot name="main"></slot>
     </section>
   </div>
@@ -137,6 +137,11 @@ export default {
     height: auto;
     grid-template-columns: 1fr;
     grid-template-areas: "sidebar" "main";
+  }
+
+  #sidebar {
+    position: absolute !important;
+    width: 100%;
   }
 
   #menu-button {

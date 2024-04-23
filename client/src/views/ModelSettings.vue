@@ -24,9 +24,9 @@
 
                 <div class="col-6">
                     <Dropdown v-model="selectedModel" :options="modelOptions"
-                        class="w-full bg-inherit border-black-alpha-20" :focusOnHover="false" :pt="{
-                panel: { class: 'bg-inherit' }
-            }" placeholder="Select a model"></Dropdown>
+                        class="w-full bg-inherit border-black-alpha-20 border-round" :focusOnHover="false" :pt="{
+                            panel: { class: 'bg-inherit' }
+                        }" placeholder="Select a model"></Dropdown>
                 </div>
                 <div class="col-6">
                     <label for="temperature">Temperature</label>
@@ -36,12 +36,14 @@
                 <div class="col-6">
                     <label for="token">Access token</label>
                     <Password v-model="token" :feedback="false" id="token" :pt="{
-                root: { 'class': 'p-0' }
-            }" class="w-full" />
+                        root: { 'class': 'p-0' }
+                    }" class="w-full" inputClass="border-round-xl" />
                 </div>
             </div>
-            <Button type="button" label="Save" icon="pi pi-check" @click="setConfig"
-                class="col-offset-4 lg:col-offset-0 col-4 lg:col-2 mt-5" :disabled="disableButton" />
+            <div class="mx-auto lg:mx-0">
+                <Button type="button" label="Save" icon="pi pi-check" @click="setConfig" class="mt-5"
+                    :disabled="disableButton" rounded />
+            </div>
         </div>
     </div>
 </template>

@@ -1,5 +1,5 @@
 <template>
-    <label :title="capitalizedProvider" class="text-center border-round-2xl" :class="checked ? 'checked' : ''">
+    <label :title="capitalizedProvider" class="text-center border-round-2xl flex flex-column justify-content-center align-items-center" :class="checked ? 'checked shadow-4' : ''">
         <input type="radio" name="provider" :value="provider" v-model="inputValue" :checked="checked" />
         <img alt="provider logo" :src="src" class="max-w-full max-h-full" />
     </label>
@@ -49,9 +49,8 @@ input[type="radio"]:hover+img {
     filter: grayscale(0%);
 }
 
-label:hover,
 .checked {
-    background-color: white;
+    background-color: #10223f
 }
 
 img {

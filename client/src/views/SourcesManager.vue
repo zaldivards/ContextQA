@@ -4,9 +4,11 @@
         <Toast class="z-5" />
         <div class="px-3 lg:px-0 w-screen lg:w-10 m-auto">
             <h1>Manage sources</h1>
-            <DataTable v-model:selection="selectedSources" :value="sources" dataKey="id"
-                paginator size="large" :rows="size" :totalRecords="totalRecords" :rowsPerPageOptions="[5, 10]"
-                @page="pageUpdated" :lazy="true" :loading="loading" class="dt-responsive-table">
+            <DataTable v-model:selection="selectedSources" :value="sources" dataKey="id" paginator size="large"
+                :rows="size" :totalRecords="totalRecords" :rowsPerPageOptions="[5, 10]" @page="pageUpdated" :lazy="true"
+                :loading="loading" class="dt-responsive-table" :pt="{
+                    bodyRow: { class: 'bg-black-alpha-40 text-white' }, header: { class: 'bg-black-alpha-40 border-none' }
+                }">
 
                 <template #header>
                     <div class="flex justify-content-between">
@@ -15,20 +17,29 @@
                             <InputIcon>
                                 <i class="pi pi-search" />
                             </InputIcon>
-                            <InputText v-model="searchSubstr" placeholder="Search sources" ref="searcher" @input="filter" />
+                            <InputText v-model="searchSubstr" placeholder="Search sources" ref="searcher"
+                                @input="filter" />
                         </IconField>
                     </div>
                 </template>
 
-                <Column field="id" header="ID"></Column>
-                <Column field="title" header="Name"></Column>
-                <Column field="digest" header="Digest"></Column>
-                <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+                <Column field="id" header="ID" :pt="{
+                    headerCell: { class: 'bg-blue-800 text-white' }
+                }" class="border-t-1 border-black-alpha-60" />
+                <Column field="title" header="Name" :pt="{
+                    headerCell: { class: 'bg-blue-800 text-white' }
+                }" class="border-t-1 border-black-alpha-60" />
+                <Column field="digest" header="Digest" :pt="{
+                    headerCell: { class: 'bg-blue-800 text-white' }
+                }" class="border-t-1 border-black-alpha-60" />
+                <Column selectionMode="multiple" headerStyle="width: 3rem" :pt="{
+                    headerCell: { class: 'bg-blue-800 text-white' }
+                }" class="border-t-1 border-black-alpha-60" />
                 <template #empty>No sources available</template>
             </DataTable>
-            
-            <Button type="button" label="Remove sources" icon="pi pi-times" severity="danger"
-                @click="deleteSources" class="col-offset-4 lg:col-offset-0 col-4 lg:col-3 mt-5" :disabled="disableButton" />
+
+            <Button type="button" label="Remove sources" icon="pi pi-times" severity="danger" @click="deleteSources"
+                class="col-offset-4 lg:col-offset-0 col-4 lg:col-3 mt-5" :disabled="disableButton" />
         </div>
 
     </div>
@@ -135,7 +146,8 @@ export default {
                             this.sources = this.sources.filter(entry => !sourcesNames.includes(entry.title))
                             this.selectedSources = []
                         }).catch((error) => showError(error));
-                }
+                },
+                reject: () => this.selectedSources = []
             })
         },
         pageUpdated(evt) {
