@@ -7,9 +7,14 @@
           submenuHeader: { class: 'text-gl bg-inherit text-teal-300' },
           icon: { class: 'text-gl text-white-alpha-80 shadow-6' },
           separator: { class: 'border-black-alpha-10' },
-          action: ({ props, state, context }) => ({
-            class: context.focused ? 'bg-menu-focus' : undefined,
-          }),
+          action: ({ context }) => {
+            if (context.focused) {
+              prevSelectedItem = context.item.label
+            }
+            return {
+              class: context.focused || context.item.label == prevSelectedItem ? 'bg-menu-focus' : undefined,
+            }
+          },
         }">
           <template #start>
             <div class="w-full">
@@ -36,6 +41,7 @@ export default {
   },
   data() {
     return {
+      prevSelectedItem: '',
       items: [
         { separator: true },
         {
@@ -46,6 +52,7 @@ export default {
         {
           label: "Status",
           icon: "pi pi-fw pi-info-circle",
+          command: () => this.$router.push({ path: "/status" }),
         },
         {
           label: "Assistants",
@@ -114,13 +121,6 @@ export default {
 </script>
 
 <style>
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400&display=swap");
-
-body {
-  font-family: "Poppins", sans-serif;
-  margin: 0;
-  background-color: #0e1b30;
-}
 
 .disabled {
   pointer-events: none;
@@ -190,9 +190,9 @@ body {
 
   /* Styles for individual table rows (cards) */
   .dt-responsive-table table tbody tr {
-    border: 1px solid #ccc !important;
+    border: 1px solid #1f1b42 !important;
     margin-bottom: 1rem !important;
-    background-color: #fff !important;
+    /* background-color: #fff !important; */
     padding: 1rem !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
   }
