@@ -1,10 +1,15 @@
 <template>
     <div class="my-6 justify-content-center">
+        <ConfirmDialog />
         <Toast class="z-5" />
         <div class="px-3 lg:px-0 w-full lg:w-7 m-auto grid">
-            <h1 class="col-12">Extra settings</h1>
+            <Message severity="warn">Please make sure your relational DB and Redis instance (if needed) are up and
+                running</Message>
+            <h1 class="col-12 mb-0">Extra settings</h1>
+            <!-- <p class="text-yellow-600 col-12">Please make sure your relational DB and Redis instance (if needed) are up and
+                    running</p> -->
             <div class="flex flex-column gap-2 col-12">
-                <h3>Media</h3>
+                <h3 class="mt-0">Media</h3>
                 <label for="media-dir">Media directory</label>
                 <InputText id="media-dir" v-model="media" class="col-6 border-round-lg" />
             </div>
@@ -64,10 +69,11 @@
                     <label for="sqlite-url">SQLite connection URL</label>
                     <InputText id="sqlite-url" v-model="sqliteUrl" class="col-12 border-round-lg" />
                 </div>
+
             </div>
             <div class="mx-auto lg:mx-0">
 
-                <Button type="button" label="Save" icon="pi pi-check" class="mt-5" rounded />
+                <Button type="button" label="Save" icon="pi pi-check" class="mt-5" rounded @click="setConfig" />
             </div>
         </div>
     </div>
@@ -75,6 +81,8 @@
 
 <script>
 import Button from "primevue/button";
+import ConfirmDialog from "primevue/confirmdialog";
+import Message from 'primevue/message';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
 import SelectButton from 'primevue/selectbutton';
@@ -88,7 +96,7 @@ import {
 
 export default {
     name: "ExtraSettings",
-    components: { Toast, InputText, SelectButton, Button, Password },
+    components: { Toast, InputText, SelectButton, Button, Password, ConfirmDialog, Message },
     created() {
         fetchResource("/settings/extra").then(settings => {
             this.media = settings.media_dir
@@ -96,7 +104,7 @@ export default {
             this.memoryValue = settings.memory.kind
             this.dbValue = settings.database.kind
             this.sqliteUrl = settings.database.url
-            this.mysqlData = settings.database.data ?? {}
+            this.mysqlData = settings.database.credentials ?? {}
         })
             .catch((error) => showError(error));
     },
@@ -110,6 +118,39 @@ export default {
             dbOptions: ["sqlite", "mysql"],
             sqliteUrl: null,
             mysqlData: {}
+        }
+    },
+    methods: {
+        setConfig() {
+            this.$confirm.require({
+                message: "Are you sure you want to update the extra settings?",
+                header: "Danger Zone",
+                icon: "pi pi-info-circle",
+                rejectClass: 'p-button-secondary p-button-outlined',
+                acceptClass: 'p-button-danger',
+                accept: () => {
+                    fetchResource("/settings/extra", {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            media_dir: this.media,
+                            memory: {
+                                kind: this.memoryValue,
+                                url: this.memoryUrl || undefined
+                            },
+                            database: {
+                                kind: this.dbValue,
+                                url: this.sqliteUrl || undefined,
+                                credentials: this.mysqlData || undefined
+                            }
+                        })
+                    }).then(response => {
+                        showSuccess("Successfully updated")
+                    }).catch((error) => showError(error));
+                }
+            })
         }
     },
     computed: {

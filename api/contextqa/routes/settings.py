@@ -1,8 +1,15 @@
 # pylint: disable=C0413
 from fastapi import APIRouter, HTTPException, status
 
-from contextqa.models import ModelSettingsUpdate, ModelSettings, StoreSettings, ExtraSettings
-from contextqa.models.schemas import ModelSettingsDetail, ProviderDetail
+from contextqa.models import ModelSettingsUpdate, ModelSettings
+from contextqa.models.schemas import (
+    ModelSettingsDetail,
+    ProviderDetail,
+    StoreSettingsUpdate,
+    StoreSettings,
+    ExtraSettings,
+    ExtraSettingsUpdate,
+)
 from contextqa.utils.settings import get_or_set
 
 router = APIRouter()
@@ -63,7 +70,7 @@ async def get_store_settings():
 
 
 @router.patch("/store", response_model=StoreSettings)
-async def update_store_settings(settings: StoreSettings):
+async def update_store_settings(settings: StoreSettingsUpdate):
     """Update model settings"""
     try:
         current_settings = get_or_set(kind="store")
@@ -88,6 +95,20 @@ async def get_extra_settings():
     try:
         settings = get_or_set(kind="extra")
         return ExtraSettings(**settings.model_dump())
+    except Exception as ex:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"message": "Something went wrong", "cause": str(ex)},
+        ) from ex
+
+
+@router.patch("/extra", response_model=ExtraSettings)
+async def update_extra_settings(settings: ExtraSettingsUpdate):
+    """Update extra settings"""
+    try:
+        partial_model = settings.model_dump(exclude_unset=True, exclude_none=True)
+        updated_settings = get_or_set(kind="extra", **partial_model)
+        return ExtraSettings(**updated_settings.model_dump(exclude_unset=True, exclude_none=True))
     except Exception as ex:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

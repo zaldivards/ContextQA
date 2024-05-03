@@ -127,10 +127,10 @@ class LLMMemory(BaseModel):
 
 
 class _DBData(BaseModel):
-    user: str
-    db: str
-    host: str
-    password: str | None
+    user: str | None = None
+    db: str | None = None
+    host: str | None = None
+    password: str | None = None
 
 
 class DBModel(BaseModel):
@@ -141,15 +141,16 @@ class DBModel(BaseModel):
 
     kind: Literal["sqlite", "mysql"] = "sqlite"
     url: str | None = None
-    data: _DBData | None = None
+    credentials: _DBData | None = None
 
 
 class ExtraSettings(BaseModel):
     """Extra settings related to LLM's memory and ingested sources database"""
 
-    media_dir: str
-    memory: LLMMemory
-    database: DBModel
+    media_dir: str | None = None
+    memory: LLMMemory | None = None
+    database: DBModel | None = None
 
 
-# class ExtraSettingsUpdate(ExtraSettings):
+class ExtraSettingsUpdate(ExtraSettings):
+    """Schema to patch extra settings such as memory and database"""
