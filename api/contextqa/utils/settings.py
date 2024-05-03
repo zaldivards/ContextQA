@@ -30,7 +30,7 @@ def _config_manager():
         if not getattr(settings, kind):
             setattr(settings, kind, kwargs)
         else:
-            specific_settings: VectorStoreSettings | ModelSettings = getattr(settings, kind)
+            specific_settings: VectorStoreSettings | ModelSettings | Extra = getattr(settings, kind)
             new_settings = specific_settings.__class__.model_validate(specific_settings.model_dump() | kwargs)
             setattr(settings, kind, new_settings)
         app_settings.model_settings = settings

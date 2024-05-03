@@ -59,7 +59,7 @@ class AppSettings(BaseSettings):
         SettingsSchema
         """
         with open(self.config_path, mode="w", encoding="utf-8") as settings_file:
-            return json.dump(model_settings.model_dump(), settings_file)
+            json.dump(model_settings.model_dump(exclude_none=True, exclude_unset=True), settings_file)
 
     @field_validator("media_home")
     @classmethod
