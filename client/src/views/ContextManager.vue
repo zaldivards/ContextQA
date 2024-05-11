@@ -1,6 +1,6 @@
 <template>
   <div class="my-6 justify-content-center">
-    <ConfirmDialog></ConfirmDialog>
+    <ConfirmDialog :draggable="false"/>
 
     <Toast class="z-5" />
     <form @submit.prevent="postData" class="px-3 lg:px-0 w-full lg:w-7 m-auto">

@@ -1,6 +1,6 @@
 <template>
     <div class="my-2 justify-content-center">
-        <ConfirmDialog></ConfirmDialog>
+        <ConfirmDialog :draggable="false"/>
         <Toast class="z-5" />
         <div class="px-3 lg:px-0 w-screen lg:w-10 m-auto">
             <h1>Manage sources</h1>

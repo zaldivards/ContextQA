@@ -1,6 +1,6 @@
 <template>
     <div class="my-6 justify-content-center">
-        <ConfirmDialog />
+        <ConfirmDialog :draggable="false"/>
         <Toast class="z-5" />
         <div class="px-3 lg:px-0 w-full lg:w-7 m-auto grid">
             <Message severity="warn">Please make sure your relational DB and Redis instance (if needed) are up and
