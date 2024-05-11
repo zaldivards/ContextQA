@@ -29,6 +29,7 @@ langchain-google-genai = "*"
 langchain-openai = "*"
 langchainhub = "*"
 langchain-pinecone = "*"
+cryptography = "*"
 
 [dev-packages]
 black = "*"

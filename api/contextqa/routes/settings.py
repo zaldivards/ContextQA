@@ -1,5 +1,8 @@
 # pylint: disable=C0413
-from fastapi import APIRouter, HTTPException, status
+from typing import Annotated
+
+from fastapi import APIRouter, HTTPException, status, Depends
+from sqlalchemy.orm import Session
 
 from contextqa.models import ModelSettingsUpdate, ModelSettings
 from contextqa.models.schemas import (
@@ -10,7 +13,11 @@ from contextqa.models.schemas import (
     ExtraSettings,
     ExtraSettingsUpdate,
 )
+from contextqa import settings as app_settings
 from contextqa.utils.settings import get_or_set
+from contextqa.routes.dependencies import get_db
+from contextqa.services.settings import db_has_changed
+from contextqa.utils.migrations.settings import migrate_db
 
 router = APIRouter()
 
@@ -103,11 +110,16 @@ async def get_extra_settings():
 
 
 @router.patch("/extra", response_model=ExtraSettings)
-async def update_extra_settings(settings: ExtraSettingsUpdate):
+async def update_extra_settings(settings: ExtraSettingsUpdate, session: Annotated[Session, Depends(get_db)]):
     """Update extra settings"""
     try:
+        current_settings: ExtraSettings = get_or_set(kind="extra")
         partial_model = settings.model_dump(exclude_unset=True, exclude_none=True)
-        updated_settings = get_or_set(kind="extra", **partial_model)
+        received_settings = ExtraSettings(**partial_model)
+        updated_settings: ExtraSettings = get_or_set(kind="extra", **partial_model)
+        if db_has_changed(current_settings, received_settings):
+            app_settings.rebuild_sqlalchemy_url()
+            migrate_db(session, app_settings.sqlalchemy_url)
         return ExtraSettings(**updated_settings.model_dump(exclude_unset=True, exclude_none=True))
     except Exception as ex:
         raise HTTPException(

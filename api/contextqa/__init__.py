@@ -1,5 +1,6 @@
 import logging
 import json
+from functools import cached_property
 from pathlib import Path
 
 from pydantic import field_validator
@@ -22,10 +23,6 @@ class AppSettings(BaseSettings):
     openai_api_key: str | None = None
     redis_url: str | None = None
     deployment: str = "dev"
-    mysql_user: str | None = None
-    mysql_password: str | None = None
-    mysql_host: str | None = None
-    mysql_dbname: str | None = None
     mysql_extra_args: str | None = None
 
     @property
@@ -68,17 +65,29 @@ class AppSettings(BaseSettings):
         value.mkdir(parents=True, exist_ok=True)
         return value
 
-    @property
+    @cached_property
     def sqlalchemy_url(self) -> str:
         """sqlalchemy url built either from the sqlite url or the credential of a specific mysql server"""
-        mysql_requirements = [self.mysql_user, self.mysql_password, self.mysql_host, self.mysql_dbname]
-        if not all(mysql_requirements):
-            logger.info("Using sqlite")
+        # pylint: disable=C0415
+        from contextqa.models.schemas import ExtraSettings
+        from contextqa.utils.settings import get_or_set
+
+        db_settings: ExtraSettings = get_or_set("extra")
+        if db_settings.database.url:
+            logger.info("Using SQLite")
             return self.sqlite_url
-        uri = "mysql+pymysql://{}:{}@{}/{}".format(*mysql_requirements)
+        logger.info("Using MYSQL")
+        uri = (
+            f"mysql+pymysql://{db_settings.database.credentials.user}:{db_settings.database.credentials.password}"
+            f"@{db_settings.database.credentials.host}/{db_settings.database.credentials.db}"
+        )
         if extras := self.mysql_extra_args:
             uri += extras
         return uri
+
+    def rebuild_sqlalchemy_url(self):
+        """Trigger to rebuild the sqlalchemy URL"""
+        del self.__dict__["sqlalchemy_url"]
 
 
 settings = AppSettings()
