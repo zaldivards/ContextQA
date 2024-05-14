@@ -11,11 +11,11 @@
           {{ source.title }}
         </template>
         <template #content>
-          <p v-if="source.format_ == 'txt'">
+          <p v-if="source.format_ == '.txt'">
             {{ source.content }}
           </p>
 
-          <VerticalRow v-else-if="source.format_ == 'csv'" :cell="source.content[0]" />
+          <VerticalRow v-else-if="source.format_ == '.csv'" :cell="source.content[0]" />
 
           <div v-else class="text-center">
             <Image class="m-0" :src="`data:image/jpg;base64,${source.content}`" preview
