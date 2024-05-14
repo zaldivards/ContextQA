@@ -23,7 +23,7 @@ class VectorStoreSettings(StoreSettings):
             store="chroma",
             chunk_size=1000,
             overlap=200,
-            store_params={"home": settings.local_vectordb_home, "collection": settings.default_collection},
+            store_params={"home": settings.local_vectordb_home, "collection": "contextqa-default"},
         )
 
 

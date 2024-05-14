@@ -9,9 +9,9 @@ from pydantic import BaseModel, Field
 class SourceFormat(str, Enum):
     """Enum representing the supported file formats"""
 
-    PDF = "pdf"
-    TXT = "txt"
-    CSV = "csv"
+    PDF = ".pdf"
+    TXT = ".txt"
+    CSV = ".csv"
 
 
 class BaseSource(BaseModel):

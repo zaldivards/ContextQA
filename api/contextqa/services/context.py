@@ -116,8 +116,8 @@ class LLMContextManager(BaseModel, ABC):
         source_content = file_.read()
         check_digest(filename.strip(), source_content, session)
         try:
-            if extension == "." + SourceFormat.PDF:
-                path = settings.media_home / filename
+            if extension == SourceFormat.PDF:
+                path = Path(get_or_set("extra").media_dir) / filename
                 file_writer = open(path, mode="wb")
             else:
                 file_writer = NamedTemporaryFile(mode="wb", suffix=f"{settings.tmp_separator}{filename}")
@@ -129,7 +129,7 @@ class LLMContextManager(BaseModel, ABC):
             file_writer.close()
 
         # we do not want to split csv files as they are splitted by rows
-        if extension == "." + SourceFormat.CSV:
+        if extension == SourceFormat.CSV:
             return get_not_seen_chunks(documents, extension)
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=self._store_settings.chunk_size,

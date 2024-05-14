@@ -113,12 +113,16 @@ def get_not_seen_chunks(chunks: list[Document], extension: str) -> tuple[list[Do
     # generate UUIDs based on the chunk content. Note that if the same chunk(same file content) is ingested again,
     # it won't be added by chromadb thanks to the unique UUID
     ids = [str(uuid.uuid5(uuid.NAMESPACE_DNS, chunk.page_content)) for chunk in chunks]
+    media_dir = get_or_set("extra").media_dir
     unique_ids = set()
     for idx, (chunk, id_) in enumerate(zip(chunks, ids), start=1):
         chunk: Document = chunk
-        # removes random prefix generated when creating the temporary file. This ensures easier queries against
-        # vector databases, using metadata lookups
-        chunk.metadata.update(source=chunk.metadata["source"].split(settings.tmp_separator)[-1])
+        if extension == SourceFormat.PDF:
+            chunk.metadata.update(source=chunk.metadata["source"].replace(media_dir, "{}"))
+        else:
+            # removes random prefix generated when creating the temporary file. This ensures easier queries against
+            # vector databases, using metadata lookups
+            chunk.metadata.update(source=chunk.metadata["source"].split(settings.tmp_separator)[-1])
         if id_ not in unique_ids:
             if len(chunk.page_content) > 2:
                 if extension != SourceFormat.PDF:
@@ -159,16 +163,16 @@ def build_sources(sources: list[Document]) -> list[SourceSegment]:
     """
     result = []
     processed_sources = set()
-
+    media_dir = get_or_set("extra").media_dir
     for source in sources:
-        name = source.metadata.pop("source")
+        name: str = source.metadata.pop("source")
         source_name = name.split(settings.tmp_separator)[-1]
-        extension = name.split(".")[-1]
+        extension = "." + name.split(".")[-1]
 
         match extension:
             case SourceFormat.PDF:
                 page_number = int(source.metadata.get("page"))
-                path = Path(name)
+                path = Path(name.format(media_dir))
                 title = f"{path.name} - Page {page_number}"
                 if title not in processed_sources:
                     format_ = SourceFormat.PDF

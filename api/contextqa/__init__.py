@@ -15,7 +15,6 @@ class AppSettings(BaseSettings):
     """Project settings"""
 
     config_path: Path = Path("settings.json")
-    default_collection: str = "contextqa-default"
     tmp_separator: str = ":::sep:::"
     media_home: Path = Path(".media/")
     local_vectordb_home: Path = Path(".chromadb/")
