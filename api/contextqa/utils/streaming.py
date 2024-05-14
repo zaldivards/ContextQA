@@ -45,11 +45,6 @@ async def consumer_producer(response_stream: AsyncGenerator[AIMessageChunk, None
                 continue
         else:
             content = chunk.content
-        if len(content) > 10:
-            for word in content.split():
-                await asyncio.sleep(0.05)
-                yield f"{word} "
-        else:
             yield content
 
 
@@ -74,11 +69,7 @@ async def consumer_producer_qa(
     """
     async for chunk in response_stream:
         if answer := chunk.get("answer"):
-            # if len(answer.content) > 10:
-            #     for word in answer.content.split():
-            #         await asyncio.sleep(0.05)
-            #         yield f"{word} "
-            # else:
+            await asyncio.sleep(0.05)
             yield answer.content
         elif docs := chunk.get("docs"):
             try:
@@ -88,6 +79,7 @@ async def consumer_producer_qa(
                 size = 10_000
                 for chunk_start in range(0, len(data), size):
                     chunk = data[chunk_start : chunk_start + size]
+                    await asyncio.sleep(0.05)
                     yield "<source>" + chunk
             finally:
                 pass
@@ -129,6 +121,7 @@ def _parse_chat_history(input_messages: Sequence[BaseMessage]) -> list:
 class ChainCompatibleGoogleGenerativeAI(ChatGoogleGenerativeAI):
     """Enhanced ChatGoogleGenerativeAI"""
 
+    # pylint: disable=W0221
     def _prepare_chat(
         self, messages: list[BaseMessage], stop: list[str] | None = None, **kwargs: Any
     ) -> Tuple[Dict[str, Any], genai.ChatSession, genai.types.ContentDict]:
