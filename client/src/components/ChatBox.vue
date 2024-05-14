@@ -39,17 +39,17 @@
       <Panel ref="panel"
         class="col-12 lg:col-8 lg:my-5 scroll-panel chat-height overflow-y-scroll scrollbar bg-inherit  py-0"
         :header="header" :pt="{
-        header: {
-          class: 'border-none bg-contextqa-primary-main sticky top-0 pt-3',
-        },
-        footer: {
-          style: 'border-top: 1px solid #eee;',
-          class: 'grid fixed bottom-0 w-screen',
-        },
-        content: {
-          class: 'border-none bg-inherit',
-        },
-      }">
+          header: {
+            class: 'border-none bg-contextqa-primary-main sticky top-0 pt-3',
+          },
+          footer: {
+            style: 'border-top: 1px solid #eee;',
+            class: 'grid fixed bottom-0 w-screen',
+          },
+          content: {
+            class: 'border-none bg-inherit',
+          },
+        }">
         <div :key="i" v-for="(message, i) in messages">
           <ProgressBar mode="indeterminate" style="height: 1px"
             v-if="activate && message.role == 'bot' && message.isLatest">
@@ -59,12 +59,12 @@
             <Avatar image="/images/logo.png" size="small" v-if="message.role != 'user'" />
 
             <Card class="field col mx-2 shadow-none animation-duration-300 breakline-ok" :class="message.role == 'user'
-        ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
-        : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
-        " :pt="{
-        content: { class: 'py-1' },
-        body: { class: message.role == 'user' ? 'pt-0' : '' },
-      }">
+              ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
+              : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
+              " :pt="{
+                content: { class: 'py-1' },
+                body: { class: message.role == 'user' ? 'pt-0' : '' },
+              }">
               <template #content>
                 <div v-if="message.isLatest" v-html="answer"></div>
                 <div v-else v-html="message.content"></div>
@@ -181,9 +181,14 @@ export default {
     showSources() {
       const dialogRef = this.$dialog.open(SourcesBox, {
         props: {
-          header: "Sources",
+          header: "Relevant sources",
           style: {
             width: "50vw",
+          },
+          pt: {
+            title: {
+              class: 'lg:text-4xl md:text-4xl text-xl'
+            }
           },
           class: ["w-9"],
           modal: true,
@@ -284,7 +289,6 @@ export default {
           date: sentDate,
         });
       } catch (error) {
-        console.log("Error: " + error);
         sentDate = getDateTimeStr();
         this.$store.dispatch(action, {
           content: "I am having issues, my apologies. Try again later.",
