@@ -3,9 +3,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from operator import itemgetter
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import AsyncGenerator, BinaryIO, Type
+from typing import AsyncGenerator, BinaryIO, Type, ContextManager, Callable
 
-from pinecone import Pinecone, ServerlessSpec, Index
 from chromadb import PersistentClient
 from fastapi import UploadFile
 from langchain.schema import format_document, BasePromptTemplate
@@ -13,7 +12,7 @@ from langchain.memory.chat_memory import BaseChatMemory
 from langchain.document_loaders.base import BaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.base import VectorStore
-from langchain.vectorstores.chroma import Chroma
+from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import CSVLoader, PyMuPDFLoader, TextLoader
 from langchain_community.docstore.document import Document
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -22,7 +21,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda, RunnableSequence
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from pinecone import Pinecone, ServerlessSpec, Index
 from sqlalchemy.orm import Session
 
 from contextqa import logger, settings
@@ -50,7 +50,7 @@ def _combine_documents(
     return document_separator.join(doc_strings)
 
 
-class LLMContextManager(BaseModel, ABC):
+class LLMContextManager(ABC):
     """Base llm manager"""
 
     @property
@@ -192,26 +192,27 @@ class LocalManager(LLMContextManager):
     """Local manager implementation. It uses `Chroma` as its processor and the context is persisted as a
     parquet file"""
 
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.client = PersistentClient(path=str(self._store_settings.store_params["home"]))
+
     def persist(self, filename: str, file_: BinaryIO, session: Session) -> LLMResult:
-        chroma_client = PersistentClient(path=str(self._store_settings.store_params["home"]))
         documents, ids = self.load_and_preprocess(filename, file_, session)
         embeddings_util = OpenAIEmbeddings()
-        processor = Chroma.from_documents(
+        Chroma.from_documents(
             documents,
             embeddings_util,
             ids=ids,
             persist_directory=str(self._store_settings.store_params["home"]),
-            client=chroma_client,
+            client=self.client,
             collection_name=self._store_settings.store_params["collection"],
         )
-        processor.persist()
         return LLMResult(response="success")
 
     def context_object(self) -> VectorStore:
-        chroma_client = PersistentClient(path=str(self._store_settings.store_params["home"]))
         embeddings_util = OpenAIEmbeddings()
         processor = Chroma(
-            client=chroma_client,
+            client=self.client,
             collection_name=self._store_settings.store_params["collection"],
             embedding_function=embeddings_util,
             persist_directory=str(self._store_settings.store_params["home"]),
@@ -273,11 +274,14 @@ class PineconeManager(LLMContextManager):
 class BatchProcessor(BaseModel):
     """QA processor for batch ingestions"""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     manager: LLMContextManager
+    session_generator: Callable[[], ContextManager[Session]]
 
     def _wrapper(self, *args) -> None | str:
         try:
-            self.manager.persist(*args)
+            with self.session_generator() as session:
+                self.manager.persist(*args, session)
             return None
         except DuplicatedSourceError:
             return args[0]  # filename
@@ -285,15 +289,15 @@ class BatchProcessor(BaseModel):
             logger.warning("'%s' ingestion failed. Reason: %s", args[0], ex)
             return f"{args[0]} - Failed to persist"
 
-    def persist(self, sources: list[UploadFile], session: Session) -> IngestionResult:
+    def persist(self, sources: list[UploadFile]) -> IngestionResult:
         """Ingest the uploaded sources
 
         Parameters
         ----------
         sources : list[UploadFile]
             uploaded sources
-        session : Session
-            db session
+        session_generator : ContextManager[Session]
+            db session manager
 
         Returns
         -------
@@ -303,7 +307,7 @@ class BatchProcessor(BaseModel):
         skipped_files = []
         completed = 0
         with ThreadPoolExecutor(max_workers=5) as executor:
-            tasks = [executor.submit(func, source.filename, source.file, session) for source in sources]
+            tasks = [executor.submit(func, source.filename, source.file) for source in sources]
             for future in as_completed(tasks):
                 result = future.result()
                 if result:

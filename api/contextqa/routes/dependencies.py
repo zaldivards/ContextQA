@@ -1,14 +1,16 @@
+from contextlib import contextmanager
 from functools import partial
 from typing import Generator
 
 from chromadb import PersistentClient
 from google.generativeai.types.safety_types import HarmBlockThreshold, HarmCategory
-from langchain.vectorstores.chroma import Chroma
+from langchain_community.vectorstores import Chroma
 from langchain_openai import ChatOpenAI
 from pinecone import Pinecone
+from sqlalchemy.orm import Session
 
 from contextqa.models import PartialModelData
-from contextqa.services.db import session_factory
+from contextqa.services.db import SessionLocal
 from contextqa.services.context import PineconeManager, LocalManager, LLMContextManager
 from contextqa.utils.clients import StoreClient, PineconeClient, ChromaClient
 from contextqa.utils.settings import get_or_set
@@ -90,7 +92,7 @@ def context_manager() -> LLMContextManager:
     return manager
 
 
-def get_db() -> Generator:
+def get_db() -> Generator[Session, None, None]:
     """DB session manager
 
     Yields
@@ -99,7 +101,7 @@ def get_db() -> Generator:
         db session
     """
     try:
-        session = session_factory()
+        session = SessionLocal()
         yield session
         session.commit()
     except:
@@ -107,3 +109,6 @@ def get_db() -> Generator:
         raise
     finally:
         session.close()
+
+
+session_generator = contextmanager(get_db)

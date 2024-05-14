@@ -64,6 +64,13 @@ class AppSettings(BaseSettings):
         value.mkdir(parents=True, exist_ok=True)
         return value
 
+    @field_validator("local_vectordb_home")
+    @classmethod
+    def validate_vectordb_home(cls, value: Path) -> Path:
+        """validator for media path"""
+        value.mkdir(parents=True, exist_ok=True)
+        return value
+
     @cached_property
     def sqlalchemy_url(self) -> str:
         """sqlalchemy url built either from the sqlite url or the credential of a specific mysql server"""

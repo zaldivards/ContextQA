@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from langchain.vectorstores.chroma import Chroma
+from langchain_community.vectorstores import Chroma
 from pinecone import Index
 
 from contextqa.utils.settings import get_or_set
