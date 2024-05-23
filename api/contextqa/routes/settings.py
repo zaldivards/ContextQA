@@ -88,7 +88,7 @@ async def update_store_settings(settings: StoreSettingsUpdate):
         partial_model = settings.model_dump(exclude_unset=True, exclude_none=True)
         updated_settings = get_or_set(kind="store", **partial_model)
         store_params = updated_settings.store_params.copy()
-        store_params.pop("token")
+        store_params.pop("token", None)
         return StoreSettings(**(updated_settings.model_dump() | {"store_params": store_params}))
     except Exception as ex:
         raise HTTPException(
