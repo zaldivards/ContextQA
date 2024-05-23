@@ -9,13 +9,16 @@ from contextqa.utils.settings import get_or_set
 
 def _main_filter_query(session: Session, expresion):
     store_settings = get_or_set(kind="store")
-
+    index = (
+        f'{store_settings.store_params.get("home", store_settings.store_params.get("environment"))}/'
+        f'{store_settings.store_params.get("collection", store_settings.store_params.get("index"))}'
+    )
     return (
         session.query(expresion)
         .join(Index)
         .join(VectorStore)
         .filter(
-            Index.name == store_settings.store_params.get("collection", "index"),
+            Index.name == index,
             VectorStore.name == store_settings.store,
         )
     )

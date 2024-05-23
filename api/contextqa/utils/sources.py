@@ -19,7 +19,10 @@ from contextqa.utils.settings import get_or_set
 def _get_or_create_index(session: Session) -> Index:
     settings_ = get_or_set(kind="store")
     # collection for chroma and index for pinecone
-    current_index = settings_.store_params.get("collection", "index")
+    if settings_.store == "chroma":
+        current_index = f'{settings_.store_params.get("home")}/{settings_.store_params.get("collection")}'
+    else:
+        current_index = f'{settings_.store_params.get("environment")}/{settings_.store_params.get("index")}'
     index = session.query(Index).filter_by(name=current_index).first()
     if index:
         return index
