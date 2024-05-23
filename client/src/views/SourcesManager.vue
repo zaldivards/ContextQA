@@ -1,6 +1,6 @@
 <template>
     <div class="my-2 justify-content-center">
-        <ConfirmDialog :draggable="false"/>
+        <ConfirmDialog :draggable="false" />
         <Toast class="z-5" />
         <div class="px-3 lg:px-0 w-screen lg:w-10 m-auto">
             <h1>Manage sources</h1>
@@ -13,13 +13,17 @@
                 <template #header>
                     <div class="flex justify-content-between">
                         <Button type="button" icon="pi pi-filter-slash" outlined @click="clear()" />
-                        <IconField iconPosition="left">
-                            <InputIcon>
-                                <i class="pi pi-search" />
-                            </InputIcon>
-                            <InputText v-model="searchSubstr" placeholder="Search sources" ref="searcher"
-                                @input="filter" />
-                        </IconField>
+                        <div class="flex gap-3">
+                            <Button type="button" icon="pi pi-refresh" outlined
+                                @click="updateSources(size, 0, searchSubstr)" />
+                            <IconField iconPosition="left">
+                                <InputIcon>
+                                    <i class="pi pi-search" />
+                                </InputIcon>
+                                <InputText v-model="searchSubstr" placeholder="Search sources" ref="searcher"
+                                    @input="filter" />
+                            </IconField>
+                        </div>
                     </div>
                 </template>
 
