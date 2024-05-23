@@ -1,4 +1,5 @@
 # pylint: disable=C0413
+from shutil import copytree
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, status, Depends
@@ -13,7 +14,7 @@ from contextqa.models.schemas import (
     ExtraSettings,
     ExtraSettingsUpdate,
 )
-from contextqa import settings as app_settings
+from contextqa import settings as app_settings, logger
 from contextqa.utils.settings import get_or_set
 from contextqa.routes.dependencies import get_db
 from contextqa.services.settings import db_has_changed
@@ -120,6 +121,13 @@ async def update_extra_settings(settings: ExtraSettingsUpdate, session: Annotate
         if db_has_changed(current_settings, received_settings):
             app_settings.rebuild_sqlalchemy_url()
             migrate_db(session, app_settings.sqlalchemy_url)
+        if current_settings.media_dir != received_settings.media_dir:
+            logger.info(
+                "Media dir changed, copying  content from %s to %s",
+                current_settings.media_dir,
+                received_settings.media_dir,
+            )
+            copytree(current_settings.media_dir, received_settings.media_dir, dirs_exist_ok=True)
         return ExtraSettings(**updated_settings.model_dump(exclude_unset=True, exclude_none=True))
     except Exception as ex:
         raise HTTPException(
