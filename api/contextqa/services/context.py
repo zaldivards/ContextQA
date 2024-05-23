@@ -184,7 +184,7 @@ class LLMContextManager(ABC):
             stream of the final response
         """
         llm = partial_model_data.partial_model(streaming=True)
-        runnable = self._get_runnable_qa(llm, memory.Redis(session="context", buffer=True))
+        runnable = self._get_runnable_qa(llm, memory.runnable_memory(session="context", buffer=True))
         return consumer_producer_qa(runnable.astream({"question": question}))
 
 

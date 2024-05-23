@@ -43,14 +43,14 @@ def get_llm_assistant(internet_access: bool, partial_model_data: PartialModelDat
         agent_executor = AgentExecutor(agent=agent, tools=tools)
         return RunnableWithMessageHistory(
             agent_executor,
-            memory.Redis,
+            memory.runnable_memory,
             input_messages_key="input",
             history_messages_key="chat_history",
         )
     prompt = ChatPromptTemplate.from_messages(_MESSAGES)
     chain = prompt | llm
     chain_with_history = RunnableWithMessageHistory(
-        chain, memory.Redis, input_messages_key="input", history_messages_key="history"
+        chain, memory.runnable_memory, input_messages_key="input", history_messages_key="history"
     )
     return chain_with_history
 
