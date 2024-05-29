@@ -33,7 +33,7 @@ async def get_model_settings():
             provider_options=[
                 ProviderDetail(provider="openai", models=["gpt-3.5-turbo", "gpt-4"]),
                 ProviderDetail(provider="huggingface", models=["tiiuae/falcon-7b-instruct"]),
-                ProviderDetail(provider="google", models=["gemini"]),
+                ProviderDetail(provider="google", models=["gemini-pro"]),
             ],
         )
     except Exception as ex:
