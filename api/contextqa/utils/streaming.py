@@ -38,6 +38,7 @@ async def consumer_producer(response_stream: AsyncGenerator[AIMessageChunk, None
     str
     """
     async for chunk in response_stream:
+        await asyncio.sleep(0.05)
         if isinstance(chunk, AddableDict):
             # this type is streamed by agents, as normally it streams all the intermediate steps
             content = _ensure_final_answer(chunk)
@@ -70,8 +71,11 @@ async def consumer_producer_qa(
     async for chunk in response_stream:
         if answer := chunk.get("answer"):
             await asyncio.sleep(0.05)
-            yield answer.content
-        elif docs := chunk.get("docs"):
+            if isinstance(answer, str):
+                yield answer
+            else:
+                yield answer.content
+        elif docs := chunk.get("context"):
             try:
                 # sources are streamed in chunks because when a source contains a base64 image, some of the
                 # content get lost somehow. Hence we need to divide it into chunks

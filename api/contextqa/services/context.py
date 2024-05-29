@@ -1,24 +1,23 @@
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from operator import itemgetter
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import AsyncGenerator, BinaryIO, Type, ContextManager, Callable
 
 from chromadb import PersistentClient
 from fastapi import UploadFile
-from langchain.schema import format_document, BasePromptTemplate
-from langchain.memory.chat_memory import BaseChatMemory
 from langchain.document_loaders.base import BaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.base import VectorStore
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains.history_aware_retriever import create_history_aware_retriever
+from langchain.chains.retrieval import create_retrieval_chain
 from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import CSVLoader, PyMuPDFLoader, TextLoader
 from langchain_community.docstore.document import Document
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import get_buffer_string
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough, RunnableLambda, RunnableSequence
+from langchain_core.runnables import RunnableSequence
+from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from pydantic import BaseModel, ConfigDict
@@ -41,15 +40,6 @@ LOADERS: dict[str, Type[BaseLoader]] = {
 }
 
 
-def _combine_documents(
-    docs: list[Document],
-    document_prompt: BasePromptTemplate = prompts.DEFAULT_DOCUMENT_PROMPT,
-    document_separator: str = "\n\n",
-):
-    doc_strings = [format_document(doc, document_prompt) for doc in docs]
-    return document_separator.join(doc_strings)
-
-
 class LLMContextManager(ABC):
     """Base llm manager"""
 
@@ -57,38 +47,24 @@ class LLMContextManager(ABC):
     def _store_settings(self) -> VectorStoreSettings:
         return get_or_set(kind="store")
 
-    def _get_runnable_qa(self, model: BaseChatModel, memory_obj: BaseChatMemory) -> RunnableSequence:
-        loaded_memory = RunnablePassthrough.assign(
-            chat_history=RunnableLambda(memory_obj.load_memory_variables) | itemgetter("chat_history"),
+    def _get_runnable_qa(self, model: BaseChatModel) -> RunnableSequence:
+        history_aware_retriever = create_history_aware_retriever(
+            model, self.context_object().as_retriever(), prompts.STANDALONE_QUESTION_PROMPT
         )
-        standalone_question = {
-            "standalone_question": {
-                "question": lambda x: x["question"],
-                "chat_history": lambda x: get_buffer_string(x["chat_history"]),
-            }
-            | prompts.CONTEXTQA_RETRIEVAL_PROMPT
-            | model
-            | StrOutputParser()
-        }
-        # Now we retrieve the documents
-        retrieved_documents = {
-            "docs": itemgetter("standalone_question") | self.context_object().as_retriever(),
-            "question": lambda x: x["standalone_question"],
-        }
-        # Now we construct the inputs for the final prompt
-        final_inputs = {
-            "context": lambda x: _combine_documents(x["docs"]),
-            "question": itemgetter("question"),
-        }
-        # And finally, we do the part that returns the answers
-        answer = {
-            "answer": final_inputs | prompts.ANSWER_PROMPT | model,
-            "docs": itemgetter("docs"),
-        }
-        # And now we put it all together!
-        final_chain = loaded_memory | standalone_question | retrieved_documents | answer
 
-        return final_chain
+        question_answer_chain = create_stuff_documents_chain(model, prompts.QA_PROMPT)
+
+        rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
+
+        conversational_rag_chain = RunnableWithMessageHistory(
+            rag_chain,
+            memory.runnable_memory,
+            input_messages_key="input",
+            history_messages_key="chat_history",
+            output_messages_key="answer",
+        )
+
+        return conversational_rag_chain
 
     def load_and_preprocess(self, filename: str, file_: BinaryIO, session: Session) -> tuple[list[Document], list[str]]:
         """Load and preprocess the file content
@@ -184,8 +160,10 @@ class LLMContextManager(ABC):
             stream of the final response
         """
         llm = partial_model_data.partial_model(streaming=True)
-        runnable = self._get_runnable_qa(llm, memory.runnable_memory(session="context", buffer=True))
-        return consumer_producer_qa(runnable.astream({"question": question}))
+        runnable = self._get_runnable_qa(llm)
+        return consumer_producer_qa(
+            runnable.astream({"input": question}, config={"configurable": {"session_id": "context"}})
+        )
 
 
 class LocalManager(LLMContextManager):
