@@ -1,6 +1,6 @@
 <template>
     <div class="my-6 justify-content-center">
-        <ConfirmDialog :draggable="false"/>
+        <ConfirmDialog :draggable="false" />
         <Toast class="z-5" />
 
         <div class="px-3 lg:px-0 w-full lg:w-7 m-auto grid">
@@ -19,27 +19,28 @@
             <div class="grid col-12 mt-5" v-if="isLocal">
                 <div class="flex flex-column gap-2 col-6">
                     <label for="home">Vector store home</label>
-                    <InputText id="home" v-model="storeParams['home']" class="border-round-xl"/>
+                    <InputText id="home" v-model="storeParams['home']" class="border-round-xl" />
                 </div>
                 <div class="flex flex-column gap-2 col-6">
                     <label for="collection">Collection name</label>
-                    <InputText id="collection" v-model="storeParams['collection']" class="border-round-xl"/>
+                    <InputText id="collection" v-model="storeParams['collection']" class="border-round-xl" />
                 </div>
             </div>
 
             <div class="grid col-12 mt-5" v-else>
                 <div class="flex flex-column gap-2 col-6">
                     <label for="token">Access token</label>
-                    <Password id="token" :feedback="false" v-model="storeParams['token']" inputClass="border-round-xl"/>
+                    <Password id="token" :feedback="false" v-model="storeParams['token']"
+                        inputClass="border-round-xl" />
                 </div>
                 <div class="flex flex-column gap-2 col-6">
                     <label for="index">Index</label>
-                    <InputText id="index" v-model="storeParams['index']" class="border-round-xl"/>
+                    <InputText id="index" v-model="storeParams['index']" class="border-round-xl" />
                 </div>
 
                 <div class="flex flex-column gap-2 col-6">
                     <label for="environment">Environment region</label>
-                    <InputText id="environment" v-model="storeParams['environment']" class="border-round-xl"/>
+                    <InputText id="environment" v-model="storeParams['environment']" class="border-round-xl" />
                 </div>
             </div>
 
@@ -66,8 +67,8 @@
 
             </div>
             <div class="mx-auto lg:mx-0">
-                <Button type="button" label="Save" icon="pi pi-check" @click="setConfig"
-                    class="mt-5" :disabled="disableButton" rounded />
+                <Button type="button" label="Save" icon="pi pi-check" @click="setConfig" class="mt-5"
+                    :disabled="disableButton" rounded />
             </div>
 
         </div>
@@ -94,6 +95,7 @@ import {
 export default {
     name: "VectorStoreSettings",
     components: { RadioBox, InputText, Password, Dropdown, Button, Toast, ConfirmDialog },
+    props: { byPassDialog: Boolean },
     created() {
         fetchResource("/settings/store").then(settings => {
             this.store = settings.store
@@ -116,29 +118,35 @@ export default {
         }
     },
     methods: {
+        fetchFunction() {
+            fetchResource("/settings/store", {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ store: this.store, chunk_size: this.chunkSize, overlap: this.overlap, store_params: this.storeParams })
+            }).then(response => {
+                this.store = response.store
+                this.chunkSize = response.chunk_size
+                this.overlap = response.overlap
+                this.storeParams = response.store_params
+                showSuccess("Settings successfully updated")
+            }).catch((error) => showError(error));
+        },
         setConfig() {
-            this.$confirm.require({
-                message: "Are you sure you want to update the store settings?",
-                header: "Danger Zone",
-                icon: "pi pi-info-circle",
-                rejectClass: 'p-button-secondary p-button-outlined',
-                acceptClass: 'p-button-danger',
-                accept: () => {
-                    fetchResource("/settings/store", {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ store: this.store, chunk_size: this.chunkSize, overlap: this.overlap, store_params: this.storeParams })
-                    }).then(response => {
-                        this.store = response.store
-                        this.chunkSize = response.chunk_size
-                        this.overlap = response.overlap
-                        this.storeParams = response.store_params
-                        showSuccess("Settings successfully updated")
-                    }).catch((error) => showError(error));
-                }
-            })
+            if (this.byPassDialog) {
+                this.fetchFunction()
+            }
+            else {
+                this.$confirm.require({
+                    message: "Are you sure you want to update the store settings?",
+                    header: "Danger Zone",
+                    icon: "pi pi-info-circle",
+                    rejectClass: 'p-button-secondary p-button-outlined',
+                    acceptClass: 'p-button-danger',
+                    accept: this.fetchFunction
+                })
+            }
         },
 
         onBoxCHange() {

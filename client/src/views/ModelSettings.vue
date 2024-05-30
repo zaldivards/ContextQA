@@ -1,6 +1,6 @@
 <template>
     <div class="my-6 justify-content-center">
-        <ConfirmDialog :draggable="false"/>
+        <ConfirmDialog :draggable="false" />
         <Toast class="z-5" />
 
         <div class="px-3 lg:px-0 w-full lg:w-7 m-auto grid">
@@ -66,6 +66,7 @@ import {
 export default {
     name: "ModelSetttings",
     components: { RadioBox, Slider, Button, Password, Toast, Dropdown, ConfirmDialog },
+    props: { byPassDialog: Boolean },
     created() {
         fetchResource("/settings/model").then(settings => {
             this.selectedModel = settings.model
@@ -91,28 +92,34 @@ export default {
         }
     },
     methods: {
+        fetchFunction() {
+            fetchResource("/settings/model", {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ provider: this.provider, model: this.selectedModel, temperature: this.temperature, token: this.token || null })
+            }).then(response => {
+                this.selectedModel = response.model
+                this.provider = response.provider
+                this.temperature = response.temperature
+                showSuccess("Settings were updated successfully")
+            }).catch((error) => showError(error));
+        },
         setConfig() {
-            this.$confirm.require({
-                message: "Are you sure you want to update the model settings?",
-                header: "Danger Zone",
-                icon: "pi pi-info-circle",
-                rejectClass: 'p-button-secondary p-button-outlined',
-                acceptClass: 'p-button-danger',
-                accept: () => {
-                    fetchResource("/settings/model", {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ provider: this.provider, model: this.selectedModel, temperature: this.temperature, token: this.token || null })
-                    }).then(response => {
-                        this.selectedModel = response.model
-                        this.provider = response.provider
-                        this.temperature = response.temperature
-                        showSuccess("Settings were updated successfully")
-                    }).catch((error) => showError(error));
-                }
-            })
+            if (this.byPassDialog) {
+                this.fetchFunction()
+            }
+            else {
+                this.$confirm.require({
+                    message: "Are you sure you want to update the model settings?",
+                    header: "Danger Zone",
+                    icon: "pi pi-info-circle",
+                    rejectClass: 'p-button-secondary p-button-outlined',
+                    acceptClass: 'p-button-danger',
+                    accept: this.fetchFunction
+                })
+            }
         },
         onBoxCHange() {
             if (this.initialProvider != this.provider)
