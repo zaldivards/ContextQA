@@ -12,6 +12,13 @@ from contextqa.models.schemas import ModelSettingsUpdate, StoreSettings, ExtraSe
 class ModelSettings(ModelSettingsUpdate):
     """Settings related to specific LLMs"""
 
+    @classmethod
+    def from_defaults(cls) -> "StoreSettings":
+        """Get default settings related to the vector store"""
+        return cls(
+            temperature=1,
+        )
+
 
 class VectorStoreSettings(StoreSettings):
     """Settings related to specific vector stores"""
@@ -36,7 +43,7 @@ class Extra(ExtraSettings):
 
         return cls(
             media_dir=str(settings.media_home),
-            memory=LLMMemory(url=settings.redis_url),
+            memory=LLMMemory(kind="Local"),
             database=DBModel(url=settings.sqlite_url),
         )
 
@@ -44,7 +51,7 @@ class Extra(ExtraSettings):
 class SettingsSchema(BaseModel):
     """Dict schema returned from the config manager"""
 
-    model: ModelSettings | None = None
+    model: ModelSettings | None = ModelSettings.from_defaults()
     store: VectorStoreSettings | None = VectorStoreSettings.from_defaults()
     extra: Extra | None = Extra.from_defaults()
 
