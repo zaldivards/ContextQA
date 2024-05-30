@@ -1,17 +1,14 @@
 import json
 from typing import Literal
 
-from langchain_openai import OpenAI
 from langchain.memory import (
     ConversationBufferWindowMemory,
-    ConversationSummaryBufferMemory,
     RedisChatMessageHistory,
     ChatMessageHistory,
 )
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import BaseMessage, messages_from_dict
 
-from contextqa import settings
 from contextqa.models import ExtraSettings
 from contextqa.utils.settings import get_or_set
 
@@ -49,33 +46,6 @@ def _prompt_keys(kind: str, internet_access: bool = False) -> dict[str, str]:
 
 def _requires_raw(session: str, internet_access: bool) -> bool:
     return session != "default" or internet_access
-
-
-def _redis(
-    session: Literal["default", "context"] = "default", internet_access: bool = False, buffer: bool = False
-) -> RedisChatMessageHistory | ConversationBufferWindowMemory:
-    history_db = LimitedRedisMemory(session_id=session, url=settings.redis_url)
-    if not buffer:
-        return history_db
-    return ConversationBufferWindowMemory(
-        chat_memory=RedisChatMessageHistory(session_id=session, url=settings.redis_url),
-        max_token_limit=1000,
-        k=5,
-        return_messages=_requires_raw(session, internet_access),
-        **_prompt_keys(session, internet_access),
-    )
-
-
-def _redis_with_summary(session: Literal["default", "context"] = "default") -> RedisChatMessageHistory:
-    history_db = LimitedRedisMemory(session_id=session, url=settings.redis_url)
-    memory = ConversationSummaryBufferMemory(
-        llm=OpenAI(temperature=0),
-        chat_memory=history_db,
-        return_messages=_requires_raw(session, False),
-        max_token_limit=1000,
-        **_prompt_keys(session),
-    )
-    return memory
 
 
 def runnable_memory(
@@ -116,7 +86,3 @@ def runnable_memory(
         return_messages=_requires_raw(session, internet_access),
         **_prompt_keys(session, internet_access),
     )
-
-
-RedisSummaryMemory = _redis_with_summary
-Redis = _redis

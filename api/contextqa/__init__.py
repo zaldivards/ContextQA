@@ -19,10 +19,7 @@ class AppSettings(BaseSettings):
     media_home: Path = Path(".media/")
     local_vectordb_home: Path = Path(".chromadb/")
     sqlite_url: str = "sqlite:///contextqa.sqlite3"
-    openai_api_key: str | None = None
-    redis_url: str | None = None
     deployment: str = "dev"
-    mysql_extra_args: str | None = None
 
     @property
     def debug(self) -> bool:
