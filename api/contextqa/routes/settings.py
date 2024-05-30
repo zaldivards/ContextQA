@@ -134,3 +134,10 @@ async def update_extra_settings(settings: ExtraSettingsUpdate, session: Annotate
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"message": "Something went wrong", "cause": str(ex)},
         ) from ex
+
+
+@router.get("/init-status", tags=["Alive?"])
+def init_status():
+    """Check whether the api has already been initialized"""
+    settings = get_or_set()
+    return "ok" if settings.provider else "pending"
