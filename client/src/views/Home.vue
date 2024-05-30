@@ -15,7 +15,6 @@
         </template>
         <template #content>
           <p class="w-full lg:w-8 m-auto p-3 lg:p-2">
-            Hi!
             <span class="relative"><img alt="contextqa text" src="/images/title.png"
                 class="w-5rem relative top-img" /></span>
             is a tool that leverages the power of LLMs letting users chat with their own data. The current version

@@ -1,6 +1,65 @@
 <template>
-  <div>
-    <MainLayout>
+  <div :class="!initialized && 'relative h-screen'" class="text-white">
+    <div class="fixed bg-black-alpha-40" :style="{ zIndex: -10, inset: 0 }" v-show="!initialized" />
+    <div v-if="!initialized">
+      <div class="flex flex-column justify-content-between align-items-center h-screen overflow-hidden text-white"
+        :class="expanded ? 'fadeoutup animation-duration-1000 animation-ease-out' : ''" v-if="!expandedEnd">
+        <div />
+        <Card class="text-xl text-white-alpha-80 bg-inherit flex flex-column justify-content-center shadow-none" :pt="{
+          header: {
+            class: 'text-center',
+          }
+        }">
+          <template #header>
+            <img alt="contextqa logo" src="/images/logo.png" class="w-5rem" />
+          </template>
+          <template #content>
+            <p class="w-full lg:w-8 m-auto p-3 lg:p-2">
+              Hi there, welcome to
+              <span class="relative"><img alt="contextqa text" src="/images/title.png"
+                  class="w-6rem relative top-img" /></span>,
+            </p>
+            <p class="w-full lg:w-8 m-auto p-3 lg:p-2">
+              Before we get started, we'd like to ensure that ContextQA functions seamlessly for you. To do so, we
+              kindly ask you to set up a few essential details:
+            </p>
+            <div class="w-full lg:w-8 m-auto p-3 lg:p-2">
+              <p>
+                <span class="font-bold text-teal-400">LLMs Configuration: </span> Adjust settings related to Large
+                Language Models
+                (LLMs) to tailor
+                their usage
+                according to your preferences.
+              </p>
+              <p>
+                <span class="font-bold text-teal-400">Vector Stores Settings: </span>Configure preferences for Vector
+                Stores to
+                optimize performance and
+                enhance your
+                experience with ContextQA.
+              </p>
+              <p>
+                <span class="font-bold text-teal-400">Other Settings: </span>Review and adjust any additional settings
+                necessary for
+                ContextQA to align
+                perfectly
+                with your needs.
+              </p>
+            </div>
+            <p class="w-full lg:w-8 m-auto p-3 lg:p-2">
+              Your cooperation in this matter is greatly appreciated. Let's make your experience with ContextQA
+              exceptional from the very start!
+            </p>
+            <p class="w-full lg:w-8 m-auto p-3 lg:p-2">Let's get started!</p>
+          </template>
+        </Card>
+        <Button icon="pi pi-angle-double-down" text aria-label="expand" @click="onExpanded" size="large"
+          class="bg-inherit"
+          :icon-class="!expanded && 'fadeinup animation-ease-out animation-duration-1000 animation-iteration-infinite'" />
+      </div>
+      <StepperView v-else class="fadeindown animation-duration-1000 animation-ease-out" @finish="onFinish" />
+    </div>
+    <MainLayout v-else>
       <template #menu>
         <Menu :model="items" class="my-4 sticky z-4 border-none w-full bg-inherit" :pt="{
           label: { class: 'text-gl text-white-alpha-80 shadow-6' },
@@ -33,14 +92,39 @@
 <script>
 import MainLayout from "@/components/MainLayout.vue";
 import Menu from "primevue/menu";
+import StepperView from "@/views/Stepper"
+import Button from 'primevue/button';
+import Card from "primevue/card";
+import {
+  fetchResource
+} from "@/utils/client";
+
 export default {
   name: "App",
   components: {
     Menu,
     MainLayout,
+    StepperView,
+    Button,
+    Card
+  },
+  mounted() {
+    this.initialized = localStorage.getItem('isInitialized')
+    if (this.initialized === null) {
+      fetchResource("/settings/init-status").then(status => {
+        if (status == 'ok') {
+          this.initialized = true
+          localStorage.setItem('isInitialized', true);
+        } else this.initialized = false
+      })
+        .catch((error) => { });
+    }
   },
   data() {
     return {
+      expanded: false,
+      expandedEnd: false,
+      initialized: false,
       prevSelectedItem: '',
       items: [
         { separator: true },
@@ -108,6 +192,16 @@ export default {
       ],
     };
   },
+  methods: {
+    onExpanded() {
+      this.expanded = true;
+      setTimeout(() => this.expandedEnd = true, 800)
+    },
+    onFinish() {
+      localStorage.setItem('isInitialized', true);
+      setTimeout(() => this.initialized = true, 3000)
+    }
+  },
   computed: {
     context() {
       return this.$store.state.identifier ?? "None";
@@ -116,12 +210,11 @@ export default {
       const store = this.$store.state.vectorStore;
       return store.charAt(0).toUpperCase() + store.slice(1);
     },
-  },
+  }
 };
 </script>
 
 <style>
-
 .disabled {
   pointer-events: none;
   outline: none;
