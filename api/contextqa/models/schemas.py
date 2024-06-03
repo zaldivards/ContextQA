@@ -164,9 +164,8 @@ class ExtraSettingsUpdate(ExtraSettings):
     """Schema to patch extra settings such as memory and database"""
 
 
-class ComponentsStatus(BaseModel):
-    media_dir: Status
-    db: Status
-    vectordb: Status
-    llm: Status
-    redis: Status
+class ComponentStatus(BaseModel):
+    """Component status"""
+
+    name: str
+    status: Status

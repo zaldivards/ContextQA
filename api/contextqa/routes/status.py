@@ -5,14 +5,14 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from sqlalchemy.orm import Session
 
 from contextqa.routes.dependencies import get_db, get_initialized_model, store_client
-from contextqa.models.schemas import ComponentsStatus
+from contextqa.models.schemas import ComponentStatus
 from contextqa.services.status import get_status
 from contextqa.utils.clients import StoreClient
 
 router = APIRouter()
 
 
-@router.get("/", response_model=ComponentsStatus)
+@router.get("/", response_model=list[ComponentStatus])
 async def status_(
     session: Annotated[Session, Depends(get_db)],
     model: Annotated[BaseChatModel, Depends(get_initialized_model)],

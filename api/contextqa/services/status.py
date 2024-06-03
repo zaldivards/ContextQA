@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import TypedDict
 
 from langchain_community.utilities.redis import get_client
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -9,24 +8,16 @@ from sqlalchemy.orm import Session
 
 
 from contextqa import logger
-from contextqa.models.schemas import Status, ComponentsStatus
+from contextqa.models.schemas import Status, ComponentStatus
 from contextqa.utils.clients import StoreClient
 from contextqa.utils.settings import get_or_set
-
-
-class _StatusDict(TypedDict):
-    media_dir: Status
-    db: Status
-    vectordb: Status
-    llm: Status
-    redis: Status
 
 
 class _StatusChecker:
 
     def __init__(self, session: Session, llm: BaseChatModel, vectordb_client: StoreClient):
         self.session = session
-        self.statuses: _StatusDict = {}
+        self.statuses: list[ComponentStatus] = []
         self.llm = llm
         self.vectordb_client = vectordb_client
 
@@ -39,31 +30,37 @@ class _StatusChecker:
         """
         media_dir = get_or_set("extra").media_dir
         folder = Path(media_dir)
+        status: Status
         try:
             test_file = folder / "dummy"
             # Attempt to open the file for reading and writing
             with test_file.open("w+") as f:
                 f.write("Testing access")
             test_file.unlink()
-            self.statuses["media_dir"] = Status.OK
+            status = Status.OK
         except Exception as ex:
-            self.statuses["media_dir"] = Status.FAIL
+            status = Status.FAIL
             logger.warning("media dir check failed: %s", ex)
+        finally:
+            self.statuses.append(ComponentStatus(name="Media directory", status=status))
         return self
 
     def check_db(self):
         """Check if the database is up and running
 
-        Returns
+        Returnsmodel
         -------
         self
         """
+        status: Status
         try:
             self.session.execute(text("SELECT 1"))
-            self.statuses["db"] = Status.OK
+            status = Status.OK
         except OperationalError as ex:
-            self.statuses["db"] = Status.FAIL
+            status = Status.FAIL
             logger.warning("db check failed: %s", ex)
+        finally:
+            self.statuses.append(ComponentStatus(name="Relational DB", status=status))
         return self
 
     def check_redis(self):
@@ -74,17 +71,19 @@ class _StatusChecker:
         -------
         self
         """
+        status: Status
         settings = get_or_set("extra")
         if settings.memory.kind == "Local":
-            self.statuses["redis"] = Status.IRRELEVANT
+            status = Status.IRRELEVANT
         else:
             try:
                 redis_client = get_client(settings.memory.url)
                 redis_client.get("ping")
-                self.statuses["redis"] = Status.OK
+                status = Status.OK
             except Exception as ex:
                 logger.warning("redis check failed: %s", ex)
-                self.statuses["redis"] = Status.FAIL
+                status = Status.FAIL
+        self.statuses.append(ComponentStatus(name="Redis", status=status))
         return self
 
     def check_llm(self):
@@ -94,12 +93,15 @@ class _StatusChecker:
         -------
         self
         """
+        status: Status
         try:
             self.llm.invoke("ping")
-            self.statuses["llm"] = Status.OK
+            status = Status.OK
         except Exception as ex:
-            self.statuses["llm"] = Status.FAIL
+            status = Status.FAIL
             logger.warning("llm check failed: %s", ex)
+        finally:
+            self.statuses.append(ComponentStatus(name="Chat model", status=status))
         return self
 
     def check_vectordb(self):
@@ -109,20 +111,22 @@ class _StatusChecker:
         -------
         self
         """
-        self.statuses["vectordb"] = Status.OK if self.vectordb_client.is_alive() else Status.FAIL
+        self.statuses.append(
+            ComponentStatus(name="Vector DB", status=Status.OK if self.vectordb_client.is_alive() else Status.FAIL)
+        )
         return self
 
-    def build(self) -> ComponentsStatus:
+    def build(self) -> list[ComponentStatus]:
         """Build the final object
 
         Returns
         -------
-        ComponentsStatus
+        list[ComponentStatus]
         """
-        return ComponentsStatus(**self.statuses)
+        return self.statuses
 
 
-def get_status(session: Session, model: BaseChatModel, vectordb_client: StoreClient) -> ComponentsStatus:
+def get_status(session: Session, model: BaseChatModel, vectordb_client: StoreClient) -> list[ComponentStatus]:
     """Return a summary of ContextQA's components status
 
     Parameters
@@ -136,7 +140,7 @@ def get_status(session: Session, model: BaseChatModel, vectordb_client: StoreCli
 
     Returns
     -------
-    ComponentsStatusS
+    list[ComponentStatus]
     """
     checker = _StatusChecker(session, model, vectordb_client)
     return checker.check_media_dir().check_db().check_redis().check_llm().check_vectordb().build()
