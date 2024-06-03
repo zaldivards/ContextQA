@@ -14,6 +14,14 @@ class SourceFormat(str, Enum):
     CSV = ".csv"
 
 
+class Status(str, Enum):
+    """Enum representing the supported statuses"""
+
+    OK = "ok"
+    FAIL = "fail"
+    IRRELEVANT = "irrelevant"  # does not matter whether it's OK or FAIL
+
+
 class BaseSource(BaseModel):
     """Base source model"""
 
@@ -154,3 +162,11 @@ class ExtraSettings(BaseModel):
 
 class ExtraSettingsUpdate(ExtraSettings):
     """Schema to patch extra settings such as memory and database"""
+
+
+class ComponentsStatus(BaseModel):
+    media_dir: Status
+    db: Status
+    vectordb: Status
+    llm: Status
+    redis: Status
