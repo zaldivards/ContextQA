@@ -3,6 +3,7 @@ from typing import Iterable
 from langchain_community.vectorstores import Chroma
 from pinecone import Index
 
+from contextqa import logger
 from contextqa.utils.settings import get_or_set
 
 
@@ -59,6 +60,15 @@ class StoreClient:
         """
         raise NotImplementedError
 
+    def is_alive(self) -> bool:
+        """Check if the vector DB is up and running
+
+        Returns
+        -------
+        bool
+        """
+        raise NotImplementedError
+
 
 class ChromaClient(StoreClient):
     """Chroma client"""
@@ -72,6 +82,14 @@ class ChromaClient(StoreClient):
 
     def get(self, source: str) -> Iterable[str]:
         return self._client.get(where={"source": source})["ids"]
+
+    def is_alive(self) -> bool:
+        try:
+            self._client.get(limit=1)
+            return True
+        except Exception as ex:
+            logger.error("vectorDB client is not alive: %s", ex)
+            return False
 
 
 class PineconeClient(StoreClient):
@@ -95,3 +113,11 @@ class PineconeClient(StoreClient):
         )
 
         return map(lambda item: item["id"], data["matches"])
+
+    def is_alive(self) -> bool:
+        try:
+            self._client.describe_index_stats()
+            return True
+        except Exception as ex:
+            logger.error("vectorDB client is not alive: %s", ex)
+            return False
