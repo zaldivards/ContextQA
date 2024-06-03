@@ -87,9 +87,14 @@ async def get_active_sources(
 async def remove_active_sources(
     sources: list[str],
     session: Annotated[Session, Depends(get_db)],
-    client: Annotated[StoreClient, Depends(store_client)],
+    client: Annotated[StoreClient | None, Depends(store_client)],
 ):
     """Remove active sources from both the relational and vector databases"""
+    if not client:
+        raise HTTPException(
+            status_code=status.HTTP_424_FAILED_DEPENDENCY,
+            detail={"message": "Vector DB is unreachable"},
+        )
     try:
         return {"removed": remove_sources(session, sources, client)}
     except Exception as ex:

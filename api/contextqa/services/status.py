@@ -15,7 +15,7 @@ from contextqa.utils.settings import get_or_set
 
 class _StatusChecker:
 
-    def __init__(self, session: Session, llm: BaseChatModel, vectordb_client: StoreClient):
+    def __init__(self, session: Session, llm: BaseChatModel, vectordb_client: StoreClient | None):
         self.session = session
         self.statuses: list[ComponentStatus] = []
         self.llm = llm
@@ -112,7 +112,12 @@ class _StatusChecker:
         self
         """
         self.statuses.append(
-            ComponentStatus(name="Vector DB", status=Status.OK if self.vectordb_client.is_alive() else Status.FAIL)
+            ComponentStatus(
+                name="Vector DB",
+                status=(
+                    Status.OK if self.vectordb_client is not None and self.vectordb_client.is_alive() else Status.FAIL
+                ),
+            )
         )
         return self
 
@@ -126,7 +131,7 @@ class _StatusChecker:
         return self.statuses
 
 
-def get_status(session: Session, model: BaseChatModel, vectordb_client: StoreClient) -> list[ComponentStatus]:
+def get_status(session: Session, model: BaseChatModel, vectordb_client: StoreClient | None) -> list[ComponentStatus]:
     """Return a summary of ContextQA's components status
 
     Parameters
@@ -135,7 +140,7 @@ def get_status(session: Session, model: BaseChatModel, vectordb_client: StoreCli
         Relational DB connection
     model : BaseChatModel
         Chat model
-    vectordb_client : StoreClient
+    vectordb_client : StoreClient | None
         Vector DB connection
 
     Returns

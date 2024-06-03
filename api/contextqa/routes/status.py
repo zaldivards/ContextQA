@@ -16,7 +16,7 @@ router = APIRouter()
 async def status_(
     session: Annotated[Session, Depends(get_db)],
     model: Annotated[BaseChatModel, Depends(get_initialized_model)],
-    client: Annotated[StoreClient, Depends(store_client)],
+    client: Annotated[StoreClient | None, Depends(store_client)],
 ):
     """# ContextQA's components status"""
     try:

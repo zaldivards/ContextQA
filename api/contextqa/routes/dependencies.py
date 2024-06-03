@@ -9,6 +9,7 @@ from langchain_openai import ChatOpenAI
 from pinecone import Pinecone
 from sqlalchemy.orm import Session
 
+from contextqa import logger
 from contextqa.services.db import SessionLocal
 from contextqa.services.context import PineconeManager, LocalManager, LLMContextManager
 from contextqa.utils.clients import StoreClient, PineconeClient, ChromaClient
@@ -48,12 +49,12 @@ def get_initialized_model() -> BaseChatModel:
         )
 
 
-def store_client() -> StoreClient:
+def store_client() -> StoreClient | None:
     """Return the client for a specific store chosen using the dynamic store settings
 
     Returns
     -------
-    StoreClient
+    StoreClient | None
     """
     store_settings = get_or_set(kind="store")
     if store_settings.store == "chroma":
@@ -65,7 +66,13 @@ def store_client() -> StoreClient:
             persist_directory=home,
         )
         return ChromaClient(client=chroma_client)
-    pinecone_client = Pinecone(api_key=store_settings.store_params["token"]).Index(store_settings.store_params["index"])
+    try:
+        pinecone_client = Pinecone(api_key=store_settings.store_params["token"]).Index(
+            store_settings.store_params["index"]
+        )
+    except Exception as ex:
+        logger.error(ex)
+        return None
     return PineconeClient(client=pinecone_client)
 
 
