@@ -101,7 +101,7 @@ class _StatusChecker:
             status = Status.FAIL
             logger.warning("llm check failed: %s", ex)
         finally:
-            self.statuses.append(ComponentStatus(name="Chat model", status=status))
+            self.statuses.append(ComponentStatus(name="LLM", status=status))
         return self
 
     def check_vectordb(self):
