@@ -3,10 +3,10 @@ from typing import AsyncGenerator
 from langchain import hub
 from langchain.agents import AgentExecutor, create_json_chat_agent
 from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
 from contextqa.agents.tools import searcher
-from contextqa.models import PartialModelData
 from contextqa.models.schemas import LLMQueryRequest
 from contextqa.utils import memory
 from contextqa.utils.streaming import consumer_producer
@@ -19,24 +19,24 @@ _MESSAGES = [
 ]
 
 
-def get_llm_assistant(internet_access: bool, partial_model_data: PartialModelData) -> RunnableWithMessageHistory:
+def get_llm_assistant(internet_access: bool, llm: BaseChatModel) -> RunnableWithMessageHistory:
     """Return certain LLM assistant based on the system configuration
 
     Parameters
     ----------
     internet_access : bool
         flag indicating whether an assistant with internet access was requested
+    llm : BaseChatModel
 
     Returns
     -------
     RunnableWithMessageHistory
     """
     tools = [searcher]
-    llm = partial_model_data.partial_model(streaming=True)
     if internet_access:
         prompt = hub.pull("hwchase17/react-chat-json")
         agent = create_json_chat_agent(
-            llm=partial_model_data.partial_model(streaming=True),
+            llm=llm,
             prompt=prompt,
             tools=tools,
         )
@@ -55,20 +55,21 @@ def get_llm_assistant(internet_access: bool, partial_model_data: PartialModelDat
     return chain_with_history
 
 
-def qa_service(params: LLMQueryRequest, partial_model: PartialModelData) -> AsyncGenerator:
+def invoke_model(params: LLMQueryRequest, llm: BaseChatModel) -> AsyncGenerator:
     """Chat with the llm
 
     Parameters
     ----------
     params : LLMQueryRequest
         request body parameters
+    llm : BaseChatModel
 
     Returns
     -------
     AsyncGenerator
     """
 
-    assistant = get_llm_assistant(params.internet_access, partial_model)
+    assistant = get_llm_assistant(params.internet_access, llm)
     return consumer_producer(
         assistant.astream({"input": params.message}, config={"configurable": {"session_id": "default"}})
     )

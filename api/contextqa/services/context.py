@@ -25,7 +25,7 @@ from pinecone import Pinecone, ServerlessSpec, Index
 from sqlalchemy.orm import Session
 
 from contextqa import logger, settings
-from contextqa.models import PartialModelData, VectorStoreSettings
+from contextqa.models import VectorStoreSettings
 from contextqa.models.schemas import LLMResult, SourceFormat, IngestionResult
 from contextqa.utils import memory, prompts
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
@@ -146,20 +146,20 @@ class LLMContextManager(ABC):
         """
         raise NotImplementedError
 
-    def load_and_respond(self, question: str, partial_model_data: PartialModelData) -> AsyncGenerator:
+    def load_and_respond(self, question: str, llm: BaseChatModel) -> AsyncGenerator:
         """Load the context and answer the question
 
         Parameters
         ----------
         question : str
             The question to answer
+        llm : BaseChatModel
 
         Returns
         -------
         AsyncGenerator
             stream of the final response
         """
-        llm = partial_model_data.partial_model(streaming=True)
         runnable = self._get_runnable_qa(llm)
         return consumer_producer_qa(
             runnable.astream({"input": question}, config={"configurable": {"session_id": "context"}})

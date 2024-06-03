@@ -2,10 +2,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.responses import StreamingResponse
+from langchain_core.language_models.chat_models import BaseChatModel
 
-from contextqa.models import PartialModelData
 from contextqa.models.schemas import LLMContextQueryRequest
-from contextqa.routes.dependencies import get_partial_initialized_model, context_manager
+from contextqa.routes.dependencies import get_initialized_model, context_manager
 from contextqa.services.context import LLMContextManager
 
 
@@ -15,12 +15,12 @@ router = APIRouter()
 @router.post("/")
 async def qa(
     params: LLMContextQueryRequest,
-    partial_model: Annotated[PartialModelData, Depends(get_partial_initialized_model)],
+    model: Annotated[BaseChatModel, Depends(get_initialized_model)],
     manager: Annotated[LLMContextManager, Depends(context_manager)],
 ):
     """QA process using the ingested sources"""
     try:
-        generator = manager.load_and_respond(params.question, partial_model)
+        generator = manager.load_and_respond(params.question, model)
         return StreamingResponse(generator, media_type="text/event-stream")
     except Exception as ex:
         raise HTTPException(
