@@ -15,7 +15,7 @@
                                 <div v-else>
                                     <span class="font-bold">
                                         {{ item.name }}
-                                    </span> is not working properly. Please check your settings, logs and/or <a
+                                    </span> is not working properly. Please check your settings, server logs and/or <a
                                         href="https://github.com/zaldivards/ContextQA/issues/new">report a bug</a>
                                 </div>
                             </OverlayPanel>
