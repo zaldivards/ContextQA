@@ -10,7 +10,7 @@ from pinecone import Pinecone
 from sqlalchemy.orm import Session
 
 from contextqa import logger
-from contextqa.services.db import SessionLocal
+from contextqa.services.db import session_factory
 from contextqa.services.context import PineconeManager, LocalManager, LLMContextManager
 from contextqa.utils.clients import StoreClient, PineconeClient, ChromaClient
 from contextqa.utils.settings import get_or_set
@@ -101,7 +101,7 @@ def get_db() -> Generator[Session, None, None]:
         db session
     """
     try:
-        session = SessionLocal()
+        session = session_factory()
         yield session
         session.commit()
     except:

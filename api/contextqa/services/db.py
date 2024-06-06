@@ -15,7 +15,9 @@ def session_factory():
     -------
     Session
     """
-    return sessionmaker(autocommit=False, autoflush=False, bind=engine)()
+    new_engine = create_engine(settings.sqlalchemy_url, pool_pre_ping=True, max_overflow=15)
+    session_local = sessionmaker(autocommit=False, autoflush=False, bind=new_engine)
+    return session_local()
 
 
 def migration_session(url: str):
