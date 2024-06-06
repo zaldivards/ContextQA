@@ -3,7 +3,7 @@ import json
 from functools import cached_property
 from pathlib import Path
 
-from pydantic import field_validator
+from pydantic import field_validator, ValidationError
 from pydantic_settings import BaseSettings
 
 
@@ -38,7 +38,10 @@ class AppSettings(BaseSettings):
         from contextqa.models import SettingsSchema
 
         with open(self.config_path, mode="r", encoding="utf-8") as settings_file:
-            return SettingsSchema.model_validate_json(settings_file.read())
+            try:
+                return SettingsSchema.model_validate_json(settings_file.read())
+            except ValidationError:  # error is thrown if the user sets a path to an empty json file
+                return SettingsSchema()
 
     @model_settings.setter
     def model_settings(self, model_settings):
