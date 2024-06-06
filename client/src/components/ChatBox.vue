@@ -1,6 +1,6 @@
 <template>
   <div class="my-6 justify-content-center">
-    <div class="px-3 lg:px-0 w-full lg:w-10 m-auto grid justify-content-center"
+    <div class="lg:px-0 lg:w-10 lg:m-auto md:m-auto grid justify-content-center"
       :class="sourcesReady || !requiresContext ? '' : ['opacity-50', 'disabled']">
       <DynamicDialog :pt="{ content: { class: 'h-full' } }" />
       <div>
@@ -37,7 +37,7 @@
       <Toast class="z-5 w-9 lg:w-3" />
 
       <Panel ref="panel"
-        class="col-12 lg:col-8 lg:my-5 scroll-panel chat-height overflow-y-scroll scrollbar bg-inherit  py-0"
+        class="col-12 lg:col-8 lg:my-5 scroll-panel chat-height overflow-y-scroll scrollbar bg-inherit py-0"
         :header="header" :pt="{
           header: {
             class: 'border-none bg-contextqa-primary-main sticky top-0 pt-3',
@@ -66,8 +66,8 @@
                 body: { class: message.role == 'user' ? 'pt-0' : '' },
               }">
               <template #content>
-                <div v-if="message.isLatest" v-html="answer"></div>
-                <div v-else v-html="message.content"></div>
+                <div v-if="message.isLatest" v-html="answer"/>
+                <div v-else v-html="message.content"/>
               </template>
               <template #footer>
                 <div class="date w-max justify-content-end text-xs text-white-alpha-70">
@@ -78,10 +78,10 @@
           </div>
         </div>
 
-        <div class="fixed bottom-0 w-11 lg:w-5 mb-5 align-items-center z-5">
+        <div class="fixed bottom-0 w-11 lg:w-5 mb-5 opacity-100">
           <div class="m-auto">
-            <div class="flex align-items-center mb-2" v-if="!requiresContext">
-              <span class="mr-2">Enable internet access</span>
+            <div class="flex mb-2 justify-content-start gap-2" v-if="!requiresContext">
+              <span class="font-bold text-white-alpha-60">Enable internet access</span>
               <InputSwitch v-model="internetEnabled" @change="switchHandler" />
             </div>
             <Button v-else label="Sources" class="my-2" icon="pi pi-search-plus" severity="secondary" rounded
