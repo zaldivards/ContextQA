@@ -1,6 +1,5 @@
 # pylint: disable=E0611
 from enum import Enum
-from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
@@ -139,6 +138,7 @@ class _DBData(BaseModel):
     db: str | None = None
     host: str | None = None
     password: str | None = None
+    extras: str | None = None
 
 
 class DBModel(BaseModel):

@@ -87,7 +87,7 @@ class AppSettings(BaseSettings):
             f"mysql+pymysql://{db_settings.database.credentials.user}:{db_settings.database.credentials.password}"
             f"@{db_settings.database.credentials.host}/{db_settings.database.credentials.db}"
         )
-        if extras := self.mysql_extra_args:
+        if extras := db_settings.database.credentials.extras:
             uri += extras
         return uri
 
