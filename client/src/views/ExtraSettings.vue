@@ -142,7 +142,7 @@ export default {
                     database: {
                         kind: this.dbValue,
                         url: this.dbValue == 'mysql' ? undefined : this.sqliteUrl || undefined,
-                        credentials: this.mysqlData || undefined
+                        credentials: this.dbValue == 'mysql' ? this.mysqlData || undefined : undefined
                     }
                 })
             }).then(response => {
