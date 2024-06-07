@@ -71,5 +71,8 @@ def invoke_model(params: LLMQueryRequest, llm: BaseChatModel) -> AsyncGenerator:
 
     assistant = get_llm_assistant(params.internet_access, llm)
     return consumer_producer(
-        assistant.astream({"input": params.message}, config={"configurable": {"session_id": "default"}})
+        assistant.astream_events(
+            {"input": params.message}, config={"configurable": {"session_id": "default"}}, version="v1"
+        ),
+        params.internet_access,
     )

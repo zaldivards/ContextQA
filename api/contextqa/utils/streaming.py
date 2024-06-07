@@ -5,7 +5,7 @@ from typing import AsyncGenerator, Any, Dict, Tuple, Type, Sequence
 import google.generativeai as genai
 from langchain_community.docstore.document import Document
 from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage, AIMessage, AIMessageChunk
-from langchain_core.runnables.utils import AddableDict
+from langchain_core.runnables.schema import StreamEvent
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_genai.chat_models import _convert_to_parts
 from langchain_google_genai._function_utils import convert_to_genai_function_declarations
@@ -17,16 +17,15 @@ class NoneType:
     """None sentinel type"""
 
 
-def _ensure_final_answer(chunk: AddableDict) -> str | None:
-    return chunk.get("output")
-
-
-async def consumer_producer(response_stream: AsyncGenerator[AIMessageChunk, None]) -> AsyncGenerator[str, None]:
+async def consumer_producer(
+    response_stream: AsyncGenerator[StreamEvent, None], is_agent: bool
+) -> AsyncGenerator[str, None]:
     """Consumes an asynchronous stream and streams async messages
 
     Parameters
     ----------
-    response_stream : AsyncGenerator[AIMessageChunk, None]
+    response_stream : AsyncGenerator[StreamEvent, None]
+    is_agent : bool
 
     Returns
     -------
@@ -37,16 +36,24 @@ async def consumer_producer(response_stream: AsyncGenerator[AIMessageChunk, None
     ------
     str
     """
-    async for chunk in response_stream:
-        await asyncio.sleep(0.05)
-        if isinstance(chunk, AddableDict):
-            # this type is streamed by agents, as normally it streams all the intermediate steps
-            content = _ensure_final_answer(chunk)
-            if not content:
-                continue
-        else:
-            content = chunk.content
-            yield content
+    iter_content = ""
+    final_answer = False
+    async for event_chunk in response_stream:
+        await asyncio.sleep(0.02)
+        if event_chunk["event"] == "on_chat_model_stream":
+            if is_agent:
+                if content := event_chunk["data"]["chunk"].content:
+                    if '"action_input": "' in iter_content:
+                        if content not in ('"', "}", "```"):
+                            yield content
+                    if content in ("Final Answer", "Final", "Answer"):
+                        final_answer = True
+                    if final_answer:
+                        iter_content += content
+            else:
+                chunk = event_chunk["data"]["chunk"]
+                if isinstance(chunk, AIMessageChunk):
+                    yield chunk.content
 
 
 async def consumer_producer_qa(
