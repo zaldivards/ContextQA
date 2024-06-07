@@ -17,8 +17,7 @@ def db_has_changed(current_settings: ExtraSettings, new_settings: ExtraSettings)
         True if the database settings have changed, False otherwise
     """
     return (
-        current_settings.database.url is not None and current_settings.database.url != new_settings.database.url
-    ) or (
-        current_settings.database.credentials is not None
-        and current_settings.database.credentials != new_settings.database.credentials
+        (current_settings.database.url and current_settings.database.credentials)
+        or current_settings.database.url != new_settings.database.url
+        or current_settings.database.credentials != new_settings.database.credentials
     )
