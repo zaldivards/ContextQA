@@ -2,7 +2,10 @@
     <div class="my-2 py-5 justify-content-center">
         <div class="px-3 lg:px-0 w-screen lg:w-10 m-auto flex flex-column lg:gap-7 md:gap-7">
             <h1>Status of ContextQA components</h1>
-            <div class="grid w-full" ref="test">
+            <div v-if="loading" class="flex justify-content-center align-items-center h-30rem">
+                <LoadingSpinner size="5rem" />
+            </div>
+            <div class="grid w-full" v-else>
                 <div class="lg:col-4 lg:p-4 md:p-2 md:col-6 col-6" v-for="(item, i) in statuses" :key="i">
                     <div class="relative shadow-5 h-10rem border-round-xl align-content-center text-center bg-black-alpha-40 border-1"
                         :class="statusBadge(item.status)">
@@ -30,21 +33,26 @@
 <script>
 import Button from "primevue/button";
 import OverlayPanel from 'primevue/overlaypanel';
+import LoadingSpinner from "@/components/LoadingSpinner";
 import {
     fetchResource,
     showError
 } from "@/utils/client";
 export default {
     name: 'StatusView',
-    components: { Button, OverlayPanel },
+    components: { Button, OverlayPanel, LoadingSpinner },
     data() {
         return {
             statuses: [],
+            loading: true
         }
     },
     mounted() {
         fetchResource("/status/?")
-            .then(statuses => this.statuses = statuses)
+            .then(statuses => {
+                this.statuses = statuses
+                this.loading = false
+            })
             .catch((error) => showError(error));
     },
     methods: {
