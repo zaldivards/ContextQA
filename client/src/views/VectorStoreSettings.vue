@@ -29,18 +29,31 @@
 
             <div class="grid col-12 mt-5" v-else>
                 <div class="flex flex-column gap-2 col-6">
-                    <label for="token">Access token</label>
-                    <Password id="token" :feedback="false" v-model="storeParams['token']"
-                        inputClass="border-round-xl" />
+                    <label for="environment">Environment region</label>
+                    <InputText id="environment" v-model="storeParams['environment']"
+                        class="border-round-xl" />
                 </div>
                 <div class="flex flex-column gap-2 col-6">
                     <label for="index">Index</label>
                     <InputText id="index" v-model="storeParams['index']" class="border-round-xl" />
                 </div>
 
-                <div class="flex flex-column gap-2 col-6">
-                    <label for="environment">Environment region</label>
-                    <InputText id="environment" v-model="storeParams['environment']" class="border-round-xl" />
+                <div class="flex flex-column gap-2 lg:col-6 md:col-6 col-8">
+                    <label for="token">Access token</label>
+                    <div class="flex justify-content-between">
+                        <Password id="token" :feedback="false" v-model="storeParams['token']"
+                            inputClass="border-round-xl" class="flex-grow-1"/>
+                        <HelpButton>
+                            <template #content>
+                                <ol>
+                                    <li>Create an <a href="https://www.pinecone.io/" target="_blank"
+                                            class="no-underline">account</a></li>
+                                    <li>Generate and get the API key in the <span class="font-bold">API keys</span>
+                                        section</li>
+                                </ol>
+                            </template>
+                        </HelpButton>
+                    </div>
                 </div>
             </div>
 
@@ -84,6 +97,7 @@ import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
 import RadioBox from "@/components/RadioBox";
 import Toast from "primevue/toast";
+import HelpButton from '@/components/HelpButton'
 
 
 import {
@@ -94,7 +108,7 @@ import {
 
 export default {
     name: "VectorStoreSettings",
-    components: { RadioBox, InputText, Password, Dropdown, Button, Toast, ConfirmDialog },
+    components: { RadioBox, InputText, Password, Dropdown, Button, Toast, ConfirmDialog, HelpButton },
     props: { byPassDialog: Boolean },
     created() {
         fetchResource("/settings/store").then(settings => {

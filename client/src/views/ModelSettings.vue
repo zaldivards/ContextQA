@@ -33,11 +33,37 @@
                     <Slider v-model="temperature" class="mt-2" :min="0.1" :max="2.0" :step="0.1" id="temperature" />
                     <div class="mt-2">{{ temperature }}</div>
                 </div>
-                <div class="col-6">
-                    <label for="token">Access token</label>
-                    <Password v-model="token" :feedback="false" id="token" :pt="{
-                        root: { 'class': 'p-0' }
-                    }" class="w-full" inputClass="border-round-xl" />
+                <div class="lg:col-6 md:col-6 col-10">
+                    <div>
+                        <label for="token">Access token</label>
+                        <div class="flex gap-2 align-items-center">
+                            <Password v-model="token" :feedback="false" id="token" :pt="{
+                                root: { 'class': 'p-0' }
+                            }" class="w-full" inputClass="border-round-xl" />
+                            <HelpButton v-if="provider == 'openai'">
+                                <template #content>
+                                    <ol>
+                                        <li>Create an <a
+                                                href="https://auth0.openai.com/u/signup/identifier?state=hKFo2SBMLTJkWUFpa2dVWlBrTDdrTjdxbEp2ZGt6RmZBakdvbKFur3VuaXZlcnNhbC1sb2dpbqN0aWTZIEhleHE1SGYzQkdpMjhDM3d3dnFVZERmamF6TVpTMEpGo2NpZNkgRFJpdnNubTJNdTQyVDNLT3BxZHR3QjNOWXZpSFl6d0Q"
+                                                target="_blank" class="no-underline">OpenAI account</a></li>
+                                        <li>Generate and get the <a href="https://platform.openai.com/account/api-keys"
+                                                target="_blank" class="no-underline">api key</a></li>
+                                    </ol>
+                                </template>
+                            </HelpButton>
+                            <HelpButton v-else>
+                                <template #content>
+                                    <ol>
+                                        <li>Create a GCP account</li>
+                                        <li>Enable the <span class="font-bold">Generative language API</span></li>
+                                        <li>Go to <span class="font-bold">API & services > credentials</span></li>
+                                        <li>Click on <span class="font-bold">create credentials</span> and choose <span
+                                                class="font-bold">API key</span></li>
+                                    </ol>
+                                </template>
+                            </HelpButton>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="mx-auto lg:mx-0">
@@ -56,6 +82,7 @@ import Password from 'primevue/password';
 import RadioBox from "@/components/RadioBox";
 import Slider from 'primevue/slider';
 import Toast from "primevue/toast";
+import HelpButton from '@/components/HelpButton'
 
 import {
     fetchResource,
@@ -65,7 +92,7 @@ import {
 
 export default {
     name: "ModelSetttings",
-    components: { RadioBox, Slider, Button, Password, Toast, Dropdown, ConfirmDialog },
+    components: { RadioBox, Slider, Button, Password, Toast, Dropdown, ConfirmDialog, HelpButton },
     props: { byPassDialog: Boolean },
     created() {
         fetchResource("/settings/model").then(settings => {
@@ -157,5 +184,11 @@ export default {
 
 .p-password-input {
     width: 100%;
+}
+
+.no-border {
+    border-width: 0 !important;
+    border: none !important;
+    /* Use !important to override PrimeFlex styles if needed */
 }
 </style>
