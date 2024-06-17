@@ -1,7 +1,10 @@
 <template>
     <div class="my-2 py-5 justify-content-center">
         <div class="px-3 lg:px-0 w-screen lg:w-10 m-auto flex flex-column lg:gap-7 md:gap-7">
-            <h1>Status of ContextQA components</h1>
+            <div class="flex gap-3 align-items-center">
+                <h1 class="lg:text-2xl md:text-2xl text-xl">Status of ContextQA components</h1>
+                <Button icon="pi pi-refresh" rounded text size="large" @click="fetchStatus" title="Refresh"/>
+            </div>
             <div v-if="loading" class="flex justify-content-center align-items-center h-30rem">
                 <LoadingSpinner size="5rem" />
             </div>
@@ -48,14 +51,18 @@ export default {
         }
     },
     mounted() {
-        fetchResource("/status/?")
-            .then(statuses => {
-                this.statuses = statuses
-                this.loading = false
-            })
-            .catch((error) => showError(error));
+        this.fetchStatus()
     },
     methods: {
+        fetchStatus() {
+            this.loading = true
+            fetchResource("/status/?")
+                .then(statuses => {
+                    this.statuses = statuses
+                    this.loading = false
+                })
+                .catch((error) => showError(error));
+        },
         statusBadge(statusStr) {
             if (statusStr === 'ok') return 'border-green-500'
             if (statusStr === 'fail') return 'border-red-500'
