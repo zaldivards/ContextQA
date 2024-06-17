@@ -1,5 +1,5 @@
 <template>
-    <div class="my-2 justify-content-center">
+    <div class="my-6 justify-content-center">
         <ConfirmDialog :draggable="false" />
         <Toast class="z-5" />
         <div class="px-3 lg:px-0 w-screen lg:w-10 m-auto">
