@@ -1,20 +1,27 @@
 # pylint: disable=C0413
-from fastapi import APIRouter, HTTPException, status
+from typing import Annotated
+
+from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.responses import StreamingResponse
+from langchain_core.language_models.chat_models import BaseChatModel
 
 from contextqa import chat
 from contextqa.models.schemas import LLMQueryRequest
+from contextqa.routes.dependencies import get_initialized_model
 
 router = APIRouter()
 
 
 @router.post("/")
-async def get_answer(params: LLMQueryRequest):
+async def get_answer(
+    params: LLMQueryRequest,
+    model: Annotated[BaseChatModel, Depends(get_initialized_model)],
+):
     """
     Provide a message and receive a response from the LLM
     """
     try:
-        generator = chat.qa_service(params)
+        generator = chat.invoke_model(params, model)
         return StreamingResponse(generator, media_type="text/event-stream")
     except Exception as ex:
         raise HTTPException(

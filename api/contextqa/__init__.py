@@ -1,40 +1,61 @@
 import logging
+import json
+from functools import cached_property
 from pathlib import Path
 
-from pydantic import field_validator
+from pydantic import field_validator, ValidationError
 from pydantic_settings import BaseSettings
 
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
-
-def get_logger() -> logging.Logger:
-    return logging.getLogger("contextqa")
+logger = logging.getLogger("contextqa")
 
 
 class AppSettings(BaseSettings):
     """Project settings"""
 
-    default_collection: str = "contextqa-default"
+    config_path: Path = Path("settings.json")
     tmp_separator: str = ":::sep:::"
     media_home: Path = Path(".media/")
     local_vectordb_home: Path = Path(".chromadb/")
     sqlite_url: str = "sqlite:///contextqa.sqlite3"
-    openai_api_key: str | None = None
-    redis_url: str | None = None
-    pinecone_token: str | None = None
-    pinecone_index: str | None = None
-    pinecone_environment_region: str | None = None
     deployment: str = "dev"
-    mysql_user: str | None = None
-    mysql_password: str | None = None
-    mysql_host: str | None = None
-    mysql_dbname: str | None = None
-    mysql_extra_args: str | None = None
 
     @property
     def debug(self) -> bool:
         """lazy attr based on the deployment attr"""
         return self.deployment == "dev"
+
+    @property
+    def model_settings(self):
+        """Get the initial settings
+
+        Returns
+        -------
+        SettingsSchema
+        """
+        #  pylint: disable=C0415
+        from contextqa.models import SettingsSchema
+
+        with open(self.config_path, mode="r", encoding="utf-8") as settings_file:
+            try:
+                return SettingsSchema.model_validate_json(settings_file.read())
+            except ValidationError:  # error is thrown if the user sets a path to an empty json file
+                return SettingsSchema()
+
+    @model_settings.setter
+    def model_settings(self, model_settings):
+        """
+        Parameters
+        ----------
+        model_settings : SettingsSchema
+
+        Returns
+        -------
+        SettingsSchema
+        """
+        with open(self.config_path, mode="w", encoding="utf-8") as settings_file:
+            json.dump(model_settings.model_dump(exclude_none=True, exclude_unset=True), settings_file)
 
     @field_validator("media_home")
     @classmethod
@@ -43,17 +64,36 @@ class AppSettings(BaseSettings):
         value.mkdir(parents=True, exist_ok=True)
         return value
 
-    @property
+    @field_validator("local_vectordb_home")
+    @classmethod
+    def validate_vectordb_home(cls, value: Path) -> Path:
+        """validator for media path"""
+        value.mkdir(parents=True, exist_ok=True)
+        return value
+
+    @cached_property
     def sqlalchemy_url(self) -> str:
         """sqlalchemy url built either from the sqlite url or the credential of a specific mysql server"""
-        mysql_requirements = [self.mysql_user, self.mysql_password, self.mysql_host, self.mysql_dbname]
-        if not all(mysql_requirements):
-            get_logger().info("Using sqlite")
+        # pylint: disable=C0415
+        from contextqa.models.schemas import ExtraSettings
+        from contextqa.utils.settings import get_or_set
+
+        db_settings: ExtraSettings = get_or_set("extra")
+        if db_settings.database.url:
+            logger.info("Using SQLite")
             return self.sqlite_url
-        uri = "mysql+pymysql://{}:{}@{}/{}".format(*mysql_requirements)
-        if extras := self.mysql_extra_args:
+        logger.info("Using MYSQL")
+        uri = (
+            f"mysql+pymysql://{db_settings.database.credentials.user}:{db_settings.database.credentials.password}"
+            f"@{db_settings.database.credentials.host}/{db_settings.database.credentials.db}"
+        )
+        if extras := db_settings.database.credentials.extras:
             uri += extras
         return uri
+
+    def rebuild_sqlalchemy_url(self):
+        """Trigger to rebuild the sqlalchemy URL"""
+        del self.__dict__["sqlalchemy_url"]
 
 
 settings = AppSettings()

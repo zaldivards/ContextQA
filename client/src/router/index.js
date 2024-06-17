@@ -1,8 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Chat from "@/views/Chat.vue"
-import DocumentQA from "@/views/DocumentQA.vue"
 import ContextManager from "@/views/ContextManager"
+import DocumentQA from "@/views/DocumentQA.vue"
 import Home from "@/views/Home"
+import ModelSettings from "@/views/ModelSettings"
+import SourcesManager from "@/views/SourcesManager"
+import VectorStoreSettings from "@/views/VectorStoreSettings"
+import ExtraSettings from "@/views/ExtraSettings"
+import Status from "@/views/Status"
+
 
 
 
@@ -13,20 +19,45 @@ const routes = [
         component: Home
     },
     {
-        path: '/chat/document',
-        name: 'chat-document',
+        path: '/status',
+        name: 'status',
+        component: Status
+    },
+    {
+        path: '/chat/qa',
+        name: 'chat-qa',
         component: DocumentQA
     },
     {
-        path: '/chat/talk',
-        name: 'chat-talk',
+        path: '/chat/conversational',
+        name: 'chat-conversational',
         component: Chat
     },
     {
-        path: '/context',
-        name: 'context',
+        path: '/sources/ingestion',
+        name: 'ingestion',
         component: ContextManager
-    }
+    },
+    {
+        path: '/sources/',
+        name: 'sources-manager',
+        component: SourcesManager
+    },
+    {
+        path: '/settings/models',
+        name: 'modelsSettings',
+        component: ModelSettings
+    },
+    {
+        path: '/settings/vector-stores',
+        name: 'vectorStoreSettings',
+        component: VectorStoreSettings,
+    },
+    {
+        path: '/settings/extra',
+        name: 'extraSettings',
+        component: ExtraSettings,
+    },
 ]
 
 const router = createRouter({

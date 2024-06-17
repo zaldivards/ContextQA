@@ -10,7 +10,8 @@ export default createStore({
         lastChatMessageText: '',
         vectorStore: '',
         internetEnabled: false,
-        latestSources: ''
+        latestSources: '',
+        sourcesDetails: { sources: [], total: 0, query: "", size: 0, page: 0 }
     },
     mutations: {
         updateChatMessages(state, payload) {
@@ -48,6 +49,9 @@ export default createStore({
         },
         updateSourcesFlag(state, payload) {
             state.sourcesReady = payload
+        },
+        updateSourcesDetails(state, payload) {
+            state.sourcesDetails = payload
         }
     },
     actions: {
@@ -74,6 +78,9 @@ export default createStore({
         },
         setSourcesFlag({ commit }, payload) {
             commit('updateSourcesFlag', payload);
+        },
+        setSourcesDetails({ commit }, payload) {
+            commit('updateSourcesDetails', payload);
         }
     }
 });
