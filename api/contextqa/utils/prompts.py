@@ -1,59 +1,27 @@
 """Custom Prompt templates"""
 
-from langchain.agents.conversational_chat.prompt import PREFIX as PREFIX_
-from langchain.agents.conversational.prompt import FORMAT_INSTRUCTIONS
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-# part of this template was taken from langchain.chains.conversational_retrieval.prompts
-_template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
-
-If the final message aka the follow up input is a gratitude or goodbye message, that MUST be your final answer
-
-Example 1:
-Assistant: And that is today's wheather
-Human: ok thank you
-Standalone question: Thank you
-
-Example 2:
-Assistant: And that is today's wheather
-Human: ok goodbye
-Standalone question: Goodbye
-
-
-Current conversation:
-{chat_history}
-Follow Up Input: {question}
-Standalone question:"""
-
-PREFIX = """
-You are ContextQA. If you can't find the answer neither using the provided tools nor got an incomplete response, answer 'I am unable to find the answer'.
-You emphasize your name in every greeting or question about who you are:
-
-```
-Example 1:
-Human: Hi
-AI: AI: Hi I am ContextQA, how may I help you?
-Example 2:
-Human: Hi, who are you?
-AI: AI: Hi I am ContextQA, how may I help you?
-```
-
-{}
-
-You must use the tools only once, that MUST be the final result of the answer.
-""".format(
-    "\n".join(PREFIX_.split("\n")[1:])
+_CONTEXTUALIZE_Q_SYSTEM_PROMPT = """Given a chat history and the latest user question \
+which might reference context in the chat history, formulate a standalone question \
+which can be understood without the chat history. Do NOT answer the question, \
+just reformulate it if needed and otherwise return it as is."""
+STANDALONE_QUESTION_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        ("system", _CONTEXTUALIZE_Q_SYSTEM_PROMPT),
+        MessagesPlaceholder("chat_history"),
+        ("human", "{input}"),
+    ]
 )
 
+_QA_SYSTEM_PROMPT = """You are an assistant for question-answering tasks. \
+Use the following pieces of retrieved context to answer the question. \
+If you don't know the answer, just say that you don't know.\
 
-_INSTRUCTIONS_SUFIX = """
-You must use the tools only and only if you are unable to answer with your own training knowledge, otherwise it will be incorrect.
-
-The first observation AFTER using a tool, is your final answer. Use the tool only ONE time:
-Obervation: I got the response: [the response]
-Thought: Do I need to use a tool? No
-{ai_prefix}: [The last observation(the response)]
-"""
-
-CONTEXTQA_RETRIEVAL_PROMPT = PromptTemplate.from_template(_template)
-CONTEXTQA_AGENT_TEMPLATE = FORMAT_INSTRUCTIONS + _INSTRUCTIONS_SUFIX
+{context}"""
+QA_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        ("system", _QA_SYSTEM_PROMPT),
+        ("human", "{input}"),
+    ]
+)

@@ -13,6 +13,8 @@ import 'primevue/resources/themes/saga-blue/theme.css'       //theme
 import 'primevue/resources/primevue.min.css'                 //core css
 import 'primeicons/primeicons.css'
 import '/node_modules/primeflex/primeflex.css'
+import '@/assets/styles/global.css';
+
 
 
 export const app = createApp(App);

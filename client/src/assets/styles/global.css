@@ -1,0 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400&display=swap");
+
+body {
+  margin: 0;
+  background-color: #0e1b30;
+}
+
+#app div {
+  font-family: 'Poppins', sans-serif !important;
+}

@@ -1,90 +1,78 @@
 from typing import AsyncGenerator
 
-from langchain.agents import initialize_agent, AgentType, Agent
-from langchain.callbacks import AsyncIteratorCallbackHandler
-from langchain.callbacks.base import AsyncCallbackHandler
-from langchain.callbacks.streaming_aiter_final_only import AsyncFinalIteratorCallbackHandler
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import ConversationChain
-from langchain.chains.conversation.prompt import DEFAULT_TEMPLATE
-from langchain.prompts.chat import (
-    AIMessagePromptTemplate,
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    SystemMessagePromptTemplate,
-)
+from langchain import hub
+from langchain.agents import AgentExecutor, create_json_chat_agent
+from langchain.prompts.chat import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.runnables.history import RunnableWithMessageHistory
 
-from contextqa import settings
 from contextqa.agents.tools import searcher
 from contextqa.models.schemas import LLMQueryRequest
-from contextqa.utils import memory, prompts
-from contextqa.agents.tools import searcher
-from contextqa.utils.streaming import stream
+from contextqa.utils import memory
+from contextqa.utils.streaming import consumer_producer
 
 
 _MESSAGES = [
-    SystemMessagePromptTemplate.from_template(
-        """You are a helpful assistant called ContextQA that answer user inputs. You emphasize your name in every greeting.
-
-    
-    
-    Example: Hello, I am ContextQA, how can I help you?
-    """
-    ),
-    HumanMessagePromptTemplate.from_template("Hi"),
-    AIMessagePromptTemplate.from_template("Hello, I am your assitant ContextQA, how may I help you?"),
-    SystemMessagePromptTemplate.from_template(DEFAULT_TEMPLATE),
+    ("system", "You are a helpful assistant called ContextQA that answers user inputs and questions"),
+    MessagesPlaceholder(variable_name="history"),
+    ("human", "{input}"),
 ]
 
 
-def get_llm_assistant(internet_access: bool) -> tuple[ConversationChain | Agent, AsyncCallbackHandler]:
+def get_llm_assistant(internet_access: bool, llm: BaseChatModel) -> RunnableWithMessageHistory:
     """Return certain LLM assistant based on the system configuration
 
     Parameters
     ----------
     internet_access : bool
         flag indicating whether an assistant with internet access was requested
+    llm : BaseChatModel
 
     Returns
     -------
-    ConversationChain | Agent, AsyncCallbackHandler
+    RunnableWithMessageHistory
     """
-
+    tools = [searcher]
     if internet_access:
-        callback = AsyncFinalIteratorCallbackHandler(
-            answer_prefix_tokens=["Final", "Answer", '",', "", '"', "action", "_input", '":', '"']
+        prompt = hub.pull("hwchase17/react-chat-json")
+        agent = create_json_chat_agent(
+            llm=llm,
+            prompt=prompt,
+            tools=tools,
         )
-        llm = ChatOpenAI(temperature=0, streaming=True, callbacks=[callback])
-        return (
-            initialize_agent(
-                [searcher],
-                llm=llm,
-                agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
-                memory=memory.Redis("default", internet_access=True),
-                verbose=settings.debug,
-                agent_kwargs={"prefix": prompts.PREFIX},
-                handle_parsing_errors=True,
-            ),
-            callback,
+        agent_executor = AgentExecutor(agent=agent, tools=tools)
+        return RunnableWithMessageHistory(
+            agent_executor,
+            memory.runnable_memory,
+            input_messages_key="input",
+            history_messages_key="chat_history",
         )
-    callback = AsyncIteratorCallbackHandler()
-    llm = ChatOpenAI(temperature=0, streaming=True, callbacks=[callback])
     prompt = ChatPromptTemplate.from_messages(_MESSAGES)
-    return ConversationChain(llm=llm, prompt=prompt, memory=memory.Redis("default"), verbose=settings.debug), callback
+    chain = prompt | llm
+    chain_with_history = RunnableWithMessageHistory(
+        chain, memory.runnable_memory, input_messages_key="input", history_messages_key="history"
+    )
+    return chain_with_history
 
 
-def qa_service(params: LLMQueryRequest) -> AsyncGenerator:
+def invoke_model(params: LLMQueryRequest, llm: BaseChatModel) -> AsyncGenerator:
     """Chat with the llm
 
     Parameters
     ----------
     params : LLMQueryRequest
         request body parameters
+    llm : BaseChatModel
 
     Returns
     -------
     AsyncGenerator
     """
 
-    assistant, callback = get_llm_assistant(params.internet_access)
-    return stream(assistant.arun(input=params.message), callback)
+    assistant = get_llm_assistant(params.internet_access, llm)
+    return consumer_producer(
+        assistant.astream_events(
+            {"input": params.message}, config={"configurable": {"session_id": "default"}}, version="v1"
+        ),
+        params.internet_access,
+    )

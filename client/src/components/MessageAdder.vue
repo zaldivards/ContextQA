@@ -3,7 +3,7 @@
     <Textarea
       style="background-color: #394d6d"
       ref="textarea"
-      class="mt-1 mb-2 w-full text-white-alpha-80"
+      class="mt-1 mb-2 w-full text-white-alpha-80 border-round-2xl"
       :class="disable ? 'disabled' : ''"
       id="question"
       @keyup.enter="sendQuestion"
