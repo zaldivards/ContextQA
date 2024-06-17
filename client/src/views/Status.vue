@@ -59,7 +59,7 @@ export default {
         statusBadge(statusStr) {
             if (statusStr === 'ok') return 'border-green-500'
             if (statusStr === 'fail') return 'border-red-500'
-            return 'border-yellow-500'
+            return 'border-gray-500'
         },
         toggle(event, index) {
             this.$refs.op[index].toggle(event);
