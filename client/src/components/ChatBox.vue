@@ -66,8 +66,8 @@
                 body: { class: message.role == 'user' ? 'pt-0' : '' },
               }">
               <template #content>
-                <div v-if="message.isLatest" v-html="answer"/>
-                <div v-else v-html="message.content"/>
+                <div v-if="message.isLatest" v-html="answer" />
+                <div v-else v-html="message.content" />
               </template>
               <template #footer>
                 <div class="date w-max justify-content-end text-xs text-white-alpha-70">
@@ -76,6 +76,10 @@
               </template>
             </Card>
           </div>
+        </div>
+
+        <div class="fixed centered w-11 lg:w-5 mb-5 flex justify-content-center" v-if="isEmpty">
+          <p class="w-fit bg-gray-500 p-4 border-round-xl">No conversation yet</p>
         </div>
 
         <div class="fixed bottom-0 w-11 lg:w-5 mb-5 opacity-100">
@@ -146,13 +150,10 @@ export default {
                 "You need to ingest at least one source to initialize a QA session"
               );
             }
-            this.$refs.adder.$refs.textarea.$el.focus()
           })
           .catch((error) => showError(error));
       }
-      else this.$refs.adder.$refs.textarea.$el.focus()
     }
-    else this.$refs.adder.$refs.textarea.$el.focus()
   },
   created() {
     let action = "";
@@ -352,6 +353,9 @@ export default {
     header() {
       return this.requiresContext ? "QA Session" : "ContextQA Chat";
     },
+    isEmpty() {
+      return this.messages.length == 0;
+    }
   },
 };
 </script>
@@ -382,5 +386,9 @@ export default {
 
 .breakline-ok {
   white-space: pre-wrap;
+}
+
+.centered {
+  bottom: 45%;
 }
 </style>
