@@ -1,6 +1,6 @@
 <template>
     <div class="my-2 py-5 justify-content-center">
-        <div class="px-3 lg:px-0 w-screen lg:w-10 m-auto flex flex-column lg:gap-7 md:gap-7">
+        <div class="px-3 lg:px-0 w-screen lg:w-10 m-auto flex flex-column lg:gap-7 md:gap-7 gap-4">
             <div class="flex gap-3 align-items-center">
                 <h1 class="lg:text-2xl md:text-2xl text-xl">Status of ContextQA components</h1>
                 <Button icon="pi pi-refresh" rounded text size="large" @click="fetchStatus" title="Refresh"/>
