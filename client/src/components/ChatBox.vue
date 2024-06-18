@@ -94,9 +94,9 @@
             <div class="flex gap-2 my-1 pb-2 overflow-x-scroll" v-if="!requiresContext" title="Common queries">
               <Chip :key="i"
                 class="cursor-pointer bg-black-alpha-60 flex-shrink-0 hover:border-gray-600 border-1 border-black-alpha-60"
-                v-for="(content, i) in chips" @click="chipOverwrite" :label="content" />
+                v-for="(item, i) in chips" @click="() => chipOverwrite(item)" :label="item.statement" />
             </div>
-            <MessageAdder @send="pushMessages" ref="adder"/>
+            <MessageAdder @send="pushMessages" ref="adder" />
           </div>
         </div>
       </Panel>
@@ -189,8 +189,8 @@ export default {
     };
   },
   methods: {
-    chipOverwrite(e) {
-      this.$refs.adder.question = `${e.target.textContent}\n[YOUR INPUT]`
+    chipOverwrite(item) {
+      this.$refs.adder.question = `${item.statement}${item.template && '\n\n' + item.template}`
       this.$refs.adder.$refs.textarea.$el.focus()
     },
     showSources() {
