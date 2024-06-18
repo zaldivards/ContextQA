@@ -58,7 +58,7 @@
             <Avatar image="/images/user.png" size="small" shape="circle" v-if="message.role == 'user'" />
             <Avatar image="/images/logo.png" size="small" v-if="message.role != 'user'" />
 
-            <Card class="field col mx-2 shadow-none animation-duration-300 breakline-ok" :class="message.role == 'user'
+            <Card class="field col mx-2 shadow-none animation-duration-300 breakline-ok max-w-screen" :class="message.role == 'user'
               ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
               : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
               " :pt="{
@@ -82,20 +82,21 @@
           <p class="w-fit bg-gray-500 p-4 border-round-xl">No conversation yet</p>
         </div>
 
-        <div class="fixed bottom-0 w-11 lg:w-5 mb-5 opacity-100">
-          <div class="m-auto">
-            <div class="flex mb-2 justify-content-start gap-2" v-if="!requiresContext">
+        <div class="fixed bottom-0 w-11 lg:w-5 lg:mb-3 md:mb-3 mb-1 opacity-100">
+          <div class="m-auto flex flex-column gap-0">
+            <div class="flex justify-content-start gap-2" v-if="!requiresContext">
               <span class="font-bold text-white-alpha-60">Enable internet access</span>
-              <InputSwitch v-model="internetEnabled" @change="switchHandler" class="bg-inherit flex-shrink-0" :pt="{slider: {style: 'height: 25px'}}"/>
+              <InputSwitch v-model="internetEnabled" @change="switchHandler" class="bg-inherit flex-shrink-0"
+                :pt="{ slider: { style: 'height: 23px;' } }" />
             </div>
-            <Button v-else label="Sources" class="my-2" icon="pi pi-search-plus" severity="secondary" rounded
+            <Button v-else label="Sources" class="my-2 w-fit" icon="pi pi-search-plus" severity="secondary" rounded
               @click="showSources" />
-            <div class="flex gap-2 my-2 pb-3 overflow-x-scroll" v-if="!requiresContext" title="Common queries">
+            <div class="flex gap-2 my-1 pb-2 overflow-x-scroll" v-if="!requiresContext" title="Common queries">
               <Chip :key="i"
                 class="cursor-pointer bg-black-alpha-60 flex-shrink-0 hover:border-gray-600 border-1 border-black-alpha-60"
                 v-for="(content, i) in chips" @click="chipOverwrite" :label="content" />
             </div>
-            <MessageAdder @send="pushMessages" ref="adder" />
+            <MessageAdder @send="pushMessages" ref="adder"/>
           </div>
         </div>
       </Panel>
