@@ -86,10 +86,15 @@
           <div class="m-auto">
             <div class="flex mb-2 justify-content-start gap-2" v-if="!requiresContext">
               <span class="font-bold text-white-alpha-60">Enable internet access</span>
-              <InputSwitch v-model="internetEnabled" @change="switchHandler" />
+              <InputSwitch v-model="internetEnabled" @change="switchHandler" class="bg-inherit flex-shrink-0" :pt="{slider: {style: 'height: 25px'}}"/>
             </div>
             <Button v-else label="Sources" class="my-2" icon="pi pi-search-plus" severity="secondary" rounded
               @click="showSources" />
+            <div class="flex gap-2 my-2 pb-3 overflow-x-scroll" v-if="!requiresContext" title="Common queries">
+              <Chip :key="i"
+                class="cursor-pointer bg-black-alpha-60 flex-shrink-0 hover:border-gray-600 border-1 border-black-alpha-60"
+                v-for="(content, i) in chips" @click="chipOverwrite" :label="content" />
+            </div>
             <MessageAdder @send="pushMessages" ref="adder" />
           </div>
         </div>
@@ -101,6 +106,7 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import Button from "primevue/button";
+import Chip from 'primevue/chip';
 import DynamicDialog from "primevue/dynamicdialog";
 import Panel from "primevue/panel";
 import ProgressBar from "primevue/progressbar";
@@ -122,6 +128,7 @@ import {
   getDateTimeStr,
   fetchResource,
 } from "@/utils/client";
+import { chipsContent } from "@/utils/constants"
 import { formatCode } from "@/utils/text";
 
 export default {
@@ -137,6 +144,7 @@ export default {
     ProgressBar,
     Button,
     DynamicDialog,
+    Chip,
   },
   props: { requiresContext: Boolean },
   mounted() {
@@ -171,6 +179,7 @@ export default {
   data() {
     return {
       messages: [],
+      chips: chipsContent,
       internetEnabled: false,
       showDialog: false,
       lastMessageLocal: "",
@@ -179,6 +188,10 @@ export default {
     };
   },
   methods: {
+    chipOverwrite(e) {
+      this.$refs.adder.question = `${e.target.textContent}\n[YOUR INPUT]`
+      this.$refs.adder.$refs.textarea.$el.focus()
+    },
     showSources() {
       const dialogRef = this.$dialog.open(SourcesBox, {
         props: {
