@@ -111,6 +111,7 @@ export default {
   mounted() {
     this.initialized = localStorage.getItem('isInitialized')
     if (this.initialized === null) {
+      this.$router.push('/')
       fetchResource("/settings/init-status").then(status => {
         if (status == 'ok') {
           this.initialized = true
