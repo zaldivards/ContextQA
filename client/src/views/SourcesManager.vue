@@ -12,15 +12,14 @@
 
                 <template #header>
                     <div class="flex justify-content-between">
-                        <Button type="button" icon="pi pi-filter-slash" outlined @click="clear()" />
-                        <div class="flex gap-3">
-                            <Button type="button" icon="pi pi-refresh" outlined
-                                @click="updateSources(size, 0, searchSubstr)" />
+                        <Button type="button" icon="pi pi-filter-slash" text size="large" @click="clear()"
+                            title="Clear filter" />
+                        <div class="flex gap-3 align-items-center">
+                            <Button type="button" icon="pi pi-refresh" text size="large"
+                                @click="updateSources(size, 0, searchSubstr)" title="Refresh" />
                             <IconField iconPosition="left">
-                                <InputIcon>
-                                    <i class="pi pi-search" />
-                                </InputIcon>
-                                <InputText v-model="searchSubstr" placeholder="Search sources" ref="searcher"
+                                <InputIcon class="pi pi-search" />
+                                <InputText v-model="searchSubstr" placeholder="Search..." ref="searcher"
                                     @input="filter" />
                             </IconField>
                         </div>
