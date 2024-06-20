@@ -40,9 +40,12 @@
                 }" class="border-t-1 border-black-alpha-60" />
                 <template #empty>No sources available</template>
             </DataTable>
-
-            <Button type="button" label="Remove sources" icon="pi pi-times" severity="danger" @click="deleteSources"
-                class="col-offset-4 lg:col-offset-0 col-4 lg:col-3 mt-5" :disabled="disableButton" />
+            <button @click="deleteSources"
+                class="mt-5 flex align-items-center bg-red-700 text-white border-none gap-2 p-3 text-sm border-round-sm"
+                :class="disableButton ? 'opacity-50 cursor-auto' : 'cursor-pointer'" :disabled="disableButton">
+                <i class="pi pi-trash" />
+                <span>Remove</span>
+            </button>
         </div>
 
     </div>
@@ -131,7 +134,7 @@ export default {
         deleteSources() {
             this.$confirm.require({
                 message: "Are you sure you want to delete the selected sources?",
-                header: "Danger Zone",
+                header: `Danger Zone - Removing ${this.selectedSources.length} source(s)`,
                 icon: "pi pi-info-circle",
                 rejectClass: 'p-button-secondary p-button-outlined',
                 acceptClass: 'p-button-danger',
@@ -178,5 +181,3 @@ export default {
     }
 }
 </script>
-
-<style></style>
