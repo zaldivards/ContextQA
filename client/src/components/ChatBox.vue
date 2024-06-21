@@ -70,8 +70,9 @@
                 <div v-else v-html="message.content" />
               </template>
               <template #footer>
-                <div class="date w-max justify-content-end text-xs text-white-alpha-70">
+                <div class="date text-xs text-white-alpha-70 flex gap-2 align-items-center">
                   {{ message.date }}
+                  <CopyButton v-if="message.role != 'user'" :content="message.content"/>
                 </div>
               </template>
             </Card>
@@ -117,6 +118,7 @@ import Toast from "primevue/toast";
 import Card from "primevue/card";
 import Avatar from "primevue/avatar";
 import MessageAdder from "@/components/MessageAdder.vue";
+import CopyButton from "@/components/CopyButton.vue";
 
 const SourcesBox = defineAsyncComponent(() =>
   import("@/components/SourcesBox.vue")
@@ -146,6 +148,7 @@ export default {
     Button,
     DynamicDialog,
     Chip,
+    CopyButton
   },
   props: { requiresContext: Boolean },
   mounted() {
