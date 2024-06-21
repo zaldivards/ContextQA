@@ -58,7 +58,7 @@
             <Avatar image="/images/user.png" size="small" shape="circle" v-if="message.role == 'user'" />
             <Avatar image="/images/logo.png" size="small" v-if="message.role != 'user'" />
 
-            <Card class="field col mx-2 shadow-none animation-duration-300 breakline-ok" :class="message.role == 'user'
+            <Card class="field col mx-2 shadow-none animation-duration-300 breakline-ok max-w-screen" :class="message.role == 'user'
               ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
               : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
               " :pt="{
@@ -66,26 +66,37 @@
                 body: { class: message.role == 'user' ? 'pt-0' : '' },
               }">
               <template #content>
-                <div v-if="message.isLatest" v-html="answer"/>
-                <div v-else v-html="message.content"/>
+                <div v-if="message.isLatest" v-html="answer" />
+                <div v-else v-html="message.content" />
               </template>
               <template #footer>
-                <div class="date w-max justify-content-end text-xs text-white-alpha-70">
+                <div class="date text-xs text-white-alpha-70 flex gap-2 align-items-center">
                   {{ message.date }}
+                  <CopyButton v-if="message.role != 'user'" :content="message.content"/>
                 </div>
               </template>
             </Card>
           </div>
         </div>
 
-        <div class="fixed bottom-0 w-11 lg:w-5 mb-5 opacity-100">
-          <div class="m-auto">
-            <div class="flex mb-2 justify-content-start gap-2" v-if="!requiresContext">
+        <div class="fixed centered w-11 lg:w-5 mb-5 flex justify-content-center" v-if="isEmpty">
+          <p class="w-fit bg-gray-500 p-4 border-round-xl">No conversation yet</p>
+        </div>
+
+        <div class="fixed bottom-0 w-11 lg:w-5 lg:mb-3 md:mb-3 mb-1 opacity-100">
+          <div class="m-auto flex flex-column gap-0">
+            <div class="flex justify-content-start gap-2" v-if="!requiresContext">
               <span class="font-bold text-white-alpha-60">Enable internet access</span>
-              <InputSwitch v-model="internetEnabled" @change="switchHandler" />
+              <InputSwitch v-model="internetEnabled" @change="switchHandler" class="bg-inherit flex-shrink-0"
+                :pt="{ slider: { style: 'height: 23px;' } }" />
             </div>
-            <Button v-else label="Sources" class="my-2" icon="pi pi-search-plus" severity="secondary" rounded
+            <Button v-else label="Sources" class="my-2 w-fit" icon="pi pi-search-plus" severity="secondary" rounded
               @click="showSources" />
+            <div class="flex gap-2 my-1 pb-2 overflow-x-scroll" v-if="!requiresContext" title="Common queries">
+              <Chip :key="i"
+                class="cursor-pointer bg-black-alpha-60 flex-shrink-0 hover:border-gray-600 border-1 border-black-alpha-60"
+                v-for="(item, i) in chips" @click="() => chipOverwrite(item)" :label="item.statement" />
+            </div>
             <MessageAdder @send="pushMessages" ref="adder" />
           </div>
         </div>
@@ -97,6 +108,7 @@
 <script>
 import { defineAsyncComponent } from "vue";
 import Button from "primevue/button";
+import Chip from 'primevue/chip';
 import DynamicDialog from "primevue/dynamicdialog";
 import Panel from "primevue/panel";
 import ProgressBar from "primevue/progressbar";
@@ -106,6 +118,7 @@ import Toast from "primevue/toast";
 import Card from "primevue/card";
 import Avatar from "primevue/avatar";
 import MessageAdder from "@/components/MessageAdder.vue";
+import CopyButton from "@/components/CopyButton.vue";
 
 const SourcesBox = defineAsyncComponent(() =>
   import("@/components/SourcesBox.vue")
@@ -118,6 +131,7 @@ import {
   getDateTimeStr,
   fetchResource,
 } from "@/utils/client";
+import { chipsContent } from "@/utils/constants"
 import { formatCode } from "@/utils/text";
 
 export default {
@@ -133,6 +147,8 @@ export default {
     ProgressBar,
     Button,
     DynamicDialog,
+    Chip,
+    CopyButton
   },
   props: { requiresContext: Boolean },
   mounted() {
@@ -146,13 +162,10 @@ export default {
                 "You need to ingest at least one source to initialize a QA session"
               );
             }
-            this.$refs.adder.$refs.textarea.$el.focus()
           })
           .catch((error) => showError(error));
       }
-      else this.$refs.adder.$refs.textarea.$el.focus()
     }
-    else this.$refs.adder.$refs.textarea.$el.focus()
   },
   created() {
     let action = "";
@@ -170,6 +183,7 @@ export default {
   data() {
     return {
       messages: [],
+      chips: chipsContent,
       internetEnabled: false,
       showDialog: false,
       lastMessageLocal: "",
@@ -178,6 +192,10 @@ export default {
     };
   },
   methods: {
+    chipOverwrite(item) {
+      this.$refs.adder.question = `${item.statement}${item.template && '\n\n' + item.template}`
+      this.$refs.adder.$refs.textarea.$el.focus()
+    },
     showSources() {
       const dialogRef = this.$dialog.open(SourcesBox, {
         props: {
@@ -352,6 +370,9 @@ export default {
     header() {
       return this.requiresContext ? "QA Session" : "ContextQA Chat";
     },
+    isEmpty() {
+      return this.messages.length == 0;
+    }
   },
 };
 </script>
@@ -382,5 +403,9 @@ export default {
 
 .breakline-ok {
   white-space: pre-wrap;
+}
+
+.centered {
+  bottom: 45%;
 }
 </style>

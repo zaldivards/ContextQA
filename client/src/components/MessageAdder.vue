@@ -3,12 +3,13 @@
     <Textarea
       style="background-color: #394d6d"
       ref="textarea"
-      class="mt-1 mb-2 w-full text-white-alpha-80 border-round-2xl"
+      class="lg:mb-0 md:mb-0 mb-3 w-full text-white-alpha-80 border-round-2xl"
       :class="disable ? 'disabled' : ''"
       id="question"
-      @keyup.enter="sendQuestion"
+      @keydown.enter="sendQuestion"
       v-model="question"
       placeholder="Ask me a question"
+      autoResize
     />
   </div>
 </template>
@@ -26,8 +27,8 @@ export default {
     sendQuestion(evt) {
       if (!evt.shiftKey) {
         this.$emit("send", this.question);
-        this.question = "";
         this.$refs.textarea.$el.blur();
+        this.question = "";
       }
     },
   },
