@@ -111,6 +111,7 @@ export default {
   mounted() {
     this.initialized = localStorage.getItem('isInitialized')
     if (this.initialized === null) {
+      this.$router.push('/')
       fetchResource("/settings/init-status").then(status => {
         if (status == 'ok') {
           this.initialized = true
@@ -264,47 +265,35 @@ export default {
     width: 100% !important;
   }
 
-  /* Styles for the table header */
   .dt-responsive-table table thead {
     display: none !important;
-    /* Hide the table header on mobile */
   }
 
-  /* Styles for the table rows */
   .dt-responsive-table table tbody {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
+    display: flex;
+    flex-direction: column;
     margin: 0 !important;
-    padding: 0 !important;
     min-height: auto !important;
-    /* Adjust the min-height as needed */
   }
 
-  /* Styles for individual table rows (cards) */
   .dt-responsive-table table tbody tr {
-    border: 1px solid #1f1b42 !important;
-    margin-bottom: 1rem !important;
-    /* background-color: #fff !important; */
+    border-bottom: 1px solid #1f1b42 !important;
+    margin-bottom: 0.5rem !important;
     padding: 1rem !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
   }
 
-  /* Styles for table cells within rows */
-  .dt-responsive-table table tbody td {
-    margin: 0.5rem 0 !important;
-    /* overflow: hidden; */
-  }
-
-  /* Hide individual table rows (cards) on mobile */
   .dt-responsive-table table tbody tr {
     display: table-row !important;
   }
 
-  /* Set the display of table cells to be block-level elements */
   .dt-responsive-table table tbody td {
     display: block !important;
-    margin: 0.5rem 0 !important;
+    padding: 5px 5px 5px 5px;
+    white-space: nowrap !important;
+    width: 400px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 }
 </style>

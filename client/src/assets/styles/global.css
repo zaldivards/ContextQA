@@ -7,4 +7,5 @@ body {
 
 #app div {
   font-family: 'Poppins', sans-serif !important;
+  scrollbar-width: thin;
 }

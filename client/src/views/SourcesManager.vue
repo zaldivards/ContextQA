@@ -1,5 +1,5 @@
 <template>
-    <div class="my-2 justify-content-center">
+    <div class="my-6 justify-content-center">
         <ConfirmDialog :draggable="false" />
         <Toast class="z-5" />
         <div class="px-3 lg:px-0 w-screen lg:w-10 m-auto">
@@ -12,15 +12,14 @@
 
                 <template #header>
                     <div class="flex justify-content-between">
-                        <Button type="button" icon="pi pi-filter-slash" outlined @click="clear()" />
-                        <div class="flex gap-3">
-                            <Button type="button" icon="pi pi-refresh" outlined
-                                @click="updateSources(size, 0, searchSubstr)" />
+                        <Button type="button" icon="pi pi-filter-slash" text size="large" @click="clear()"
+                            title="Clear filter" />
+                        <div class="flex gap-3 align-items-center">
+                            <Button type="button" icon="pi pi-refresh" text size="large"
+                                @click="updateSources(size, 0, searchSubstr)" title="Refresh" />
                             <IconField iconPosition="left">
-                                <InputIcon>
-                                    <i class="pi pi-search" />
-                                </InputIcon>
-                                <InputText v-model="searchSubstr" placeholder="Search sources" ref="searcher"
+                                <InputIcon class="pi pi-search" />
+                                <InputText v-model="searchSubstr" placeholder="Search..." ref="searcher"
                                     @input="filter" />
                             </IconField>
                         </div>
@@ -41,9 +40,12 @@
                 }" class="border-t-1 border-black-alpha-60" />
                 <template #empty>No sources available</template>
             </DataTable>
-
-            <Button type="button" label="Remove sources" icon="pi pi-times" severity="danger" @click="deleteSources"
-                class="col-offset-4 lg:col-offset-0 col-4 lg:col-3 mt-5" :disabled="disableButton" />
+            <button @click="deleteSources"
+                class="mt-5 flex align-items-center bg-red-700 text-white border-none gap-2 p-3 text-sm border-round-sm"
+                :class="disableButton ? 'opacity-50 cursor-auto' : 'cursor-pointer'" :disabled="disableButton">
+                <i class="pi pi-trash" />
+                <span>Remove</span>
+            </button>
         </div>
 
     </div>
@@ -132,7 +134,7 @@ export default {
         deleteSources() {
             this.$confirm.require({
                 message: "Are you sure you want to delete the selected sources?",
-                header: "Danger Zone",
+                header: `Danger Zone - Removing ${this.selectedSources.length} source(s)`,
                 icon: "pi pi-info-circle",
                 rejectClass: 'p-button-secondary p-button-outlined',
                 acceptClass: 'p-button-danger',
@@ -179,5 +181,3 @@ export default {
     }
 }
 </script>
-
-<style></style>
