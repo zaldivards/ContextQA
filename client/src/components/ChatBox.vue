@@ -72,7 +72,7 @@
               <template #footer>
                 <div class="date text-xs text-white-alpha-70 flex gap-2 align-items-center">
                   {{ message.date }}
-                  <CopyButton v-if="message.role != 'user'" :content="message.content"/>
+                  <CopyButton v-if="message.role != 'user'" :content="message.content" />
                 </div>
               </template>
             </Card>
@@ -131,7 +131,7 @@ import {
   getDateTimeStr,
   fetchResource,
 } from "@/utils/client";
-import { chipsContent } from "@/utils/constants"
+import { chipsContent, SERVER_BASE_URL } from "@/utils/constants"
 import { formatCode } from "@/utils/text";
 
 export default {
@@ -325,13 +325,17 @@ export default {
         finished = false;
       }
     },
+    playAudio() {
+      const audio = new Audio(`${SERVER_BASE_URL}/static/notification.mp3`);
+      audio.play();
+    },
     pushMessages(message) {
       this.addMessage({
         content: message,
         role: "user",
         date: getDateTimeStr(),
       });
-      this.ask(message).then(() => { });
+      this.ask(message).then(this.playAudio);
     },
     autoScroll() {
       this.$nextTick(() => {
