@@ -1,3 +1,7 @@
+export const API_BASE_URL = process.env.VUE_APP_API_BASE_URL
+
+export const SERVER_BASE_URL = process.env.VUE_APP_SERVER_BASE_URL
+
 export const chipsContent = [
   { statement: "Any grammar issues here?", template: "[YOUR INPUT]" },
   { statement: "Is this git commit ok?", template: "[YOUR INPUT]" },
