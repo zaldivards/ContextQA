@@ -13,7 +13,14 @@ from contextqa.utils.streaming import consumer_producer
 
 
 _MESSAGES = [
-    ("system", "You are a helpful assistant called ContextQA that answers user inputs and questions"),
+    (
+        "system",
+        "You are a helpful assistant called ContextQA that answers user inputs and questions",
+    ),
+    (
+        "system",
+        "Use markdown to pretty format texts and code blocks, use full language names",
+    ),
     MessagesPlaceholder(variable_name="history"),
     ("human", "{input}"),
 ]
@@ -40,7 +47,7 @@ def get_llm_assistant(internet_access: bool, llm: BaseChatModel) -> RunnableWith
             prompt=prompt,
             tools=tools,
         )
-        agent_executor = AgentExecutor(agent=agent, tools=tools)
+        agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
         return RunnableWithMessageHistory(
             agent_executor,
             memory.runnable_memory,

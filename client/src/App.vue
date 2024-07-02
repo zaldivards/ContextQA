@@ -84,7 +84,7 @@
             </div>
           </template>
           <template #end>
-            <div class="flex gap-2 p-2">
+            <div class="flex gap-2 p-2 mb-3">
               <img src="/images/bug.svg" alt="bug logo" width="25" height="25">
               <a href="https://github.com/zaldivards/ContextQA/issues/new" class="no-underline bug-link"
                 target="_blank">Report a bug | Request a new feature</a>
