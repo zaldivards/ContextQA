@@ -11,8 +11,6 @@ app = FastAPI(
     title="ContextQA API", openapi_url="/openapi.json", docs_url="/docs", redoc_url="/redoc", lifespan=check_migrations
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
 origins = [
     "http://localhost:3000",
     "http://localhost:3001",
@@ -30,3 +28,14 @@ def ping():
 
 
 app.include_router(api_router, prefix="/api")
+
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount(
+    "/",
+    StaticFiles(
+        directory="ui",
+        html=True,
+    ),
+    name="UI",
+)

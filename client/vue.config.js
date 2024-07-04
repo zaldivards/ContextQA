@@ -1,15 +1,6 @@
 const { defineConfig } = require('@vue/cli-service')
+const path = require("path");
 module.exports = defineConfig({
-  transpileDependencies: true,
-  devServer: {
-    proxy: {
-      '^/api': {
-        target: 'http://localhost:8081',
-        changeOrigin: true,
-        logLevel: 'debug',
-        pathRewrite: { '^/api': '/' }
-      }
-    }
-  }
-  // lintOnSave: false
+  outputDir: path.resolve(__dirname, "../api/ui"),
+  transpileDependencies: true
 })
