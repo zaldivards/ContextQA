@@ -61,23 +61,33 @@
     </div>
     <MainLayout v-else>
       <template #menu>
-        <Menu :model="items" class="my-4 sticky z-4 border-none w-full bg-inherit" :pt="{
-          label: { class: 'text-gl text-white-alpha-80 shadow-6' },
-          submenuHeader: { class: 'text-gl bg-inherit text-teal-300' },
-          icon: { class: 'text-gl text-white-alpha-80 shadow-6' },
-          separator: { class: 'border-black-alpha-10' },
-          action: ({ context }) => {
-            if (context.focused) {
-              prevSelectedItem = context.item.label
-            }
-            return {
-              class: context.focused || context.item.label == prevSelectedItem ? 'bg-menu-focus' : undefined,
-            }
-          },
-        }">
+        <Menu :model="items"
+          class="mt-2 sticky z-4 border-none w-full bg-inherit h-full flex flex-column justify-content-between" :pt="{
+            label: { class: 'text-gl text-white-alpha-80 shadow-6' },
+            submenuHeader: { class: 'text-gl bg-inherit text-teal-300' },
+            icon: { class: 'text-gl text-white-alpha-80 shadow-6' },
+            separator: { class: 'border-black-alpha-10' },
+            menu: { class: 'flex-grow-1' },
+            end: { class: 'text-red-200' },
+            action: ({ context }) => {
+              if (context.focused) {
+                prevSelectedItem = context.item.label
+              }
+              return {
+                class: context.focused || context.item.label == prevSelectedItem ? 'bg-menu-focus' : undefined,
+              }
+            },
+          }">
           <template #start>
             <div class="w-full">
               <img alt="logo" src="/images/title.png" height="30" class="m-auto mb-3 block" title="ContextQA" />
+            </div>
+          </template>
+          <template #end>
+            <div class="flex gap-2 p-2 mb-3">
+              <img src="/images/bug.svg" alt="bug logo" width="25" height="25">
+              <a href="https://github.com/zaldivards/ContextQA/issues/new" class="no-underline bug-link"
+                target="_blank">Report a bug | Request a new feature</a>
             </div>
           </template>
         </Menu>
@@ -216,6 +226,10 @@ export default {
 </script>
 
 <style>
+.bug-link:visited {
+  color: inherit;
+}
+
 .disabled {
   pointer-events: none;
   outline: none;

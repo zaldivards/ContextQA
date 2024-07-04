@@ -1,7 +1,7 @@
 <template>
   <div id="container" class="text-white-alpha-80" :class="customClass">
     <div id="sidebar" class="sticky top-0 z-3">
-      <aside ref="sidebar" v-if="show" class="animation-duration-200" :class="animation">
+      <aside ref="sidebar" v-if="show" class="animation-duration-200 h-full" :class="animation">
         <slot name="menu"></slot>
       </aside>
       <Button type="button" :icon="icon" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu"
