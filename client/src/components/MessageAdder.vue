@@ -3,7 +3,7 @@
     <Textarea
       style="background-color: #394d6d"
       ref="textarea"
-      class="lg:mb-0 md:mb-0 mb-3 w-full text-white-alpha-80 border-round-2xl"
+      class="lg:mb-0 md:mb-0 mb-3 w-full text-white-alpha-80 border-round-2xl max-h-30rem overflow-scroll"
       :class="disable ? 'disabled' : ''"
       id="question"
       @keydown.enter="sendQuestion"

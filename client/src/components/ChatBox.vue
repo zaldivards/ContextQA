@@ -62,15 +62,16 @@
               ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
               : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
               " :pt="{
-                content: { class: 'py-1' },
+                content: { class: 'py-0' },
+                footer: { class: message.role == 'bot' && 'p-0 m-0' },
                 body: { class: message.role == 'user' ? 'pt-0' : '' },
               }">
               <template #content>
                 <div v-if="message.isLatest" v-html="answer" />
-                <div v-else v-html="message.content" />
+                <div v-else v-html="prettyFormat(message)" />
               </template>
               <template #footer>
-                <div class="date text-xs text-white-alpha-70 flex gap-2 align-items-center">
+                <div class="text-xs text-white-alpha-70 flex gap-2 align-items-center">
                   {{ message.date }}
                   <CopyButton v-if="message.role != 'user'" :content="message.content" />
                 </div>
@@ -119,6 +120,31 @@ import Card from "primevue/card";
 import Avatar from "primevue/avatar";
 import MessageAdder from "@/components/MessageAdder.vue";
 import CopyButton from "@/components/CopyButton.vue";
+import { marked } from "marked"
+import hljs from 'highlight.js'
+import 'highlight.js/styles/github-dark.css'
+
+marked.use({
+  pedantic: false,
+  gfm: true,
+  breaks: true,
+});
+
+const renderer = new marked.Renderer();
+
+renderer.code = (code, lang, _) => {
+  lang = lang || 'plaintext';
+  let finalCode = code
+  try {
+    finalCode = hljs.highlight(code, { language: lang }).value;
+  }
+  catch (e) {
+    console.log(`${lang} is not supported by highlight.js, rendering as plain text`);
+  }
+  return `<div class="border-round-top bg-white-alpha-10 text-sm mb-4"><div class="p-2">${lang}</div><code class="hljs ${lang} p-3 block">${finalCode}</code></div>`;
+};
+
+marked.use({ renderer });
 
 const SourcesBox = defineAsyncComponent(() =>
   import("@/components/SourcesBox.vue")
@@ -192,6 +218,13 @@ export default {
     };
   },
   methods: {
+    prettyFormat(message) {
+      if(message.role == 'user') return message.content; // ensure to pretty format only the bot responses
+      // remove leading whitespaces to prevent marked to format certain parts of the response as code blocks
+      // code blocks must be surrounded by triple backticks
+      const cleanMessage = message.content.trim().replace(/ {2,}|<sources>/g, '')
+      return formatCode(marked(cleanMessage))
+    },
     chipOverwrite(item) {
       this.$refs.adder.question = `${item.statement}${item.template && '\n\n' + item.template}`
       this.$refs.adder.$refs.textarea.$el.focus()
@@ -233,8 +266,6 @@ export default {
       let sentDate = "";
       let activated = false;
       let temp = "";
-      let block = "init";
-      let single = "init";
       let finished = false;
       this.$store.dispatch("activateSpinner", true);
       this.addMessage({
@@ -252,19 +283,6 @@ export default {
           if (!activated) {
             this.$store.dispatch("activateSpinner", false);
             activated = true;
-          }
-          if (token.includes("```")) {
-            if (block == "init") {
-              block = "waiting";
-            } else if (block == "waiting") {
-              block = "finished";
-            }
-          } else if (token.includes("`")) {
-            if (single == "init") {
-              single = "waiting";
-            } else if (single == "waiting") {
-              single = "finished";
-            }
           }
 
           if (this.internetEnabled) {
@@ -290,12 +308,7 @@ export default {
               this.latestSources = token.split("<sources>")[1];
               this.$store.dispatch("setLatestSources", this.latestSources);
             }
-            if (!finished) this.answer += token;
-          }
-
-          if (block == "finished" || single == "finished") {
-            this.answer = formatCode(this.answer);
-            block = single = "init";
+            if (!finished) this.answer += token
           }
           this.autoScroll();
         }
@@ -381,7 +394,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .chat-height {
   height: auto !important;
   max-height: 45rem !important;
@@ -411,5 +424,16 @@ export default {
 
 .centered {
   bottom: 45%;
+}
+
+p,
+ol,
+ul {
+  margin: 0 !important;
+}
+
+ul, ol {
+    display: flex;
+    flex-direction: column;
 }
 </style>
