@@ -170,3 +170,5 @@ pnpm-debug.log*
 .chromadb
 .media
 settings.json
+api/contextqa/ui
+ContextQA/*
