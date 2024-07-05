@@ -1,4 +1,6 @@
 # pylint: disable=C0413
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -29,12 +31,11 @@ def ping():
 
 app.include_router(api_router, prefix="/api")
 
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 app.mount(
     "/",
     StaticFiles(
-        directory="ui",
+        directory=Path(__file__).parent / "ui",
         html=True,
     ),
     name="UI",
