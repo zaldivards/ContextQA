@@ -11,14 +11,33 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger("contextqa")
 
 
+class Configurables:
+    """CLI configurables"""
+
+    contextqa_base_data_dir = Path.home() / "contextqa-data"
+    config_path: Path = contextqa_base_data_dir / "settings.json"
+    media_home: Path = contextqa_base_data_dir / "media"
+    local_vectordb_home: Path = contextqa_base_data_dir / "vectordb-data"
+
+    @classmethod
+    def init(cls, config_path: Path, media_home: Path, local_vectordb_home: Path):
+        """Initialize the configurable if users provide the corresponding CLI arguments"""
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        cls.config_path = config_path
+        media_home.mkdir(parents=True, exist_ok=True)
+        cls.media_home = media_home
+        local_vectordb_home.mkdir(parents=True, exist_ok=True)
+        cls.local_vectordb_home = local_vectordb_home
+
+
 class AppSettings(BaseSettings):
     """Project settings"""
 
-    config_path: Path = Path("settings.json")
+    config_path: Path = Configurables.config_path
     tmp_separator: str = ":::sep:::"
-    media_home: Path = Path(".media/")
-    local_vectordb_home: Path = Path(".chromadb/")
-    sqlite_url: str = "sqlite:///contextqa.sqlite3"
+    media_home: Path = Configurables.media_home
+    local_vectordb_home: Path = Configurables.local_vectordb_home
+    sqlite_url: str = f"sqlite:///{Configurables.contextqa_base_data_dir / 'contextqa'}.sqlite3"
     deployment: str = "dev"
 
     @property
@@ -37,8 +56,9 @@ class AppSettings(BaseSettings):
         #  pylint: disable=C0415
         from contextqa.models import SettingsSchema
 
-        with open(self.config_path, mode="r", encoding="utf-8") as settings_file:
+        with open(self.config_path, mode="a+", encoding="utf-8") as settings_file:
             try:
+                settings_file.seek(0)
                 return SettingsSchema.model_validate_json(settings_file.read())
             except ValidationError:  # error is thrown if the user sets a path to an empty json file
                 return SettingsSchema()

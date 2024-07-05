@@ -30,6 +30,7 @@ langchain-openai = "*"
 langchainhub = "*"
 langchain-pinecone = "*"
 cryptography = "*"
+typer = "*"
 
 [dev-packages]
 black = "*"
