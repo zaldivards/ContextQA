@@ -1,4 +1,4 @@
-name: Publish ContextQA 🐍 distribution 📦 to PyPI
+name: Publish ContextQA release to PyPI
 
 on:
   release:
@@ -20,7 +20,7 @@ jobs:
         run: npm install
         working-directory: client
       # Build client application
-      - name: Build client UI 📦
+      - name: Build client UI
         run: npm run build
         working-directory: client
       - name: Set up Python 3.11
@@ -38,16 +38,16 @@ jobs:
         working-directory: api
       - name: Extract tag name
         id: tag
-        run: echo ::set-output name=TAG_NAME::$(echo 1.7.0)
+        run: echo ::set-output name=TAG_NAME::$(echo $GITHUB_REF | cut -d / -f 3)
       - name: Update version in setup.py
         run: |
           sed -i "s/{{VERSION_PLACEHOLDER}}/${{ steps.tag.outputs.TAG_NAME }}/g" setup.py
         working-directory: api
-      - name: Build a binary wheel
+      - name: Final build
         run: >-
           python setup.py sdist bdist_wheel
         working-directory: api
-      - name: Publish ContextQA 📦 to PyPI
+      - name: Publish to PyPI
         run: |
           twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
         working-directory: api
