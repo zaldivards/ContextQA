@@ -1,5 +1,14 @@
 from setuptools import setup, find_packages
 
+install_requires: list[str] = []
+long_description: str = ""
+
+with open("requirements.txt", encoding="utf-8") as requirements_content:
+    install_requires = requirements_content.readlines()
+
+with open("../README.md", encoding="utf-8") as readme:
+    long_description = readme.read()
+
 setup(
     name="contextqa",
     version="{{VERSION_PLACEHOLDER}}",
@@ -8,13 +17,15 @@ setup(
     maintainer="Christian Zaldivar",
     maintainer_email="herrerachristian1897@gmail.com",
     description="Chat with your data by leveraging the power of LLMs and vector databases",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     license="MIT",
     url="https://github.com/zaldivards/ContextQA/",
     keywords=["OpenAI", "LLM", "LLM client", "LLM app", "QA", "Agent", "LLM agent"],
     python_requires=">=3.11",
     packages=find_packages(),
     include_package_data=True,
-    install_requires=open("requirements.txt", encoding="utf-8").readlines(),
+    install_requires=install_requires,
     classifiers=[
         "Environment :: Console",
         "Environment :: Web Environment",
