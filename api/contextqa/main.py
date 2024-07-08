@@ -5,9 +5,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from contextqa import settings
 from contextqa.routes import api_router
 from contextqa.utils.migrations import check_migrations
-
 
 app = FastAPI(
     title="ContextQA API", openapi_url="/openapi.json", docs_url="/docs", redoc_url="/redoc", lifespan=check_migrations
@@ -32,11 +32,13 @@ def ping():
 app.include_router(api_router, prefix="/api")
 
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
-app.mount(
-    "/",
-    StaticFiles(
-        directory=Path(__file__).parent / "ui",
-        html=True,
-    ),
-    name="UI",
-)
+
+if settings.deployment == "prod":
+    app.mount(
+        "/",
+        StaticFiles(
+            directory=Path(__file__).parent / "ui",
+            html=True,
+        ),
+        name="UI",
+    )

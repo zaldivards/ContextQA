@@ -2,6 +2,7 @@ import logging
 import json
 from functools import cached_property
 from pathlib import Path
+from typing import Literal
 
 from pydantic import field_validator, ValidationError
 from pydantic_settings import BaseSettings
@@ -38,7 +39,7 @@ class AppSettings(BaseSettings):
     media_home: Path = Configurables.media_home
     local_vectordb_home: Path = Configurables.local_vectordb_home
     sqlite_url: str = f"sqlite:///{Configurables.contextqa_base_data_dir / 'contextqa'}.sqlite3"
-    deployment: str = "dev"
+    deployment: Literal["dev", "prod"] = "prod"
 
     @property
     def debug(self) -> bool:
