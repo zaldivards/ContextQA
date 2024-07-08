@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="ContextQA",
+    name="contextqa",
     version="{{VERSION_PLACEHOLDER}}",
     author="Christian Zaldivar",
     author_email="herrerachristian1897@gmail.com",
