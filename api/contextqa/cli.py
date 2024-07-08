@@ -38,7 +38,7 @@ def init(
 ):
     """ContextQA init command"""
     Configurables.init(settings_path, media_home, local_vectordb_home)
-    uvicorn.run("contextqa.main:app", host="localhost", port=port)
+    uvicorn.run("contextqa.main:app", host="localhost", port=port, loop="asyncio")
 
 
 @app.callback()
