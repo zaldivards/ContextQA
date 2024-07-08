@@ -1,4 +1,4 @@
-startUsage="Usage: bash run.sh start [OPTIONS]
+startUsage="Usage: bash dev.sh start [OPTIONS]
   
   Start ContextQA server and client
 
@@ -7,7 +7,7 @@ Options:
   --build   Flag to build and start the server and client
 "
 
-restartUsage="Usage: bash run.sh restart [OPTIONS]
+restartUsage="Usage: bash dev.sh restart [OPTIONS]
   
   Restart ContextQA server and client
 
@@ -17,7 +17,7 @@ Options:
   --from-scratch   Restart ContextQA server and client after a clean build with no cache 
 "
 
-shutdownUsage="Usage: bash run.sh shutdown
+shutdownUsage="Usage: bash dev.sh shutdown
   
   Shutdown ContextQA server and client
 
