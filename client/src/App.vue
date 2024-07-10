@@ -226,7 +226,7 @@ export default {
 </script>
 
 <style>
-.bug-link:visited {
+.bug-link {
   color: inherit;
 }
 
