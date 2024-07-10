@@ -29,7 +29,7 @@ A great way to contribute to the project is to send a detailed issue when you en
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the project's license, which is MIT. You can find more details in the [License](LICENSE.md) file.
+By contributing, you agree that your contributions will be licensed under the project's license, which is MIT. You can find more details in the **LICENSE.md** file.
 
 ## Development - Contributing
 
