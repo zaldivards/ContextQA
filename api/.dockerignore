@@ -2,3 +2,6 @@ README
 Dockerfile
 .gitignore
 __pycache__
+build
+dist
+contextqa*
