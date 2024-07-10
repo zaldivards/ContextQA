@@ -16,8 +16,8 @@ We actively welcome your pull requests.
 
 1. Create a Github issue proposing a new feature and make sure it doesn't exist yet.
 2. Fork the repo and create your branch from `main`
-3. Issue a pull request
-4, Address any feedback in code review promptly
+3. Issue a pull request specifying the introduced changes
+4. Address any feedback in code review promptly
 
 ### For bug fixes
 
@@ -26,6 +26,7 @@ A great way to contribute to the project is to send a detailed issue when you en
 1. Review the existing issues
 2. Create a new issue if the bug doesn't have a corresponding one yet
 3. Issue a pull request specifying the introduced changes
+4. Address any feedback in code review promptly
 
 ## License
 
