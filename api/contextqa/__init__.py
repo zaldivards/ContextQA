@@ -4,7 +4,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import Literal
 
-from pydantic import field_validator, ValidationError
+from pydantic import ValidationError
 from pydantic_settings import BaseSettings
 
 
@@ -12,34 +12,27 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger("contextqa")
 
 
-class Configurables:
-    """CLI configurables"""
-
-    contextqa_base_data_dir = Path.home() / "contextqa-data"
-    config_path: Path = contextqa_base_data_dir / "settings.json"
-    media_home: Path = contextqa_base_data_dir / "media"
-    local_vectordb_home: Path = contextqa_base_data_dir / "vectordb-data"
-
-    @classmethod
-    def init(cls, config_path: Path, media_home: Path, local_vectordb_home: Path):
-        """Initialize the configurable if users provide the corresponding CLI arguments"""
-        config_path.parent.mkdir(parents=True, exist_ok=True)
-        cls.config_path = config_path
-        media_home.mkdir(parents=True, exist_ok=True)
-        cls.media_home = media_home
-        local_vectordb_home.mkdir(parents=True, exist_ok=True)
-        cls.local_vectordb_home = local_vectordb_home
+contextqa_base_data_dir = Path.home() / "contextqa-data"
 
 
 class AppSettings(BaseSettings):
     """Project settings"""
 
-    config_path: Path = Configurables.config_path
+    config_path: Path | None = None
     tmp_separator: str = ":::sep:::"
-    media_home: Path = Configurables.media_home
-    local_vectordb_home: Path = Configurables.local_vectordb_home
-    sqlite_url: str = f"sqlite:///{Configurables.contextqa_base_data_dir / 'contextqa'}.sqlite3"
+    media_home: Path | None = None
+    local_vectordb_home: Path | None = None
+    sqlite_url: str = f"sqlite:///{contextqa_base_data_dir / 'contextqa'}.sqlite3"
     deployment: Literal["dev", "prod"] = "prod"
+
+    def init_from_cli(self, config_path: Path, media_home: Path, local_vectordb_home: Path):
+        """Initialize the configurable if users provide the corresponding CLI arguments"""
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        self.config_path = config_path
+        media_home.mkdir(parents=True, exist_ok=True)
+        self.media_home = media_home
+        local_vectordb_home.mkdir(parents=True, exist_ok=True)
+        self.local_vectordb_home = local_vectordb_home
 
     @property
     def debug(self) -> bool:
@@ -78,20 +71,6 @@ class AppSettings(BaseSettings):
         with open(self.config_path, mode="w", encoding="utf-8") as settings_file:
             json.dump(model_settings.model_dump(exclude_none=True, exclude_unset=True), settings_file)
 
-    @field_validator("media_home")
-    @classmethod
-    def validate_media_path(cls, value: Path) -> Path:
-        """validator for media path"""
-        value.mkdir(parents=True, exist_ok=True)
-        return value
-
-    @field_validator("local_vectordb_home")
-    @classmethod
-    def validate_vectordb_home(cls, value: Path) -> Path:
-        """validator for media path"""
-        value.mkdir(parents=True, exist_ok=True)
-        return value
-
     @cached_property
     def sqlalchemy_url(self) -> str:
         """sqlalchemy url built either from the sqlite url or the credential of a specific mysql server"""
@@ -118,6 +97,3 @@ class AppSettings(BaseSettings):
 
 
 settings = AppSettings()
-
-# pylint: disable=C0413
-from contextqa.services import chat, context

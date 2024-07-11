@@ -3,9 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, UploadFile, Depends, status, Query
 from sqlalchemy.orm import Session
 
-from contextqa import context, logger
+from contextqa import logger
 from contextqa.models.schemas import SourceStatus, IngestionResult, Source, SourcesList
 from contextqa.routes.dependencies import get_db, StoreClient, store_client, context_manager, session_generator
+from contextqa.services import context
 from contextqa.services.sources import sources_exists, get_sources, remove_sources
 from contextqa.utils.exceptions import VectorDBConnectionError, DuplicatedSourceError
 
