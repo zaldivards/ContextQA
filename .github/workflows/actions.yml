@@ -1,0 +1,53 @@
+name: Publish ContextQA release to PyPI
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-n-publish:
+    name: Build and publish
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@master
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+      # Install npm dependencies for client
+      - name: Install client dependencies
+        run: npm install
+        working-directory: client
+      # Build client application
+      - name: Build client UI
+        run: npm run build
+        working-directory: client
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.11'
+      - name: Install pypa/setuptools
+        run: >-
+          python -m
+          pip install wheel pipenv twine
+      - name: Generate requirements
+        run: |
+          pipenv requirements > requirements.txt
+          sed -i '1d' requirements.txt
+        working-directory: api
+      - name: Extract tag name
+        id: tag
+        run: echo ::set-output name=TAG_NAME::$(echo $GITHUB_REF | cut -d / -f 3)
+      - name: Update version in setup.py
+        run: |
+          sed -i "s/{{VERSION_PLACEHOLDER}}/${{ steps.tag.outputs.TAG_NAME }}/g" setup.py
+        working-directory: api
+      - name: Final build
+        run: >-
+          python setup.py sdist bdist_wheel
+        working-directory: api
+      - name: Publish to PyPI
+        run: |
+          twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
+        working-directory: api

@@ -58,7 +58,7 @@
             <Avatar image="/images/user.png" size="small" shape="circle" v-if="message.role == 'user'" />
             <Avatar image="/images/logo.png" size="small" v-if="message.role != 'user'" />
 
-            <Card class="field col mx-2 shadow-none animation-duration-300 breakline-ok max-w-screen" :class="message.role == 'user'
+            <Card class="card field col mx-2 shadow-none animation-duration-300 breakline-ok max-w-screen" :class="message.role == 'user'
               ? ['bg-inherit', 'fadeinleft', 'text-white-alpha-80']
               : ['bg-contextqa-primary', 'fadeinright', 'text-white-alpha-80']
               " :pt="{
@@ -219,10 +219,12 @@ export default {
   },
   methods: {
     prettyFormat(message) {
-      if(message.role == 'user') return message.content; // ensure to pretty format only the bot responses
-      // remove leading whitespaces to prevent marked to format certain parts of the response as code blocks
-      // code blocks must be surrounded by triple backticks
-      const cleanMessage = message.content.trim().replace(/ {2,}|<sources>/g, '')
+      if (message.role == 'user') return message.content; // ensure to pretty format only the bot responses
+      let cleanMessage = message.content.trim().replace(/<sources>/g, '')
+        if (!cleanMessage.startsWith('```'))
+        // remove leading whitespaces to prevent marked to format certain parts of the response as code blocks
+        // code blocks must be surrounded by triple backticks
+        cleanMessage = cleanMessage.replace(/ {2,}/, '')
       return formatCode(marked(cleanMessage))
     },
     chipOverwrite(item) {
@@ -426,14 +428,15 @@ export default {
   bottom: 45%;
 }
 
-p,
-ol,
-ul {
+.card p,
+.card ol,
+.card ul {
   margin: 0 !important;
 }
 
-ul, ol {
-    display: flex;
-    flex-direction: column;
+.card ul,
+.card ol {
+  display: flex;
+  flex-direction: column;
 }
 </style>

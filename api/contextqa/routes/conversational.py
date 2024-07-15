@@ -5,9 +5,9 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.responses import StreamingResponse
 from langchain_core.language_models.chat_models import BaseChatModel
 
-from contextqa import chat
 from contextqa.models.schemas import LLMQueryRequest
 from contextqa.routes.dependencies import get_initialized_model
+from contextqa.services import chat
 
 router = APIRouter()
 

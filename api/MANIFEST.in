@@ -1,0 +1,5 @@
+include contextqa/static/*
+recursive-include contextqa/ui/ *
+include contextqa/alembic.ini
+recursive-include contextqa/alembic *
+include requirements.txt

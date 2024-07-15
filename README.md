@@ -1,96 +1,69 @@
-<p  align="center">
-   <img src="static/logo.png" width="200px" alt="SuperAGI logo" />
+<p  align="center"><a href="https://pypi.org/project/contextqa"><img src="https://contextqa-assets.s3.amazonaws.com/logo.png" width="200px" alt="ContextQA logo" /></a></p>
+<p  align="center"><a href="https://pypi.org/project/contextqa"><img src="https://contextqa-assets.s3.amazonaws.com/title.png" width="200px" alt="ContextQA title" /></a></p>
+<p align="center" style="font-size: 20px"><i>Chat with your data by leveraging the power of LLMs and vector databases</i></p>
+<p align="center">
+<a href="https://pypi.org/project/contextqa" target="_blank">
+    <img alt="contextqa latest version" src="https://img.shields.io/pypi/v/contextqa?label=Latest%20release&color=%230cc109">
+</a>
+<a href="https://pypi.org/project/contextqa" target="_blank">
+   <img alt="Supported Python versions" src="https://img.shields.io/pypi/pyversions/contextqa?logo=python&logoColor=white&color=0cc109">
+</a>
+<img alt="node version" src="https://img.shields.io/badge/nodejs-v18.17.1-green?logo=nodedotjs">
+<img alt="vue version" src="https://img.shields.io/badge/Vue.js-%5Ev3.2.13-green?logo=vuedotjs">
 </p>
-<p  align="center">
-   <img src="static/title.png" width="200px" alt="SuperAGI logo" />
-</p>
-
-<p align="center" style="font-size: 20px">Chat with your data by leveraging the power of LLMs and vector databases</p>
-
-## 📽 Demo Video
-
-https://github.com/zaldivards/ContextQA/assets/32210667/8e9a888a-504b-4470-bafe-8bbdc0a14dd2
-
-## ⚙️ Setting up
 
 ---
 
-#### 1. Clone the repository:
+ContextQA is a modern utility that provides a ready-to-use LLM-powered application. It is built on top of giants such as [FastAPI](https://fastapi.tiangolo.com/) and [LangChain](https://www.langchain.com/).
+
+Key features include:
+- Regular chat supporting knowledge expansion via internet access
+- Conversational QA with relevant sources
+- Streaming responses
+- Ingestion of data sources used in QA sessions
+- Data sources management
+- LLM settings: Configure parameters such as provider, model, temperature, etc. Currently, the supported providers are **[OpenAI](https://openai.com/)** and **Google** 
+- Vector DB settings. Adjust parameters such as engine, chunk size, chunk overlap, etc. Currently, the supported engines are **[ChromaDB](https://www.trychroma.com/)** and **[Pinecone](https://www.pinecone.io/)**
+- Other settings: Choose embedded or external LLM memory (**[Redis](https://redis.io/)**), media directory, database credentials, etc.
+
+
+## Installation
 
 ```bash
-git clone https://github.com/zaldivards/contextqa.git && cd contextqa
+pip install contextqa
 ```
-
-#### 2. Install [docker](https://docs.docker.com/engine/install/)
-
-#### 3. Set the following envs in the `contextqa.env` file - **OPTIONAL**
-
-1. **CONFIG_PATH**:
-   - Example: **`path/to/settings-file.json`**
-   - Usage: Specifies the path to the configuration file. It **must** be a json file
-   - Default: **`settings.json`**
-2. **MEDIA_HOME**:
-   - Example: **`path/to/some-dir`**
-   - Usage: Specifies the path to the directory that will hold ingested PDFs
-   - Default: **`.media`**
-3. **SQLITE_URL**:
-   - Example: **`sqlite://path/to/database.sqlite3`**
-   - Usage: Specifies the SQLite database connection
-   - Default: **`sqlite:///contextqa.sqlite3`**
-4. **LOCAL_VECTORDB_HOME**:
-   - Example: **`path/to/some-dir`**
-   - Usage: Home directory of ChromaDB
-   - Default: **`.chromadb`**
-5. **DEPLOYMENT**:
-   - Example: **`dev`**
-   - Usage: Environment name
-   - Default: **`dev`**
-
-**Note**: Relational databases are used to control the digests of sources. Migrations will run automatically at the first startup.
-
-### How to get the tokens?
-
-| Keys           | Accesing the keys                                                                                                                                                                                                                                                                                                                                                                |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| OPENAI_API_KEY | First, you need to create an account [here](https://auth0.openai.com/u/signup/identifier?state=hKFo2SBMLTJkWUFpa2dVWlBrTDdrTjdxbEp2ZGt6RmZBakdvbKFur3VuaXZlcnNhbC1sb2dpbqN0aWTZIEhleHE1SGYzQkdpMjhDM3d3dnFVZERmamF6TVpTMEpGo2NpZNkgRFJpdnNubTJNdTQyVDNLT3BxZHR3QjNOWXZpSFl6d0Q). Then, you can generate and get the api key [here](https://platform.openai.com/account/api-keys) |
-| PINECONE_TOKEN | Create an account [here](https://www.pinecone.io/). Then, you can generate and get the api key in the **API keys** section                                                                                                                                                                                                                                                       |
-
-## 💻 Usage
-
----
-
+## Usage
+On installation contextqa provides a CLI tool 
 ```bash
-bash run.sh [start|restart|shutdown] [dev|prod] OPTIONS
+contextqa init
 ```
-
-### Starting the development or production environment for the first time
-
+Check out the available parameters by running the following command
 ```bash
-bash run.sh start dev
+contextqa init --help
 ```
-
-or
-
+## Example
+### Run it
 ```bash
-bash run.sh start prod
+$ contextqa init
+
+2024-07-08 12:50:55,304 - INFO - Using SQLite
+INFO:     Started server process [29337]
+INFO:     Waiting for application startup.
+2024-07-08 12:50:55,450 - INFO - Running initial migrations...
+2024-07-08 12:50:55,452 - INFO - Context impl SQLiteImpl.
+2024-07-08 12:50:55,452 - INFO - Will assume non-transactional DDL.
+2024-07-08 12:50:55,465 - INFO - Running upgrade  -> 0bb7d192c063, Initial migration
+2024-07-08 12:50:55,471 - INFO - Running upgrade 0bb7d192c063 -> b7d862d599fe, Support for store types and related indexes
+2024-07-08 12:50:55,487 - INFO - Running upgrade b7d862d599fe -> 3058bf204a05, unique index name
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8080 (Press CTRL+C to quit)
 ```
+### Check it
 
-### Other examples
+Open your browser at http://localhost:8080. You will see the initialization stepper which will guide you through the initial configurations
 
-```bash
-bash run.sh start dev --build
-```
+<img alt="init config" src="https://contextqa-assets.s3.amazonaws.com/init.png" width="1000px">
 
-```bash
-bash run.sh restart dev --strict
-```
+Or the main contextqa view - If the initial configuration has already been set
 
-```bash
-bash run.sh shutdown dev
-```
-
-**Note**: You can display the usage message with the `--help` flag:
-
-```bash
-bash run.sh [start|restart|shutdown] --help
-```
+<img alt="main view" src="https://contextqa-assets.s3.amazonaws.com/main.png" width="1000px">

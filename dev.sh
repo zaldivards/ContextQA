@@ -1,21 +1,15 @@
-startUsage="Usage: bash run.sh start ENV [OPTIONS]
+startUsage="Usage: bash dev.sh start [OPTIONS]
   
   Start ContextQA server and client
-
-Arguments:
-  ENV [dev|prod]  The environment name [required]
 
 Options:
   --help    Show this message
   --build   Flag to build and start the server and client
 "
 
-restartUsage="Usage: bash run.sh restart ENV [OPTIONS]
+restartUsage="Usage: bash dev.sh restart [OPTIONS]
   
   Restart ContextQA server and client
-
-Arguments:
-  ENV [dev|prod]  The environment name [required]
 
 Options:
   --help           Show this message
@@ -23,12 +17,9 @@ Options:
   --from-scratch   Restart ContextQA server and client after a clean build with no cache 
 "
 
-shutdownUsage="Usage: bash run.sh shutdown ENV
+shutdownUsage="Usage: bash dev.sh shutdown
   
   Shutdown ContextQA server and client
-
-Arguments:
-  ENV [dev|prod]  The environment name [required]
 
 Options:
   --help           Show this message
@@ -56,9 +47,7 @@ start(){
         exit
     fi
     echo -e '\n::::: Starting ContextQA :::::\n'
-    env=$1
-    shift
-    $compose -f "docker-compose-$env.yml" up -d "$@"
+    $compose -f "docker-compose.yml" up -d "$@"
 }
 
 restart(){
@@ -67,14 +56,14 @@ restart(){
         exit
     fi
     echo -e '\n::::: Restarting ContextQA :::::\n'
-    if [ "$2" == "--from-scratch" ]; then
-        $compose -f "docker-compose-$1.yml" down
-        $compose -f "docker-compose-$1.yml" build --no-cache
-        $compose -f "docker-compose-$1.yml" up -d
-    elif [ "$2" == "--strict" ]; then
-        start $1 --build
+    if [ "$1" == "--from-scratch" ]; then
+        $compose -f "docker-compose.yml" down
+        $compose -f "docker-compose.yml" build --no-cache
+        $compose -f "docker-compose.yml" up -d
+    elif [ "$1" == "--strict" ]; then
+        start --build
     else
-        $compose -f "docker-compose-$1.yml" restart
+        $compose -f "docker-compose.yml" restart
     fi
 }
 
@@ -83,7 +72,7 @@ shutdown(){
     echo "$shutdownUsage"
     exit
   fi
-  $compose -f "docker-compose-$1.yml" down
+  $compose -f "docker-compose.yml" down
 }
 
 "$@"

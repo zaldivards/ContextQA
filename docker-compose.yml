@@ -1,19 +1,19 @@
 version: '3.8'
 
 services:
-  contextqa-chat-history-dev:
+  contextqa-chat-history:
     image: redis:7.0.11-alpine
-    container_name: contextqa-chat-history-dev
+    container_name: contextqa-chat-history
     restart: unless-stopped
     ports:
       - 6378:6379
     volumes:
-      - redis-dev:/data
+      - redis:/data
     networks:
-      - contextqa-dev
-  contextqa-server-dev:
+      - contextqa
+  contextqa-server:
     build: ./api
-    container_name: contextqa-server-dev
+    container_name: contextqa-server
     restart: unless-stopped
     volumes:
       - $VECTOR_STORE_HOME:/var/embeddings
@@ -24,15 +24,15 @@ services:
       - ./contextqa.env
     environment:
       - DEPLOYMENT=dev
-      - REDIS_URL=redis://contextqa-chat-history-dev:6379/0
-    entrypoint: uvicorn main:app --host 0.0.0.0 --port 8080 --reload --log-level debug
+      - REDIS_URL=redis://contextqa-chat-history:6379/0
+    entrypoint: uvicorn contextqa.main:app --host 0.0.0.0 --port 8080 --reload --log-level debug
     networks:
-      - contextqa-dev
+      - contextqa
     depends_on:
-      - contextqa-chat-history-dev
-  contextqa-client-dev:
+      - contextqa-chat-history
+  contextqa-client:
     build: ./client
-    container_name: contextqa-client-dev
+    container_name: contextqa-client
     restart: unless-stopped
     ports:
       - 3001:3000
@@ -40,12 +40,12 @@ services:
       - ./client:/app/
       - /app/dist # avoids to replacement of this directory
     depends_on:
-      - contextqa-server-dev
+      - contextqa-server
     entrypoint: npm run serve
     networks:
-      - contextqa-dev
+      - contextqa
 networks:
-  contextqa-dev:
+  contextqa:
 volumes:
-  redis-dev:
+  redis:
     driver: local

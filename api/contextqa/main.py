@@ -1,17 +1,17 @@
 # pylint: disable=C0413
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from contextqa import settings
 from contextqa.routes import api_router
 from contextqa.utils.migrations import check_migrations
-
 
 app = FastAPI(
     title="ContextQA API", openapi_url="/openapi.json", docs_url="/docs", redoc_url="/redoc", lifespan=check_migrations
 )
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 origins = [
     "http://localhost:3000",
@@ -30,3 +30,15 @@ def ping():
 
 
 app.include_router(api_router, prefix="/api")
+
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
+
+if settings.deployment == "prod":
+    app.mount(
+        "/",
+        StaticFiles(
+            directory=Path(__file__).parent / "ui",
+            html=True,
+        ),
+        name="UI",
+    )
