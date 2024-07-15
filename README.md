@@ -60,7 +60,7 @@ INFO:     Uvicorn running on http://localhost:8080 (Press CTRL+C to quit)
 ```
 ### Check it
 
-Open your browser at http://localhost:8080. You will see the initialization stepper which will guide you to through the initial configurations
+Open your browser at http://localhost:8080. You will see the initialization stepper which will guide you through the initial configurations
 
 <img alt="init config" src="https://contextqa-assets.s3.amazonaws.com/init.png" width="1000px">
 
