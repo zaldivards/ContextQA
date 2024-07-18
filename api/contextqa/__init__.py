@@ -15,24 +15,41 @@ logger = logging.getLogger("contextqa")
 contextqa_base_data_dir = Path.home() / "contextqa-data"
 
 
+class Configurables:
+    """Settings which can be updated on settings initialization"""
+
+    config_path = contextqa_base_data_dir / "settings.json"
+    media_home = contextqa_base_data_dir / "media"
+    local_vectordb_home = contextqa_base_data_dir / "vectordb-data"
+
+
 class AppSettings(BaseSettings):
     """Project settings"""
 
-    config_path: Path | None = None
+    config_path: Path = Configurables.config_path
     tmp_separator: str = ":::sep:::"
-    media_home: Path | None = None
-    local_vectordb_home: Path | None = None
+    media_home: Path = Configurables.media_home
+    local_vectordb_home: Path = Configurables.local_vectordb_home
     sqlite_url: str = f"sqlite:///{contextqa_base_data_dir / 'contextqa'}.sqlite3"
     deployment: Literal["dev", "prod"] = "prod"
 
-    def init_from_cli(self, config_path: Path, media_home: Path, local_vectordb_home: Path):
+    def initialize(
+        self,
+        config_path: Path | None = None,
+        media_home: Path | None = None,
+        local_vectordb_home: Path | None = None,
+    ):
         """Initialize the configurable if users provide the corresponding CLI arguments"""
-        config_path.parent.mkdir(parents=True, exist_ok=True)
-        self.config_path = config_path
-        media_home.mkdir(parents=True, exist_ok=True)
-        self.media_home = media_home
-        local_vectordb_home.mkdir(parents=True, exist_ok=True)
-        self.local_vectordb_home = local_vectordb_home
+        if config_path:
+            self.config_path = config_path
+        if media_home:
+            self.media_home = media_home
+        if local_vectordb_home:
+            self.local_vectordb_home = local_vectordb_home
+
+        self.config_path.parent.mkdir(parents=True, exist_ok=True)
+        self.media_home.mkdir(parents=True, exist_ok=True)
+        self.local_vectordb_home.mkdir(parents=True, exist_ok=True)
 
     @property
     def debug(self) -> bool:
@@ -97,3 +114,7 @@ class AppSettings(BaseSettings):
 
 
 settings = AppSettings()
+
+
+if settings.deployment == "dev":
+    settings.initialize()
