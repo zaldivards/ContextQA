@@ -108,8 +108,7 @@ class PineconeClient(StoreClient):
             filter={"source": {"$eq": source}},
             include_metadata=False,
             include_values=False,
-            # OpenAI's embeddings dimension. This needs to change if support for huggingface encoders is added
-            vector=[0] * 1536,
+            vector=[0] * 768,
         )
 
         return map(lambda item: item["id"], data["matches"])

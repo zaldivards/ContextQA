@@ -30,8 +30,7 @@
             <div class="grid col-12 mt-5" v-else>
                 <div class="flex flex-column gap-2 col-6">
                     <label for="environment">Environment region</label>
-                    <InputText id="environment" v-model="storeParams['environment']"
-                        class="border-round-xl" />
+                    <InputText id="environment" v-model="storeParams['environment']" class="border-round-xl" />
                 </div>
                 <div class="flex flex-column gap-2 col-6">
                     <label for="index">Index</label>
@@ -42,12 +41,15 @@
                     <label for="token">Access token</label>
                     <div class="flex justify-content-between">
                         <Password id="token" :feedback="false" v-model="storeParams['token']"
-                            inputClass="border-round-xl" class="flex-grow-1"/>
+                            inputClass="border-round-xl" class="flex-grow-1" />
                         <HelpButton>
                             <template #content>
-                                <ol>
+                                <ol class="m-0" :style="{ width: '500px' }">
                                     <li>Create an <a href="https://www.pinecone.io/" target="_blank"
                                             class="no-underline">account</a></li>
+                                    <li>Create an index with a specific name and environment region. Note that you must
+                                        specify an
+                                        embedding size of <span class="font-bold">768</span> dimmensions</li>
                                     <li>Generate and get the API key in the <span class="font-bold">API keys</span>
                                         section</li>
                                 </ol>

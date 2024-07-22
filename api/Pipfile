@@ -32,6 +32,7 @@ langchain-pinecone = "*"
 cryptography = "*"
 typer = "*"
 langchain-community = "*"
+langchain-huggingface = "*"
 
 [dev-packages]
 black = "*"

@@ -18,7 +18,7 @@ from langchain_community.docstore.document import Document
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableSequence
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_openai import OpenAIEmbeddings
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from pydantic import BaseModel, ConfigDict
 from pinecone import Pinecone, ServerlessSpec, Index
@@ -33,6 +33,7 @@ from contextqa.utils.settings import get_or_set
 from contextqa.utils.sources import check_digest, get_not_seen_chunks
 from contextqa.utils.streaming import consumer_producer_qa
 
+
 LOADERS: dict[str, Type[BaseLoader]] = {
     ".pdf": PyMuPDFLoader,
     ".txt": TextLoader,
@@ -42,6 +43,8 @@ LOADERS: dict[str, Type[BaseLoader]] = {
 
 class LLMContextManager(ABC):
     """Base llm manager"""
+
+    encoder = HuggingFaceEmbeddings()
 
     @property
     def _store_settings(self) -> VectorStoreSettings:
@@ -176,10 +179,9 @@ class LocalManager(LLMContextManager):
 
     def persist(self, filename: str, file_: BinaryIO, session: Session) -> LLMResult:
         documents, ids = self.load_and_preprocess(filename, file_, session)
-        embeddings_util = OpenAIEmbeddings()
         Chroma.from_documents(
             documents,
-            embeddings_util,
+            self.encoder,
             ids=ids,
             persist_directory=str(self._store_settings.store_params["home"]),
             client=self.client,
@@ -188,11 +190,10 @@ class LocalManager(LLMContextManager):
         return LLMResult(response="success")
 
     def context_object(self) -> VectorStore:
-        embeddings_util = OpenAIEmbeddings()
         processor = Chroma(
             client=self.client,
             collection_name=self._store_settings.store_params["collection"],
-            embedding_function=embeddings_util,
+            embedding_function=self.encoder,
             persist_directory=str(self._store_settings.store_params["home"]),
         )
         return processor
@@ -232,9 +233,8 @@ class PineconeManager(LLMContextManager):
             logger.exception("Error connecting to pinecone: %s", ex)
             raise VectorDBConnectionError from ex
         documents, ids = self.load_and_preprocess(filename, file_, session)
-        embeddings_util = OpenAIEmbeddings()
         try:
-            _CustomPineconeVectorStore.from_documents(documents, embeddings_util, index_name=index, ids=ids)
+            _CustomPineconeVectorStore.from_documents(documents, self.encoder, index_name=index, ids=ids)
         except Exception as ex:
             logger.exception("Error indexing source: %s", ex)
             session.rollback()
@@ -242,9 +242,8 @@ class PineconeManager(LLMContextManager):
         return LLMResult(response="success")
 
     def context_object(self) -> VectorStore:
-        embeddings_util = OpenAIEmbeddings()
         processor = _CustomPineconeVectorStore.from_existing_index(
-            index_name=self._store_settings.store_params["index"], embedding=embeddings_util
+            index_name=self._store_settings.store_params["index"], embedding=self.encoder
         )
         return processor
 
