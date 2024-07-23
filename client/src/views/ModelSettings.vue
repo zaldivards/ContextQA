@@ -24,7 +24,7 @@
 
                 <div class="col-6">
                     <Dropdown v-model="selectedModel" :options="modelOptions"
-                        class="w-full bg-inherit border-black-alpha-20 border-round" :focusOnHover="false" :pt="{
+                        class="w-full bg-inherit list-black-border border-round" :focusOnHover="false" :pt="{
                             panel: { class: 'bg-inherit' }
                         }" placeholder="Select a model"></Dropdown>
                 </div>

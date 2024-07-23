@@ -67,7 +67,7 @@
                     <label for="chunkSize">Chunk size</label>
 
                     <Dropdown v-model="chunkSize" :options="[2000, 1000, 500, 400, 300, 100]"
-                        class="col-12 bg-inherit border-black-alpha-20" :focusOnHover="false" :pt="{
+                        class="col-12 bg-inherit list-black-border border-round" :focusOnHover="false" :pt="{
                             panel: { class: 'bg-inherit' }
                         }" placeholder="Select the chunk size" id="chunkSize"></Dropdown>
                 </div>
@@ -75,7 +75,7 @@
                     <label for="overlap">Chunk overlap</label>
 
                     <Dropdown v-model="overlap" :options="[1000, 500, 200, 100, 50]"
-                        class="col-12 bg-inherit border-black-alpha-20" :focusOnHover="false" :pt="{
+                        class="col-12 bg-inherit list-black-border border-round" :focusOnHover="false" :pt="{
                             panel: { class: 'bg-inherit' }
                         }" placeholder="Select the chunk overlap" id="overlap"></Dropdown>
                 </div>

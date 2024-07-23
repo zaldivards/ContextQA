@@ -9,3 +9,7 @@ body {
   font-family: 'Poppins', sans-serif !important;
   scrollbar-width: thin;
 }
+
+.list-black-border{
+  border-color: rgba(0,0,0,0.2) !important
+}
