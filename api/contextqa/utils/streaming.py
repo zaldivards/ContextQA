@@ -1,5 +1,6 @@
 import asyncio
 import json
+from re import sub
 from typing import AsyncGenerator, Any, Dict, Tuple, Type, Sequence
 
 import google.generativeai as genai
@@ -43,10 +44,15 @@ async def consumer_producer(
         if event_chunk["event"] == "on_chat_model_stream":
             if is_agent:
                 if content := event_chunk["data"]["chunk"].content:
-                    if '"action_input": "' in iter_content:
+                    if (
+                        'action_input"' in iter_content
+                        or ('action_input"' in content and final_answer)
+                        or "action_input" in iter_content
+                        or ("action_input" in content and final_answer)
+                    ):
                         if content not in ('"', "}", "```"):
-                            yield content
-                    if content in ("Final Answer", "Final", "Answer"):
+                            yield sub(r'"\n?\}|"\n{1,}\}```$|action_input": "', "", content)
+                    if any(stop_signal in content for stop_signal in ("Final Answer", "Final", "Answer")):
                         final_answer = True
                     if final_answer:
                         iter_content += content
