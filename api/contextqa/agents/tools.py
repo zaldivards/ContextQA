@@ -22,22 +22,31 @@ def _searcher(search_term: str):
     """Search for the provided search term in Google Search when the assistant could not find information to answer"""
     logger.info("Searching for the next search term: '%s'", search_term)
     results = search(search_term, num_results=5)
-    for url in results:
+    for idx, url in enumerate(results, 1):
+        error_ocurred = False
         try:
             html_content = BeautifulSoup(_get_content(url), "html.parser")
         except (ReadTimeoutError, HTTPError) as ex:
             logger.warning("Got HTTP error when requesting %s. Error %s", url, ex)
+            error_ocurred = True
+
+        html_text = html_content.text
+        if _js_disable_message(html_text):
+            logger.warning("%s detected JavaScript not available", url)
+            error_ocurred = True
+
+        if error_ocurred:
+            # if the last URL is not successfully requested, return a direct response as if it was the final answer
+            if len(results) == idx:
+                return "Sorry, got an HTTP error when requesting the internet"
+            # if there are more URLs to request, continue
             continue
-        else:
-            html_text = html_content.text
-            if _js_disable_message(html_text):
-                logger.warning("%s detected JavaScript not available", url)
-                continue
-            words = html_text.replace("\n", "").split()
-            if len(words) > 100:
-                logger.info("Chosen url: %s", url)
-                text = "I got the response:" + " ".join(words[:500])
-                break
+
+        words = html_text.replace("\n", "").split()
+        if len(words) > 100:
+            logger.info("Chosen url: %s", url)
+            text = "I got the response:" + " ".join(words[:500])
+            break
     return text
 
 
