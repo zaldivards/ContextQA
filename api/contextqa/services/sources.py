@@ -84,17 +84,20 @@ def remove_sources(session: Session, sources: list[str], client: StoreClient) ->
         Specific store client
     """
     store_settings = get_or_set(kind="store")
+    db_index = store_settings.store_params.get("collection", "index")
+    complete_index_name = (
+        f"{store_settings.store_params['home']}/{db_index}" if store_settings.store == "chroma" else db_index
+    )
     sources_to_remove = (
         session.query(Source.id)
         .join(Index)
         .join(VectorStore)
         .filter(
             Source.name.in_(sources),
-            Index.name == store_settings.store_params.get("collection", "index"),
+            Index.name == complete_index_name,
             VectorStore.name == store_settings.store,
         )
     )
-
     removed_sources = session.query(Source).filter(Source.id.in_(sources_to_remove)).delete(synchronize_session=False)
 
     chunks_to_remove = client.get_ids(sources)
