@@ -39,7 +39,8 @@ class StoreClient:
         chunks_to_remove = []
         for source in sources:
             if source.endswith(".pdf"):
-                source = f"{get_or_set('extra').media_dir}/{source}"
+                # pdf sources have the template prefix: {}
+                source = f"{{}}/{source}"
             chunks = self.get(source)
             chunks_to_remove.extend(chunks)
 
