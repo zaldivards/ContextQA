@@ -1,12 +1,12 @@
 <template>
-    <div class="my-6 justify-content-center">
+    <div class="my-6">
         <ConfirmDialog :draggable="false" />
         <Toast class="z-5" />
-        <div class="px-3 lg:px-0 w-screen lg:w-10 m-auto">
+        <div class="px-3 lg:px-0 lg:w-10 m-auto">
             <h1>Manage sources</h1>
-            <DataTable v-model:selection="selectedSources" :value="sources" dataKey="id" paginator size="large"
-                :rows="size" :totalRecords="totalRecords" :rowsPerPageOptions="[5, 10]" @page="pageUpdated" :lazy="true"
-                :loading="loading" class="dt-responsive-table" :pt="{
+            <DataTable v-model:selection="selectedSources" :value="sources" dataKey="id" paginator size="normal"
+                selectionMode="multiple" :rows="size" :totalRecords="totalRecords" :rowsPerPageOptions="[5, 10]"
+                @page="pageUpdated" :lazy="true" :loading="loading" class="dt-responsive-table" :pt="{
                     bodyRow: { class: 'bg-black-alpha-40 text-white' }, header: { class: 'bg-black-alpha-40 border-none' }
                 }">
 
@@ -26,6 +26,9 @@
                     </div>
                 </template>
 
+                <Column selectionMode="multiple" :pt="{
+                    headerCell: { class: 'bg-blue-800 text-white' }
+                }" class="border-t-1 border-black-alpha-60" />
                 <Column field="id" header="ID" :pt="{
                     headerCell: { class: 'bg-blue-800 text-white' }
                 }" class="border-t-1 border-black-alpha-60" />
@@ -34,10 +37,7 @@
                 }" class="border-t-1 border-black-alpha-60" />
                 <Column field="digest" header="Digest" :pt="{
                     headerCell: { class: 'bg-blue-800 text-white' }
-                }" class="border-t-1 border-black-alpha-60" />
-                <Column selectionMode="multiple" headerStyle="width: 3rem" :pt="{
-                    headerCell: { class: 'bg-blue-800 text-white' }
-                }" class="border-t-1 border-black-alpha-60" />
+                }" class="border-t-1 border-black-alpha-60 hash-style" />
                 <template #empty>No sources available</template>
             </DataTable>
             <button @click="deleteSources"
@@ -181,3 +181,9 @@ export default {
     }
 }
 </script>
+<style>
+.hash-style {
+    word-break: break-all;
+    overflow-wrap: break-word
+}
+</style>

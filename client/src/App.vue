@@ -304,8 +304,6 @@ export default {
   .dt-responsive-table table tbody td {
     display: block !important;
     padding: 5px 5px 5px 5px;
-    white-space: nowrap !important;
-    width: 400px !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }

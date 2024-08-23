@@ -3,7 +3,8 @@
         <ConfirmDialog :draggable="false" />
         <Toast class="z-5" />
         <div class="px-3 lg:px-0 w-full lg:w-4 m-auto">
-            <Message severity="warn">Please make sure your relational DB and Redis instance (if needed) are up and
+            <Message severity="warn" :closable="false">Please make sure your relational DB and Redis instance (if
+                needed) are up and
                 running</Message>
             <h1 class="mb-0">Extra settings</h1>
             <div class="flex flex-column gap-2">
