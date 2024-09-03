@@ -102,9 +102,10 @@ class LLMContextManager(ABC):
                 file_writer = NamedTemporaryFile(mode="wb", suffix=f"{settings.tmp_separator}{filename}")
                 path = file_writer.name
             file_writer.write(source_content)
+        finally:
+            file_writer.seek(0)
             loader: BaseLoader = LOADERS[extension](str(path))
             documents = loader.load()
-        finally:
             file_writer.close()
 
         # we do not want to split csv files as they are splitted by rows

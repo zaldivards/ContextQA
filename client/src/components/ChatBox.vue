@@ -1,5 +1,5 @@
 <template>
-  <div class="my-6 justify-content-center">
+  <div class="my-4 justify-content-center">
     <div class="lg:px-0 lg:w-10 lg:m-auto md:m-auto grid justify-content-center"
       :class="sourcesReady || !requiresContext ? '' : ['opacity-50', 'disabled']">
       <DynamicDialog :pt="{ content: { class: 'h-full' } }" />
@@ -84,7 +84,9 @@
           <p class="w-fit bg-gray-500 p-4 border-round-xl">No conversation yet</p>
         </div>
 
-        <div class="fixed bottom-0 w-11 lg:w-5 lg:mb-3 md:mb-3 mb-1 opacity-100">
+      </Panel>
+      <div class="fixed bottom-0 w-full flex justify-content-center" style="background-color: #0e1b30">
+        <div class="w-11 lg:w-5 lg:mb-3 md:mb-3 mb-1 pt-1">
           <div class="m-auto flex flex-column gap-0">
             <div class="flex justify-content-start gap-2" v-if="!requiresContext">
               <span class="font-bold text-white-alpha-60">Enable internet access</span>
@@ -101,7 +103,8 @@
             <MessageAdder @send="pushMessages" ref="adder" />
           </div>
         </div>
-      </Panel>
+      </div>
+
     </div>
   </div>
 </template>
@@ -221,7 +224,7 @@ export default {
     prettyFormat(message) {
       if (message.role == 'user') return message.content; // ensure to pretty format only the bot responses
       let cleanMessage = message.content.trim().replace(/<sources>/g, '')
-        if (!cleanMessage.startsWith('```'))
+      if (!cleanMessage.startsWith('```'))
         // remove leading whitespaces to prevent marked to format certain parts of the response as code blocks
         // code blocks must be surrounded by triple backticks
         cleanMessage = cleanMessage.replace(/ {2,}/, '')
