@@ -14,7 +14,7 @@
 
 ---
 
-ContextQA is a modern utility that provides a ready-to-use LLM-powered application. It is built on top of giants such as [FastAPI](https://fastapi.tiangolo.com/) and [LangChain](https://www.langchain.com/).
+ContextQA is a modern utility that provides a ready-to-use LLM-powered application. It is built on top of giants such as [FastAPI](https://fastapi.tiangolo.com/), [LangChain](https://www.langchain.com/), and [Hugging Face](https://huggingface.co/).
 
 Key features include:
 - Regular chat supporting knowledge expansion via internet access
@@ -46,15 +46,17 @@ contextqa init --help
 ```bash
 $ contextqa init
 
-2024-07-08 12:50:55,304 - INFO - Using SQLite
-INFO:     Started server process [29337]
+2024-08-28 01:00:39,586 - INFO - Using SQLite
+2024-08-28 01:00:47,850 - INFO - Use pytorch device_name: cpu
+2024-08-28 01:00:47,850 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-mpnet-base-v2
+INFO:     Started server process [20658]
 INFO:     Waiting for application startup.
-2024-07-08 12:50:55,450 - INFO - Running initial migrations...
-2024-07-08 12:50:55,452 - INFO - Context impl SQLiteImpl.
-2024-07-08 12:50:55,452 - INFO - Will assume non-transactional DDL.
-2024-07-08 12:50:55,465 - INFO - Running upgrade  -> 0bb7d192c063, Initial migration
-2024-07-08 12:50:55,471 - INFO - Running upgrade 0bb7d192c063 -> b7d862d599fe, Support for store types and related indexes
-2024-07-08 12:50:55,487 - INFO - Running upgrade b7d862d599fe -> 3058bf204a05, unique index name
+2024-08-28 01:00:47,850 - INFO - Running initial migrations...
+2024-08-28 01:00:47,853 - INFO - Context impl SQLiteImpl.
+2024-08-28 01:00:47,855 - INFO - Will assume non-transactional DDL.
+2024-08-28 01:00:47,860 - INFO - Running upgrade  -> 0bb7d192c063, Initial migration
+2024-08-28 01:00:47,862 - INFO - Running upgrade 0bb7d192c063 -> b7d862d599fe, Support for store types and related indexes
+2024-08-28 01:00:47,864 - INFO - Running upgrade b7d862d599fe -> 3058bf204a05, unique index name
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://localhost:8080 (Press CTRL+C to quit)
 ```
@@ -67,3 +69,12 @@ Open your browser at http://localhost:8080. You will see the initialization step
 Or the main contextqa view - If the initial configuration has already been set
 
 <img alt="main view" src="https://contextqa-assets.s3.amazonaws.com/main.png" width="1000px">
+
+## Guideline
+
+For detailed usage instructions, please refer to the [usage guidelines](https://zaldivards.github.io/introducing-contextqa/).
+
+## Contributing
+
+We welcome contributions to **ContextQA**! To get started, please refer to our [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to contribute. 
+Your feedback and contributions help us improve and enhance the project. Thank you for your interest in contributing!
