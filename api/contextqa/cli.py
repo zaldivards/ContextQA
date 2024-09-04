@@ -12,6 +12,13 @@ app = Typer()
 
 @app.command()
 def init(
+    host: str = Option(
+        "localhost",
+        "-h",
+        "--host",
+        help="Specify the hostname or IP address where the server will listen for incoming requests. Use 'localhost' "
+        "to bind to the local machine or '0.0.0.0' to bind to all available network interfaces.",
+    ),
     port: int = Option(8080, "--port", "-p", help="Port number to run the server on"),
     settings_path: Path = Option(
         Configurables.config_path,
@@ -49,7 +56,7 @@ def init(
             "Data might be lost if you already have initialized contextqa. If this is the first time, proceed.[/bold yellow]\n"
         )
     settings.initialize(settings_path, media_home, local_vectordb_home)
-    uvicorn.run("contextqa.main:app", host="localhost", port=port, loop="asyncio")
+    uvicorn.run("contextqa.main:app", host=host, port=port, loop="asyncio")
 
 
 @app.callback()
